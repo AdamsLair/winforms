@@ -1,4 +1,4 @@
-propertygrid
-============
+AdamsLair.WinForms
+==================
 
-A custom PropertyGrid Control for Windows.Forms
+A collection of custom Controls for Windows.Forms.
