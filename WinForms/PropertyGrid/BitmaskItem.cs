@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
 	public class BitmaskItem
 	{

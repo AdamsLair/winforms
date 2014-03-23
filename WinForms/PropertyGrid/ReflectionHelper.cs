@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Reflection;
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
 	internal static class ReflectionHelper
 	{

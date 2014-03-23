@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
 	public class MemberwisePropertyEditor : GroupedPropertyEditor
 	{

@@ -8,10 +8,10 @@ using System.Drawing.Drawing2D;
 using System.ComponentModel;
 using System.Reflection;
 
-using AdamsLair.WinForms.PropertyGrid.PropertyEditors;
-using AdamsLair.WinForms.PropertyGrid.Renderer;
+using AdamsLair.WinForms.PropertyEditors;
+using AdamsLair.WinForms.Renderer;
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
 	public class ProviderContext
 	{

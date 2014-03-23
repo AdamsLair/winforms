@@ -7,10 +7,10 @@ using System.Reflection;
 
 using IList = System.Collections.IList;
 
-using AdamsLair.WinForms.PropertyGrid.Renderer;
-using AdamsLair.WinForms.PropertyGrid.EditorTemplates;
+using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.EditorTemplates;
 
-namespace AdamsLair.WinForms.PropertyGrid.PropertyEditors
+namespace AdamsLair.WinForms.PropertyEditors
 {
 	public class IListPropertyEditor : GroupedPropertyEditor
 	{

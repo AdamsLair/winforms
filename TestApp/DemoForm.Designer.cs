@@ -1,4 +1,4 @@
-﻿namespace AdamsLair.WinForms.PropertyGrid
+﻿namespace AdamsLair.WinForms
 {
 	partial class DemoForm
 	{
@@ -28,7 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.propertyGrid1 = new AdamsLair.WinForms.PropertyGrid.PropertyGrid();
+			this.propertyGrid1 = new AdamsLair.WinForms.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
 			this.radioDisabled = new System.Windows.Forms.RadioButton();
 			this.radioReadOnly = new System.Windows.Forms.RadioButton();
@@ -37,6 +37,7 @@
 			this.buttonObjA = new System.Windows.Forms.Button();
 			this.buttonObjB = new System.Windows.Forms.Button();
 			this.buttonObjMulti = new System.Windows.Forms.Button();
+			this.buttonColorPicker = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
@@ -51,7 +52,7 @@
 			this.propertyGrid1.Name = "propertyGrid1";
 			this.propertyGrid1.ReadOnly = false;
 			this.propertyGrid1.ShowNonPublic = false;
-			this.propertyGrid1.Size = new System.Drawing.Size(514, 294);
+			this.propertyGrid1.Size = new System.Drawing.Size(551, 294);
 			this.propertyGrid1.TabIndex = 0;
 			// 
 			// radioEnabled
@@ -149,11 +150,23 @@
 			this.buttonObjMulti.UseVisualStyleBackColor = true;
 			this.buttonObjMulti.Click += new System.EventHandler(this.buttonObjMulti_Click);
 			// 
+			// buttonColorPicker
+			// 
+			this.buttonColorPicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.buttonColorPicker.Location = new System.Drawing.Point(417, 312);
+			this.buttonColorPicker.Name = "buttonColorPicker";
+			this.buttonColorPicker.Size = new System.Drawing.Size(108, 23);
+			this.buttonColorPicker.TabIndex = 12;
+			this.buttonColorPicker.Text = "ColorPicker";
+			this.buttonColorPicker.UseVisualStyleBackColor = true;
+			this.buttonColorPicker.Click += new System.EventHandler(this.buttonColorPicker_Click);
+			// 
 			// DemoForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(538, 370);
+			this.ClientSize = new System.Drawing.Size(575, 370);
+			this.Controls.Add(this.buttonColorPicker);
 			this.Controls.Add(this.buttonObjMulti);
 			this.Controls.Add(this.buttonObjB);
 			this.Controls.Add(this.buttonObjA);
@@ -172,7 +185,7 @@
 
 		#endregion
 
-		private PropertyGrid propertyGrid1;
+		private AdamsLair.WinForms.PropertyGrid propertyGrid1;
 		private System.Windows.Forms.RadioButton radioEnabled;
 		private System.Windows.Forms.RadioButton radioDisabled;
 		private System.Windows.Forms.RadioButton radioReadOnly;
@@ -181,6 +194,7 @@
 		private System.Windows.Forms.Button buttonObjA;
 		private System.Windows.Forms.Button buttonObjB;
 		private System.Windows.Forms.Button buttonObjMulti;
+		private System.Windows.Forms.Button buttonColorPicker;
 	}
 }
 

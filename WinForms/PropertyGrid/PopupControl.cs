@@ -8,7 +8,7 @@ using System.Windows.Forms;
 // http://www.codeproject.com/Articles/25471/Customizable-ComboBox-Drop-Down
 // (c) Lea Hayes
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
     public enum PopupResizeMode
     {

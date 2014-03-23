@@ -7,7 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace AdamsLair.WinForms.PropertyGrid
+using AdamsLair.WinForms;
+using AdamsLair.WinForms;
+
+namespace AdamsLair.WinForms
 {
 	public partial class DemoForm : Form
 	{
@@ -222,6 +225,12 @@ namespace AdamsLair.WinForms.PropertyGrid
 		private void buttonObjA_Click(object sender, EventArgs e)
 		{
 			this.propertyGrid1.SelectObject(this.objA);
+		}
+
+		private void buttonColorPicker_Click(object sender, EventArgs e)
+		{
+			ColorPickerDialog dialog = new ColorPickerDialog();
+			dialog.ShowDialog();
 		}
 	}
 }

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 
-using AdamsLair.WinForms.PropertyGrid.Renderer;
-using ButtonState = AdamsLair.WinForms.PropertyGrid.Renderer.ButtonState;
+using AdamsLair.WinForms.Renderer;
+using ButtonState = AdamsLair.WinForms.Renderer.ButtonState;
 
-namespace AdamsLair.WinForms.PropertyGrid.EditorTemplates
+namespace AdamsLair.WinForms.EditorTemplates
 {
 	public class MultiComboBoxEditorTemplate : EditorTemplate, IPopupControlHost
 	{

@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 using AdamsLair.WinForms.Properties;
 
-namespace AdamsLair.WinForms.PropertyGrid.Renderer
+namespace AdamsLair.WinForms.Renderer
 {
 	public enum TextBoxStyle
 	{

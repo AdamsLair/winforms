@@ -6,9 +6,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 
-using AdamsLair.WinForms.PropertyGrid.Renderer;
+using AdamsLair.WinForms.Renderer;
 
-namespace AdamsLair.WinForms.PropertyGrid
+namespace AdamsLair.WinForms
 {
 	public class PropertyEditorEventArgs : EventArgs
 	{

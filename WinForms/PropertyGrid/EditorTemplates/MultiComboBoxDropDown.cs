@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace AdamsLair.WinForms.PropertyGrid.EditorTemplates
+namespace AdamsLair.WinForms.EditorTemplates
 {
 	public partial class MultiComboBoxDropDown : CheckedListBox
 	{

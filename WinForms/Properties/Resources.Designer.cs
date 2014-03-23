@@ -22,7 +22,7 @@ namespace AdamsLair.WinForms.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace AdamsLair.WinForms.Properties {
         ///   Gibt die zwischengespeicherte ResourceManager-Instanz zurück, die von dieser Klasse verwendet wird.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("AdamsLair.WinForms.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace AdamsLair.WinForms.Properties {
         ///   Ressourcenzuordnungen, die diese stark typisierte Ressourcenklasse verwenden.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap DropDownIcon {
+        public static System.Drawing.Bitmap DropDownIcon {
             get {
                 object obj = ResourceManager.GetObject("DropDownIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -73,7 +73,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeClosedDisabled {
+        public static System.Drawing.Bitmap ExpandNodeClosedDisabled {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeClosedDisabled", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -83,7 +83,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeClosedHot {
+        public static System.Drawing.Bitmap ExpandNodeClosedHot {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeClosedHot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -93,7 +93,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeClosedNormal {
+        public static System.Drawing.Bitmap ExpandNodeClosedNormal {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeClosedNormal", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -103,7 +103,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeClosedPressed {
+        public static System.Drawing.Bitmap ExpandNodeClosedPressed {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeClosedPressed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -113,7 +113,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeOpenedDisabled {
+        public static System.Drawing.Bitmap ExpandNodeOpenedDisabled {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeOpenedDisabled", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -123,7 +123,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeOpenedHot {
+        public static System.Drawing.Bitmap ExpandNodeOpenedHot {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeOpenedHot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -133,7 +133,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeOpenedNormal {
+        public static System.Drawing.Bitmap ExpandNodeOpenedNormal {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeOpenedNormal", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -143,7 +143,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ExpandNodeOpenedPressed {
+        public static System.Drawing.Bitmap ExpandNodeOpenedPressed {
             get {
                 object obj = ResourceManager.GetObject("ExpandNodeOpenedPressed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -153,7 +153,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ImageAdd {
+        public static System.Drawing.Bitmap ImageAdd {
             get {
                 object obj = ResourceManager.GetObject("ImageAdd", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -163,7 +163,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ImageDelete {
+        public static System.Drawing.Bitmap ImageDelete {
             get {
                 object obj = ResourceManager.GetObject("ImageDelete", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -173,7 +173,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap NumberGripIcon {
+        public static System.Drawing.Bitmap NumberGripIcon {
             get {
                 object obj = ResourceManager.GetObject("NumberGripIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -183,7 +183,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die [0} Objects ähnelt.
         /// </summary>
-        internal static string PropertyGrid_N_Objects {
+        public static string PropertyGrid_N_Objects {
             get {
                 return ResourceManager.GetString("PropertyGrid_N_Objects", resourceCulture);
             }
@@ -192,7 +192,7 @@ namespace AdamsLair.WinForms.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Properties ähnelt.
         /// </summary>
-        internal static string PropertyName_Default {
+        public static string PropertyName_Default {
             get {
                 return ResourceManager.GetString("PropertyName_Default", resourceCulture);
             }
