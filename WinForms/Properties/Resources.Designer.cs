@@ -181,7 +181,7 @@ namespace AdamsLair.WinForms.Properties {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die [0} Objects ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die {0} Objects ähnelt.
         /// </summary>
         public static string PropertyGrid_N_Objects {
             get {
