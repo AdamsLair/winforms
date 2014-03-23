@@ -69,9 +69,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PropertyGrid\AdamsLair.PropertyGrid.csproj">
+    <ProjectReference Include="..\PropertyGrid\AdamsLair.WinForms.csproj">
       <Project>{44E2FD11-C687-41ED-B72F-1A4C92479EDC}</Project>
-      <Name>AdamsLair.PropertyGrid</Name>
+      <Name>AdamsLair.WinForms</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

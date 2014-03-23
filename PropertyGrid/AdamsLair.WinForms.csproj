@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{44E2FD11-C687-41ED-B72F-1A4C92479EDC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AdamsLair.WinForms</RootNamespace>
+    <AssemblyName>AdamsLair.WinForms</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>AdamsLair.WinForms.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile>AdamsLair.WinForms.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PropertyGrid\BitmaskItem.cs" />
+    <Compile Include="PropertyGrid\ControlRenderer.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\ComboBoxDropDown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PropertyGrid\EditorTemplates\ComboBoxEditorTemplate.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\EditorTemplate.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\BitmaskSelectorDropDown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PropertyGrid\EditorTemplates\BitmaskEditorTemplate.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\MultiComboBoxDropDown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PropertyGrid\EditorTemplates\MultiComboBoxEditorTemplate.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\NumericEditorTemplate.cs" />
+    <Compile Include="PropertyGrid\EditorTemplates\StringEditorTemplate.cs" />
+    <Compile Include="PropertyGrid\GroupedPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\ObjectItem.cs" />
+    <Compile Include="PropertyGrid\MemberwisePropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PopupControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertyGrid\PropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\BoolPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\EnumPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\FlaggedEnumPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\BitmaskPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\IListPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\IDictionaryPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\ObjectSelectorPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\StringPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyEditors\NumericPropertyEditor.cs" />
+    <Compile Include="PropertyGrid\PropertyGrid.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropertyGrid\ReflectionHelper.cs" />
+    <Compile Include="Properties\ResourcesCache.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="EmbeddedResources\add.png" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="EmbeddedResources\cross.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeClosedDisabled.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeClosedHot.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeClosedNormal.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeClosedPressed.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeOpenedDisabled.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeOpenedHot.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeOpenedPressed.png" />
+    <EmbeddedResource Include="EmbeddedResources\ExpandNodeOpenedNormal.png" />
+    <EmbeddedResource Include="EmbeddedResources\NumberGripIcon.png" />
+    <EmbeddedResource Include="EmbeddedResources\DropDownIcon.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
