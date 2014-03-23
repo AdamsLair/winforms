@@ -68,12 +68,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PropertyGrid\AdamsLair.WinForms.csproj">
-      <Project>{44E2FD11-C687-41ED-B72F-1A4C92479EDC}</Project>
-      <Name>AdamsLair.WinForms</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
