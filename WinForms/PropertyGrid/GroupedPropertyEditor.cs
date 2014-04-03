@@ -718,8 +718,10 @@ namespace AdamsLair.WinForms
 			{
 				bool lastExpandHovered = this.expandCheckHovered;
 				bool lastActiveHovered = this.activeCheckHovered;
-				this.expandCheckHovered = this.CanExpand && (this.Hints & HintFlags.ExpandEnabled) != HintFlags.None && this.expandCheckRect.Left <= e.X && this.expandCheckRect.Right >= e.X;
-				this.activeCheckHovered = !this.ReadOnly && (this.Hints & HintFlags.ActiveEnabled) != HintFlags.None && this.activeCheckRect.Left <= e.X && this.activeCheckRect.Right >= e.X;
+				Rectangle expandHotSpot = new Rectangle(this.expandCheckRect.X, 0, this.expandCheckRect.Width, this.headerHeight);
+				Rectangle activeHotSpot = new Rectangle(this.activeCheckRect.X, 0, this.activeCheckRect.Width, this.headerHeight);
+				this.expandCheckHovered = this.CanExpand && (this.Hints & HintFlags.ExpandEnabled) != HintFlags.None && expandHotSpot.Contains(e.Location);
+				this.activeCheckHovered = !this.ReadOnly && (this.Hints & HintFlags.ActiveEnabled) != HintFlags.None && activeHotSpot.Contains(e.Location);
 				if (lastExpandHovered != this.expandCheckHovered) this.Invalidate();
 				if (lastActiveHovered != this.activeCheckHovered) this.Invalidate();
 
