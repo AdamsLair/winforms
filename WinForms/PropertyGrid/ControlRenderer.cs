@@ -139,6 +139,7 @@ namespace AdamsLair.WinForms.Renderer
 				return Properties.ResourcesCache.DefaultFontBold;
 			}
 		}
+		public float FocusBrightnessScale { get; set; }
 		public Color ColorHightlight { get; set; }
 		public Color ColorVeryDarkBackground { get; set; }
 		public Color ColorDarkBackground { get; set; }
@@ -156,6 +157,7 @@ namespace AdamsLair.WinForms.Renderer
 		}
 		public void ResetColors()
 		{
+			this.FocusBrightnessScale = 0.85f;
 			this.ColorHightlight = SystemColors.Highlight;
 			this.ColorVeryDarkBackground = SystemColors.ControlDarkDark;
 			this.ColorDarkBackground = SystemColors.ControlDark;

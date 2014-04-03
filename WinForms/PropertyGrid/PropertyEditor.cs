@@ -599,7 +599,9 @@ namespace AdamsLair.WinForms
 		protected void PaintBackground(Graphics g)
 		{
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
-			g.FillRectangle(new SolidBrush(focusBg ? ControlRenderer.ColorBackground.ScaleBrightness(0.85f) : ControlRenderer.ColorBackground), new Rectangle(Point.Empty, this.size));
+			Color bgColor = this.ControlRenderer.ColorBackground;
+			if (focusBg) bgColor = bgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
+			g.FillRectangle(new SolidBrush(bgColor), new Rectangle(Point.Empty, this.size));
 		}
 		protected void PaintButton(Graphics g)
 		{

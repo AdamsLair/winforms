@@ -508,7 +508,9 @@ namespace AdamsLair.WinForms
 
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
 			bool focusBgColor = this.headerStyle == GroupHeaderStyle.Flat || this.headerStyle == GroupHeaderStyle.Simple;
-			ControlRenderer.DrawGroupHeaderBackground(g, this.headerRect, focusBg && focusBgColor ? this.headerColor.Value.ScaleBrightness(0.85f) : this.headerColor.Value, this.headerStyle);
+			Color headerBgColor = this.headerColor.Value;
+			if (focusBg && focusBgColor) headerBgColor = headerBgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
+			ControlRenderer.DrawGroupHeaderBackground(g, this.headerRect, headerBgColor, this.headerStyle);
 			if (focusBg && !focusBgColor)
 			{
 				ControlRenderer.DrawBorder(g, this.headerRect, Renderer.BorderStyle.Simple, BorderState.Normal);
@@ -716,8 +718,8 @@ namespace AdamsLair.WinForms
 			{
 				bool lastExpandHovered = this.expandCheckHovered;
 				bool lastActiveHovered = this.activeCheckHovered;
-				this.expandCheckHovered = this.CanExpand && (this.Hints & HintFlags.ExpandEnabled) != HintFlags.None && this.expandCheckRect.Contains(e.Location);
-				this.activeCheckHovered = !this.ReadOnly && (this.Hints & HintFlags.ActiveEnabled) != HintFlags.None && this.activeCheckRect.Contains(e.Location);
+				this.expandCheckHovered = this.CanExpand && (this.Hints & HintFlags.ExpandEnabled) != HintFlags.None && this.expandCheckRect.Left <= e.X && this.expandCheckRect.Right >= e.X;
+				this.activeCheckHovered = !this.ReadOnly && (this.Hints & HintFlags.ActiveEnabled) != HintFlags.None && this.activeCheckRect.Left <= e.X && this.activeCheckRect.Right >= e.X;
 				if (lastExpandHovered != this.expandCheckHovered) this.Invalidate();
 				if (lastActiveHovered != this.activeCheckHovered) this.Invalidate();
 
