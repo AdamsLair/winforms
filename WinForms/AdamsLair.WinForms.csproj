@@ -59,6 +59,8 @@
     <Compile Include="ColorControls\ColorSlider.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="ListModel\EmptyListModel.cs" />
+    <Compile Include="ListModel\SimpleListModel.cs" />
     <Compile Include="PropertyGrid\BitmaskItem.cs" />
     <Compile Include="PropertyGrid\ControlRenderer.cs" />
     <Compile Include="PropertyGrid\EditorTemplates\ComboBoxDropDown.cs">
@@ -103,6 +105,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ListModel\IListModel.cs" />
+    <Compile Include="ListModel\ListModelEventArgs.cs" />
+    <Compile Include="TiledView\TiledViewItemMouseEventArgs.cs" />
+    <Compile Include="TiledView\TiledViewItemEventArgs.cs" />
+    <Compile Include="TiledView\TiledViewItemDrawEventArgs.cs" />
+    <Compile Include="TiledView\TiledViewEventArgs.cs" />
+    <Compile Include="TiledView\TiledView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Utility\ExtMethodsSystemDrawingColor.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +141,7 @@
     <EmbeddedResource Include="EmbeddedResources\NumberGripIcon.png" />
     <EmbeddedResource Include="EmbeddedResources\DropDownIcon.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

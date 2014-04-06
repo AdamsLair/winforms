@@ -799,6 +799,68 @@ namespace AdamsLair.WinForms.Renderer
 			g.Restore(graphicsState);
 		}
 
+		public void DrawSelectionBox(Graphics g, Rectangle rect, bool solid)
+		{
+			if (rect.Width < 4 || rect.Height < 4) return;
+
+			GraphicsPath borderPath = new GraphicsPath();
+			borderPath.AddPolygon(new [] {
+				new Point(rect.Left, rect.Top + 2),
+				new Point(rect.Left + 2, rect.Top),
+				new Point(rect.Right - 3, rect.Top),
+				new Point(rect.Right - 1, rect.Top + 2),
+				new Point(rect.Right - 1, rect.Bottom - 3),
+				new Point(rect.Right - 3, rect.Bottom - 1),
+				new Point(rect.Left + 2, rect.Bottom - 1),
+				new Point(rect.Left, rect.Bottom - 3) });
+			Rectangle innerRect = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
+			GraphicsPath innerPath = new GraphicsPath();
+			innerPath.AddPolygon(new [] {
+				new Point(innerRect.Left, innerRect.Top + 1),
+				new Point(innerRect.Left + 1, innerRect.Top),
+				new Point(innerRect.Right - 2, innerRect.Top),
+				new Point(innerRect.Right - 1, innerRect.Top + 1),
+				new Point(innerRect.Right - 1, innerRect.Bottom - 2),
+				new Point(innerRect.Right - 2, innerRect.Bottom - 1),
+				new Point(innerRect.Left + 1, innerRect.Bottom - 1),
+				new Point(innerRect.Left, innerRect.Bottom - 2) });
+			
+
+			Color colorInner;
+			Color colorBorder;
+			Brush innerBrush;
+
+			colorBorder = this.ColorDarkBackground.MixWith(this.ColorHightlight, 1.0f, true);
+			colorInner = this.ColorVeryLightBackground;
+
+			Color gradLight2 = this.ColorHightlight.MixWith(this.ColorVeryLightBackground, 0.8f);
+			Color gradLight = this.ColorHightlight.MixWith(this.ColorVeryLightBackground, 0.5f);
+
+			if (!solid)
+			{
+				colorBorder = Color.FromArgb(128, colorBorder);
+				colorInner = Color.FromArgb(64, colorInner);
+				gradLight = Color.FromArgb(64, gradLight);
+				gradLight2 = Color.FromArgb(0, gradLight2);
+			}
+			else
+			{
+				colorBorder = Color.FromArgb(192, colorBorder);
+				colorInner = Color.FromArgb(128, colorInner);
+				gradLight = Color.FromArgb(128, gradLight);
+				gradLight2 = Color.FromArgb(128, gradLight2);
+			}
+
+			innerBrush = new LinearGradientBrush(innerRect, gradLight2, gradLight, 90.0f);
+
+			g.FillRectangle(innerBrush, innerRect);
+
+			g.SmoothingMode = SmoothingMode.AntiAlias;
+			g.DrawPath(new Pen(colorBorder), borderPath);
+			g.DrawPath(new Pen(colorInner), innerPath);
+			g.SmoothingMode = SmoothingMode.Default;
+		}
+
 		private void InitCheckBox(CheckBoxState checkState)
 		{
 			if (checkBoxImages != null && checkBoxImages.ContainsKey(checkState)) return;

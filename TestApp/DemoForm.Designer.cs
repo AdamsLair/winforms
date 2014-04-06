@@ -1,4 +1,4 @@
-﻿namespace AdamsLair.WinForms
+﻿namespace AdamsLair.WinForms.TestApp
 {
 	partial class DemoForm
 	{
@@ -28,6 +28,8 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			AdamsLair.WinForms.EmptyListModel emptyListModel1 = new AdamsLair.WinForms.EmptyListModel();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
 			this.radioDisabled = new System.Windows.Forms.RadioButton();
@@ -38,6 +40,30 @@
 			this.buttonObjB = new System.Windows.Forms.Button();
 			this.buttonObjMulti = new System.Windows.Forms.Button();
 			this.buttonColorPicker = new System.Windows.Forms.Button();
+			this.tabControl = new System.Windows.Forms.TabControl();
+			this.tabPagePropertyGrid = new System.Windows.Forms.TabPage();
+			this.tabPageTiledView = new System.Windows.Forms.TabPage();
+			this.trackBarTileViewSize = new System.Windows.Forms.TrackBar();
+			this.checkBoxTileViewHighlightHover = new System.Windows.Forms.CheckBox();
+			this.checkBoxTileViewUserSelect = new System.Windows.Forms.CheckBox();
+			this.radioTiledDisabled = new System.Windows.Forms.RadioButton();
+			this.radioTiledEnabled = new System.Windows.Forms.RadioButton();
+			this.buttonAddThousandTileItems = new System.Windows.Forms.Button();
+			this.buttonClearTileItems = new System.Windows.Forms.Button();
+			this.buttonRemoveTileItem = new System.Windows.Forms.Button();
+			this.buttonAddTenTileItems = new System.Windows.Forms.Button();
+			this.tiledView = new AdamsLair.WinForms.TiledView();
+			this.tabPageColorControls = new System.Windows.Forms.TabPage();
+			this.colorSlider3 = new AdamsLair.WinForms.ColorSlider();
+			this.colorPanel2 = new AdamsLair.WinForms.ColorPanel();
+			this.colorSlider2 = new AdamsLair.WinForms.ColorSlider();
+			this.colorSlider1 = new AdamsLair.WinForms.ColorSlider();
+			this.colorPanel1 = new AdamsLair.WinForms.ColorPanel();
+			this.tabControl.SuspendLayout();
+			this.tabPagePropertyGrid.SuspendLayout();
+			this.tabPageTiledView.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).BeginInit();
+			this.tabPageColorControls.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
@@ -47,19 +73,21 @@
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.propertyGrid1.AutoScroll = true;
+			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
 			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.propertyGrid1.Location = new System.Drawing.Point(12, 12);
+			this.propertyGrid1.Location = new System.Drawing.Point(6, 6);
 			this.propertyGrid1.Name = "propertyGrid1";
 			this.propertyGrid1.ReadOnly = false;
 			this.propertyGrid1.ShowNonPublic = false;
-			this.propertyGrid1.Size = new System.Drawing.Size(551, 294);
+			this.propertyGrid1.Size = new System.Drawing.Size(300, 379);
 			this.propertyGrid1.TabIndex = 0;
 			// 
 			// radioEnabled
 			// 
 			this.radioEnabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioEnabled.AutoSize = true;
-			this.radioEnabled.Location = new System.Drawing.Point(12, 341);
+			this.radioEnabled.Checked = true;
+			this.radioEnabled.Location = new System.Drawing.Point(6, 391);
 			this.radioEnabled.Name = "radioEnabled";
 			this.radioEnabled.Size = new System.Drawing.Size(64, 17);
 			this.radioEnabled.TabIndex = 3;
@@ -72,11 +100,10 @@
 			// 
 			this.radioDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioDisabled.AutoSize = true;
-			this.radioDisabled.Location = new System.Drawing.Point(160, 341);
+			this.radioDisabled.Location = new System.Drawing.Point(154, 391);
 			this.radioDisabled.Name = "radioDisabled";
 			this.radioDisabled.Size = new System.Drawing.Size(66, 17);
 			this.radioDisabled.TabIndex = 4;
-			this.radioDisabled.TabStop = true;
 			this.radioDisabled.Text = "Disabled";
 			this.radioDisabled.UseVisualStyleBackColor = true;
 			this.radioDisabled.CheckedChanged += new System.EventHandler(this.radioDisabled_CheckedChanged);
@@ -85,21 +112,20 @@
 			// 
 			this.radioReadOnly.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioReadOnly.AutoSize = true;
-			this.radioReadOnly.Location = new System.Drawing.Point(82, 341);
+			this.radioReadOnly.Location = new System.Drawing.Point(76, 391);
 			this.radioReadOnly.Name = "radioReadOnly";
 			this.radioReadOnly.Size = new System.Drawing.Size(72, 17);
 			this.radioReadOnly.TabIndex = 5;
-			this.radioReadOnly.TabStop = true;
 			this.radioReadOnly.Text = "ReadOnly";
 			this.radioReadOnly.UseVisualStyleBackColor = true;
 			this.radioReadOnly.CheckedChanged += new System.EventHandler(this.radioReadOnly_CheckedChanged);
 			// 
 			// buttonRefresh
 			// 
-			this.buttonRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonRefresh.Location = new System.Drawing.Point(12, 312);
+			this.buttonRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonRefresh.Location = new System.Drawing.Point(312, 6);
 			this.buttonRefresh.Name = "buttonRefresh";
-			this.buttonRefresh.Size = new System.Drawing.Size(75, 23);
+			this.buttonRefresh.Size = new System.Drawing.Size(108, 23);
 			this.buttonRefresh.TabIndex = 6;
 			this.buttonRefresh.Text = "Refresh";
 			this.buttonRefresh.UseVisualStyleBackColor = true;
@@ -109,7 +135,7 @@
 			// 
 			this.checkBoxNonPublic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkBoxNonPublic.AutoSize = true;
-			this.checkBoxNonPublic.Location = new System.Drawing.Point(232, 342);
+			this.checkBoxNonPublic.Location = new System.Drawing.Point(226, 391);
 			this.checkBoxNonPublic.Name = "checkBoxNonPublic";
 			this.checkBoxNonPublic.Size = new System.Drawing.Size(78, 17);
 			this.checkBoxNonPublic.TabIndex = 8;
@@ -119,67 +145,314 @@
 			// 
 			// buttonObjA
 			// 
-			this.buttonObjA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonObjA.Location = new System.Drawing.Point(93, 312);
+			this.buttonObjA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonObjA.Location = new System.Drawing.Point(312, 35);
 			this.buttonObjA.Name = "buttonObjA";
-			this.buttonObjA.Size = new System.Drawing.Size(99, 23);
+			this.buttonObjA.Size = new System.Drawing.Size(108, 23);
 			this.buttonObjA.TabIndex = 9;
-			this.buttonObjA.Text = "Single Object A";
+			this.buttonObjA.Text = "Select Object A";
 			this.buttonObjA.UseVisualStyleBackColor = true;
 			this.buttonObjA.Click += new System.EventHandler(this.buttonObjA_Click);
 			// 
 			// buttonObjB
 			// 
-			this.buttonObjB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonObjB.Location = new System.Drawing.Point(198, 312);
+			this.buttonObjB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonObjB.Location = new System.Drawing.Point(312, 64);
 			this.buttonObjB.Name = "buttonObjB";
-			this.buttonObjB.Size = new System.Drawing.Size(99, 23);
+			this.buttonObjB.Size = new System.Drawing.Size(108, 23);
 			this.buttonObjB.TabIndex = 10;
-			this.buttonObjB.Text = "Single Object B";
+			this.buttonObjB.Text = "Select Object B";
 			this.buttonObjB.UseVisualStyleBackColor = true;
 			this.buttonObjB.Click += new System.EventHandler(this.buttonObjB_Click);
 			// 
 			// buttonObjMulti
 			// 
-			this.buttonObjMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonObjMulti.Location = new System.Drawing.Point(303, 312);
+			this.buttonObjMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonObjMulti.Location = new System.Drawing.Point(312, 93);
 			this.buttonObjMulti.Name = "buttonObjMulti";
 			this.buttonObjMulti.Size = new System.Drawing.Size(108, 23);
 			this.buttonObjMulti.TabIndex = 11;
-			this.buttonObjMulti.Text = "Multiselect A and B";
+			this.buttonObjMulti.Text = "Select A and B";
 			this.buttonObjMulti.UseVisualStyleBackColor = true;
 			this.buttonObjMulti.Click += new System.EventHandler(this.buttonObjMulti_Click);
 			// 
 			// buttonColorPicker
 			// 
-			this.buttonColorPicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonColorPicker.Location = new System.Drawing.Point(417, 312);
+			this.buttonColorPicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonColorPicker.Location = new System.Drawing.Point(293, 379);
 			this.buttonColorPicker.Name = "buttonColorPicker";
-			this.buttonColorPicker.Size = new System.Drawing.Size(108, 23);
+			this.buttonColorPicker.Size = new System.Drawing.Size(123, 23);
 			this.buttonColorPicker.TabIndex = 12;
-			this.buttonColorPicker.Text = "ColorPicker";
+			this.buttonColorPicker.Text = "Open ColorPicker";
 			this.buttonColorPicker.UseVisualStyleBackColor = true;
 			this.buttonColorPicker.Click += new System.EventHandler(this.buttonColorPicker_Click);
+			// 
+			// tabControl
+			// 
+			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl.Controls.Add(this.tabPagePropertyGrid);
+			this.tabControl.Controls.Add(this.tabPageTiledView);
+			this.tabControl.Controls.Add(this.tabPageColorControls);
+			this.tabControl.Location = new System.Drawing.Point(12, 12);
+			this.tabControl.Name = "tabControl";
+			this.tabControl.SelectedIndex = 0;
+			this.tabControl.Size = new System.Drawing.Size(435, 438);
+			this.tabControl.TabIndex = 13;
+			// 
+			// tabPagePropertyGrid
+			// 
+			this.tabPagePropertyGrid.Controls.Add(this.propertyGrid1);
+			this.tabPagePropertyGrid.Controls.Add(this.buttonRefresh);
+			this.tabPagePropertyGrid.Controls.Add(this.checkBoxNonPublic);
+			this.tabPagePropertyGrid.Controls.Add(this.buttonObjMulti);
+			this.tabPagePropertyGrid.Controls.Add(this.radioDisabled);
+			this.tabPagePropertyGrid.Controls.Add(this.radioReadOnly);
+			this.tabPagePropertyGrid.Controls.Add(this.buttonObjA);
+			this.tabPagePropertyGrid.Controls.Add(this.buttonObjB);
+			this.tabPagePropertyGrid.Controls.Add(this.radioEnabled);
+			this.tabPagePropertyGrid.Location = new System.Drawing.Point(4, 22);
+			this.tabPagePropertyGrid.Name = "tabPagePropertyGrid";
+			this.tabPagePropertyGrid.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPagePropertyGrid.Size = new System.Drawing.Size(427, 412);
+			this.tabPagePropertyGrid.TabIndex = 0;
+			this.tabPagePropertyGrid.Text = "PropertyGrid";
+			this.tabPagePropertyGrid.UseVisualStyleBackColor = true;
+			// 
+			// tabPageTiledView
+			// 
+			this.tabPageTiledView.Controls.Add(this.trackBarTileViewSize);
+			this.tabPageTiledView.Controls.Add(this.checkBoxTileViewHighlightHover);
+			this.tabPageTiledView.Controls.Add(this.checkBoxTileViewUserSelect);
+			this.tabPageTiledView.Controls.Add(this.radioTiledDisabled);
+			this.tabPageTiledView.Controls.Add(this.radioTiledEnabled);
+			this.tabPageTiledView.Controls.Add(this.buttonAddThousandTileItems);
+			this.tabPageTiledView.Controls.Add(this.buttonClearTileItems);
+			this.tabPageTiledView.Controls.Add(this.buttonRemoveTileItem);
+			this.tabPageTiledView.Controls.Add(this.buttonAddTenTileItems);
+			this.tabPageTiledView.Controls.Add(this.tiledView);
+			this.tabPageTiledView.Location = new System.Drawing.Point(4, 22);
+			this.tabPageTiledView.Name = "tabPageTiledView";
+			this.tabPageTiledView.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPageTiledView.Size = new System.Drawing.Size(427, 412);
+			this.tabPageTiledView.TabIndex = 1;
+			this.tabPageTiledView.Text = "TiledView";
+			this.tabPageTiledView.UseVisualStyleBackColor = true;
+			// 
+			// trackBarTileViewSize
+			// 
+			this.trackBarTileViewSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewSize.BackColor = System.Drawing.SystemColors.Window;
+			this.trackBarTileViewSize.LargeChange = 50;
+			this.trackBarTileViewSize.Location = new System.Drawing.Point(346, 122);
+			this.trackBarTileViewSize.Maximum = 250;
+			this.trackBarTileViewSize.Minimum = 16;
+			this.trackBarTileViewSize.Name = "trackBarTileViewSize";
+			this.trackBarTileViewSize.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.trackBarTileViewSize.Size = new System.Drawing.Size(45, 261);
+			this.trackBarTileViewSize.SmallChange = 5;
+			this.trackBarTileViewSize.TabIndex = 9;
+			this.trackBarTileViewSize.TickFrequency = 25;
+			this.trackBarTileViewSize.Value = 50;
+			this.trackBarTileViewSize.ValueChanged += new System.EventHandler(this.trackBarTileViewSize_ValueChanged);
+			// 
+			// checkBoxTileViewHighlightHover
+			// 
+			this.checkBoxTileViewHighlightHover.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkBoxTileViewHighlightHover.AutoSize = true;
+			this.checkBoxTileViewHighlightHover.Checked = true;
+			this.checkBoxTileViewHighlightHover.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxTileViewHighlightHover.Location = new System.Drawing.Point(232, 390);
+			this.checkBoxTileViewHighlightHover.Name = "checkBoxTileViewHighlightHover";
+			this.checkBoxTileViewHighlightHover.Size = new System.Drawing.Size(79, 17);
+			this.checkBoxTileViewHighlightHover.TabIndex = 8;
+			this.checkBoxTileViewHighlightHover.Text = "Mouseover";
+			this.checkBoxTileViewHighlightHover.UseVisualStyleBackColor = true;
+			this.checkBoxTileViewHighlightHover.CheckedChanged += new System.EventHandler(this.checkBoxTileViewHighlightHover_CheckedChanged);
+			// 
+			// checkBoxTileViewUserSelect
+			// 
+			this.checkBoxTileViewUserSelect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkBoxTileViewUserSelect.AutoSize = true;
+			this.checkBoxTileViewUserSelect.Checked = true;
+			this.checkBoxTileViewUserSelect.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxTileViewUserSelect.Location = new System.Drawing.Point(148, 390);
+			this.checkBoxTileViewUserSelect.Name = "checkBoxTileViewUserSelect";
+			this.checkBoxTileViewUserSelect.Size = new System.Drawing.Size(78, 17);
+			this.checkBoxTileViewUserSelect.TabIndex = 7;
+			this.checkBoxTileViewUserSelect.Text = "UserSelect";
+			this.checkBoxTileViewUserSelect.UseVisualStyleBackColor = true;
+			this.checkBoxTileViewUserSelect.CheckedChanged += new System.EventHandler(this.checkBoxTileViewUserSelect_CheckedChanged);
+			// 
+			// radioTiledDisabled
+			// 
+			this.radioTiledDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.radioTiledDisabled.AutoSize = true;
+			this.radioTiledDisabled.Location = new System.Drawing.Point(76, 389);
+			this.radioTiledDisabled.Name = "radioTiledDisabled";
+			this.radioTiledDisabled.Size = new System.Drawing.Size(66, 17);
+			this.radioTiledDisabled.TabIndex = 6;
+			this.radioTiledDisabled.Text = "Disabled";
+			this.radioTiledDisabled.UseVisualStyleBackColor = true;
+			this.radioTiledDisabled.CheckedChanged += new System.EventHandler(this.radioTiledDisabled_CheckedChanged);
+			// 
+			// radioTiledEnabled
+			// 
+			this.radioTiledEnabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.radioTiledEnabled.AutoSize = true;
+			this.radioTiledEnabled.Checked = true;
+			this.radioTiledEnabled.Location = new System.Drawing.Point(6, 389);
+			this.radioTiledEnabled.Name = "radioTiledEnabled";
+			this.radioTiledEnabled.Size = new System.Drawing.Size(64, 17);
+			this.radioTiledEnabled.TabIndex = 5;
+			this.radioTiledEnabled.TabStop = true;
+			this.radioTiledEnabled.Text = "Enabled";
+			this.radioTiledEnabled.UseVisualStyleBackColor = true;
+			this.radioTiledEnabled.CheckedChanged += new System.EventHandler(this.radioTiledEnabled_CheckedChanged);
+			// 
+			// buttonAddThousandTileItems
+			// 
+			this.buttonAddThousandTileItems.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonAddThousandTileItems.Location = new System.Drawing.Point(346, 35);
+			this.buttonAddThousandTileItems.Name = "buttonAddThousandTileItems";
+			this.buttonAddThousandTileItems.Size = new System.Drawing.Size(75, 23);
+			this.buttonAddThousandTileItems.TabIndex = 4;
+			this.buttonAddThousandTileItems.Text = "Add 1000";
+			this.buttonAddThousandTileItems.UseVisualStyleBackColor = true;
+			this.buttonAddThousandTileItems.Click += new System.EventHandler(this.buttonAddThousandTileItems_Click);
+			// 
+			// buttonClearTileItems
+			// 
+			this.buttonClearTileItems.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonClearTileItems.Location = new System.Drawing.Point(346, 93);
+			this.buttonClearTileItems.Name = "buttonClearTileItems";
+			this.buttonClearTileItems.Size = new System.Drawing.Size(75, 23);
+			this.buttonClearTileItems.TabIndex = 3;
+			this.buttonClearTileItems.Text = "Clear";
+			this.buttonClearTileItems.UseVisualStyleBackColor = true;
+			this.buttonClearTileItems.Click += new System.EventHandler(this.buttonClearTileItems_Click);
+			// 
+			// buttonRemoveTileItem
+			// 
+			this.buttonRemoveTileItem.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonRemoveTileItem.Location = new System.Drawing.Point(346, 64);
+			this.buttonRemoveTileItem.Name = "buttonRemoveTileItem";
+			this.buttonRemoveTileItem.Size = new System.Drawing.Size(75, 23);
+			this.buttonRemoveTileItem.TabIndex = 2;
+			this.buttonRemoveTileItem.Text = "Remove";
+			this.buttonRemoveTileItem.UseVisualStyleBackColor = true;
+			this.buttonRemoveTileItem.Click += new System.EventHandler(this.buttonRemoveTileItem_Click);
+			// 
+			// buttonAddTenTileItems
+			// 
+			this.buttonAddTenTileItems.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonAddTenTileItems.Location = new System.Drawing.Point(346, 6);
+			this.buttonAddTenTileItems.Name = "buttonAddTenTileItems";
+			this.buttonAddTenTileItems.Size = new System.Drawing.Size(75, 23);
+			this.buttonAddTenTileItems.TabIndex = 1;
+			this.buttonAddTenTileItems.Text = "Add 10";
+			this.buttonAddTenTileItems.UseVisualStyleBackColor = true;
+			this.buttonAddTenTileItems.Click += new System.EventHandler(this.buttonAddTenTileItems_Click);
+			// 
+			// tiledView
+			// 
+			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tiledView.AutoScroll = true;
+			this.tiledView.AutoScrollMinSize = new System.Drawing.Size(0, -2);
+			this.tiledView.BackColor = System.Drawing.SystemColors.Control;
+			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.tiledView.HighlightModelItem = null;
+			this.tiledView.Location = new System.Drawing.Point(6, 6);
+			this.tiledView.Model = emptyListModel1;
+			this.tiledView.Name = "tiledView";
+			this.tiledView.RowAlignment = AdamsLair.WinForms.TiledView.HorizontalAlignment.Center;
+			this.tiledView.Size = new System.Drawing.Size(334, 377);
+			this.tiledView.TabIndex = 0;
+			this.tiledView.ItemClicked += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemClicked);
+			this.tiledView.ItemDoubleClicked += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemDoubleClicked);
+			this.tiledView.ItemDrag += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemDrag);
+			// 
+			// tabPageColorControls
+			// 
+			this.tabPageColorControls.Controls.Add(this.colorSlider3);
+			this.tabPageColorControls.Controls.Add(this.colorPanel2);
+			this.tabPageColorControls.Controls.Add(this.colorSlider2);
+			this.tabPageColorControls.Controls.Add(this.colorSlider1);
+			this.tabPageColorControls.Controls.Add(this.colorPanel1);
+			this.tabPageColorControls.Controls.Add(this.buttonColorPicker);
+			this.tabPageColorControls.Location = new System.Drawing.Point(4, 22);
+			this.tabPageColorControls.Name = "tabPageColorControls";
+			this.tabPageColorControls.Size = new System.Drawing.Size(427, 412);
+			this.tabPageColorControls.TabIndex = 2;
+			this.tabPageColorControls.Text = "Color";
+			this.tabPageColorControls.UseVisualStyleBackColor = true;
+			// 
+			// colorSlider3
+			// 
+			this.colorSlider3.Location = new System.Drawing.Point(281, 3);
+			this.colorSlider3.Maximum = System.Drawing.Color.Lime;
+			this.colorSlider3.Minimum = System.Drawing.Color.Transparent;
+			this.colorSlider3.Name = "colorSlider3";
+			this.colorSlider3.Size = new System.Drawing.Size(30, 200);
+			this.colorSlider3.TabIndex = 17;
+			// 
+			// colorPanel2
+			// 
+			this.colorPanel2.BottomLeftColor = System.Drawing.Color.Blue;
+			this.colorPanel2.BottomRightColor = System.Drawing.Color.Black;
+			this.colorPanel2.Location = new System.Drawing.Point(3, 209);
+			this.colorPanel2.Name = "colorPanel2";
+			this.colorPanel2.Size = new System.Drawing.Size(200, 200);
+			this.colorPanel2.TabIndex = 16;
+			this.colorPanel2.TopLeftColor = System.Drawing.Color.Red;
+			this.colorPanel2.TopRightColor = System.Drawing.Color.Lime;
+			this.colorPanel2.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel2.ValuePercentual")));
+			// 
+			// colorSlider2
+			// 
+			this.colorSlider2.Location = new System.Drawing.Point(245, 3);
+			this.colorSlider2.Maximum = System.Drawing.Color.Blue;
+			this.colorSlider2.Minimum = System.Drawing.Color.Red;
+			this.colorSlider2.Name = "colorSlider2";
+			this.colorSlider2.Size = new System.Drawing.Size(30, 200);
+			this.colorSlider2.TabIndex = 15;
+			// 
+			// colorSlider1
+			// 
+			this.colorSlider1.Location = new System.Drawing.Point(209, 3);
+			this.colorSlider1.Name = "colorSlider1";
+			this.colorSlider1.Size = new System.Drawing.Size(30, 200);
+			this.colorSlider1.TabIndex = 14;
+			// 
+			// colorPanel1
+			// 
+			this.colorPanel1.Location = new System.Drawing.Point(3, 3);
+			this.colorPanel1.Name = "colorPanel1";
+			this.colorPanel1.Size = new System.Drawing.Size(200, 200);
+			this.colorPanel1.TabIndex = 13;
+			this.colorPanel1.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel1.ValuePercentual")));
 			// 
 			// DemoForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(575, 370);
-			this.Controls.Add(this.buttonColorPicker);
-			this.Controls.Add(this.buttonObjMulti);
-			this.Controls.Add(this.buttonObjB);
-			this.Controls.Add(this.buttonObjA);
-			this.Controls.Add(this.checkBoxNonPublic);
-			this.Controls.Add(this.buttonRefresh);
-			this.Controls.Add(this.radioReadOnly);
-			this.Controls.Add(this.radioDisabled);
-			this.Controls.Add(this.radioEnabled);
-			this.Controls.Add(this.propertyGrid1);
+			this.ClientSize = new System.Drawing.Size(459, 462);
+			this.Controls.Add(this.tabControl);
+			this.MinimumSize = new System.Drawing.Size(475, 500);
 			this.Name = "DemoForm";
 			this.Text = "Form1";
+			this.tabControl.ResumeLayout(false);
+			this.tabPagePropertyGrid.ResumeLayout(false);
+			this.tabPagePropertyGrid.PerformLayout();
+			this.tabPageTiledView.ResumeLayout(false);
+			this.tabPageTiledView.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).EndInit();
+			this.tabPageColorControls.ResumeLayout(false);
 			this.ResumeLayout(false);
-			this.PerformLayout();
 
 		}
 
@@ -195,6 +468,25 @@
 		private System.Windows.Forms.Button buttonObjB;
 		private System.Windows.Forms.Button buttonObjMulti;
 		private System.Windows.Forms.Button buttonColorPicker;
+		private System.Windows.Forms.TabControl tabControl;
+		private System.Windows.Forms.TabPage tabPagePropertyGrid;
+		private System.Windows.Forms.TabPage tabPageTiledView;
+		private System.Windows.Forms.TabPage tabPageColorControls;
+		private ColorSlider colorSlider3;
+		private ColorPanel colorPanel2;
+		private ColorSlider colorSlider2;
+		private ColorSlider colorSlider1;
+		private ColorPanel colorPanel1;
+		private TiledView tiledView;
+		private System.Windows.Forms.Button buttonClearTileItems;
+		private System.Windows.Forms.Button buttonRemoveTileItem;
+		private System.Windows.Forms.Button buttonAddTenTileItems;
+		private System.Windows.Forms.Button buttonAddThousandTileItems;
+		private System.Windows.Forms.RadioButton radioTiledDisabled;
+		private System.Windows.Forms.RadioButton radioTiledEnabled;
+		private System.Windows.Forms.CheckBox checkBoxTileViewHighlightHover;
+		private System.Windows.Forms.CheckBox checkBoxTileViewUserSelect;
+		private System.Windows.Forms.TrackBar trackBarTileViewSize;
 	}
 }
 

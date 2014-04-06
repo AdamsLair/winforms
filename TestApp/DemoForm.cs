@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using AdamsLair.WinForms;
 using AdamsLair.WinForms;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.TestApp
 {
 	public partial class DemoForm : Form
 	{
@@ -150,10 +150,20 @@ namespace AdamsLair.WinForms
 			public int InterfaceInt { get; set; }
 			public string HiddenString { get; set; }
 		}
+		private class TiledModelItem
+		{
+			public string Name { get; set; }
+
+			public override string ToString()
+			{
+				return this.Name;
+			}
+		}
 		#endregion
 
 		private Test objA;
 		private Test objB;
+		private SimpleListModel<TiledModelItem> tiledViewModel;
 
 		public DemoForm()
 		{
@@ -179,6 +189,15 @@ namespace AdamsLair.WinForms
 			this.objB.stringListField = new List<string>() { "hallo", "welt" };
 
 			this.propertyGrid1.SelectObject(this.objA);
+
+			this.tiledViewModel = new SimpleListModel<TiledModelItem>();
+			this.tiledViewModel.Add(new TiledModelItem { Name = "Frederick" });
+			this.tiledViewModel.Add(new TiledModelItem { Name = "Herbert" });
+			this.tiledViewModel.Add(new TiledModelItem { Name = "Mary" });
+			this.tiledViewModel.Add(new TiledModelItem { Name = "John" });
+			this.tiledViewModel.Add(new TiledModelItem { Name = "Sally" });
+			this.tiledView.Model = this.tiledViewModel;
+			this.tiledView.ItemAppearance = this.tiledView_AppearanceProvider;
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)
@@ -226,11 +245,81 @@ namespace AdamsLair.WinForms
 		{
 			this.propertyGrid1.SelectObject(this.objA);
 		}
-
 		private void buttonColorPicker_Click(object sender, EventArgs e)
 		{
 			ColorPickerDialog dialog = new ColorPickerDialog();
 			dialog.ShowDialog();
+		}
+		private void buttonAddTenTileItems_Click(object sender, EventArgs e)
+		{
+			Random rnd = new Random();
+			for (int i = 0; i < 10; i++)
+			{
+				this.tiledViewModel.Add(new TiledModelItem { Name = rnd.Next().ToString() });
+			}
+		}
+		private void buttonAddThousandTileItems_Click(object sender, EventArgs e)
+		{
+			Random rnd = new Random();
+			for (int i = 0; i < 1000; i++)
+			{
+				this.tiledViewModel.Add(new TiledModelItem { Name = rnd.Next().ToString() });
+			}
+		}
+		private void buttonRemoveTileItem_Click(object sender, EventArgs e)
+		{
+			this.tiledViewModel.RemoveRange(this.tiledView.SelectedModelItems.OfType<TiledModelItem>());
+		}
+		private void buttonClearTileItems_Click(object sender, EventArgs e)
+		{
+			this.tiledViewModel.Clear();
+		}
+		private void radioTiledDisabled_CheckedChanged(object sender, EventArgs e)
+		{
+			this.tiledView.Enabled = this.radioTiledEnabled.Checked;
+		}
+		private void radioTiledEnabled_CheckedChanged(object sender, EventArgs e)
+		{
+			this.tiledView.Enabled = this.radioTiledEnabled.Checked;
+		}
+		private void tiledView_ItemClicked(object sender, TiledViewItemMouseEventArgs e)
+		{
+			Console.WriteLine("ItemClicked {0} at {1} with {2}", e.Item, e.Location, e.Buttons);
+		}
+		private void tiledView_ItemDoubleClicked(object sender, TiledViewItemMouseEventArgs e)
+		{
+			Console.WriteLine("ItemDoubleClicked {0} at {1} with {2}", e.Item, e.Location, e.Buttons);
+		}
+		private void tiledView_ItemDrag(object sender, TiledViewItemMouseEventArgs e)
+		{
+			Console.WriteLine("ItemDrag {0} at {1} with {2}", e.Item, e.Location, e.Buttons);
+			DragDropEffects result = this.tiledView.DoDragDrop(e.Item, DragDropEffects.All);
+			Console.WriteLine("  Result: {0}", result);
+		}
+		private void tiledView_AppearanceProvider(int modelIndex, object item, out string text, out Image image)
+		{
+			text = item.ToString();
+			switch (item.GetHashCode() % 5)
+			{
+				default:
+				case 0: image = Properties.Resources.ItemSmall; break;
+				case 1: image = Properties.Resources.ItemBig; break;
+				case 2: image = Properties.Resources.ItemHigh; break;
+				case 3: image = Properties.Resources.ItemWide; break;
+				case 4: image = null; break;
+			}
+		}
+		private void checkBoxTileViewHighlightHover_CheckedChanged(object sender, EventArgs e)
+		{
+			this.tiledView.HightlightHoverItems = this.checkBoxTileViewHighlightHover.Checked;
+		}
+		private void checkBoxTileViewUserSelect_CheckedChanged(object sender, EventArgs e)
+		{
+			this.tiledView.UserSelectMode = this.checkBoxTileViewUserSelect.Checked ? TiledView.SelectMode.Multi : TiledView.SelectMode.None;
+		}
+		private void trackBarTileViewSize_ValueChanged(object sender, EventArgs e)
+		{
+			this.tiledView.TileSize = new Size(this.trackBarTileViewSize.Value, this.trackBarTileViewSize.Value);
 		}
 	}
 }
