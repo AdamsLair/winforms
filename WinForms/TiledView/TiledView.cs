@@ -581,8 +581,20 @@ namespace AdamsLair.WinForms
 			Image icon;
 			this.itemAppearance(modelIndex, item, out text, out icon);
 
+			bool hasText = !string.IsNullOrEmpty(text);
+			SizeF textSize = SizeF.Empty;
+			if (hasText)
+			{
+				textSize = g.MeasureString(
+					text, 
+					this.Font, 
+					itemRect.Width, 
+					this.itemStringFormat);
+			}
+
 			if (icon != null)
 			{
+				int iconAreaHeight = itemRect.Height - (int)Math.Ceiling(textSize.Height);
 				if (icon.Width > itemRect.Width || icon.Height > itemRect.Height)
 				{
 					SizeF iconSize = icon.Size;
@@ -595,7 +607,7 @@ namespace AdamsLair.WinForms
 					iconSize.Width = iconSize.Width * factor;
 					g.DrawImage(icon, new RectangleF(
 						itemRect.X + (itemRect.Width - iconSize.Width) * 0.5f, 
-						itemRect.Y + (itemRect.Height - iconSize.Height) * 0.5f, 
+						itemRect.Y + Math.Max(0, iconAreaHeight - iconSize.Height) * 0.5f, 
 						iconSize.Width, 
 						iconSize.Height));
 				}
@@ -603,7 +615,7 @@ namespace AdamsLair.WinForms
 				{
 					g.DrawImageUnscaled(icon, new Rectangle(
 						itemRect.X + (itemRect.Width - icon.Width) / 2, 
-						itemRect.Y + (itemRect.Height - icon.Height) / 2, 
+						itemRect.Y + Math.Max(0, iconAreaHeight - icon.Height) / 2, 
 						icon.Width, 
 						icon.Height));
 				}
@@ -617,7 +629,7 @@ namespace AdamsLair.WinForms
 					this.renderer.DrawSelectionBox(g, itemRect, false);
 			}
 
-			if (!string.IsNullOrEmpty(text))
+			if (hasText)
 			{
 				if (icon != null)
 					this.itemStringFormat.LineAlignment = StringAlignment.Far;
