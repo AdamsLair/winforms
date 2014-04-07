@@ -4,9 +4,9 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms.PropertyEditors
+namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
 	public class BoolPropertyEditor : PropertyEditor
 	{

@@ -59,10 +59,19 @@
     <Compile Include="ColorControls\ColorSlider.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Drawing\ExpandNodeState.cs" />
+    <Compile Include="Drawing\CheckBoxState.cs" />
+    <Compile Include="Drawing\ButtonState.cs" />
+    <Compile Include="Drawing\BorderState.cs" />
+    <Compile Include="Drawing\BorderStyle.cs" />
+    <Compile Include="Drawing\IconImage.cs" />
+    <Compile Include="Drawing\ExpandBoxState.cs" />
+    <Compile Include="Drawing\TextBoxState.cs" />
+    <Compile Include="Drawing\TextBoxStyle.cs" />
     <Compile Include="ListModel\EmptyListModel.cs" />
     <Compile Include="ListModel\SimpleListModel.cs" />
     <Compile Include="PropertyGrid\BitmaskItem.cs" />
-    <Compile Include="PropertyGrid\ControlRenderer.cs" />
+    <Compile Include="Drawing\ControlRenderer.cs" />
     <Compile Include="PropertyGrid\EditorTemplates\ComboBoxDropDown.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -98,7 +107,6 @@
     <Compile Include="PropertyGrid\PropertyGrid.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="PropertyGrid\ReflectionHelper.cs" />
     <Compile Include="Properties\ResourcesCache.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -107,6 +115,7 @@
     </Compile>
     <Compile Include="ListModel\IListModel.cs" />
     <Compile Include="ListModel\ListModelEventArgs.cs" />
+    <Compile Include="TiledView\TiledViewItemAppearanceEventArgs.cs" />
     <Compile Include="TiledView\TiledViewItemMouseEventArgs.cs" />
     <Compile Include="TiledView\TiledViewItemEventArgs.cs" />
     <Compile Include="TiledView\TiledViewItemDrawEventArgs.cs" />
@@ -114,7 +123,8 @@
     <Compile Include="TiledView\TiledView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Utility\ExtMethodsSystemDrawingColor.cs" />
+    <Compile Include="Internal\ExtMethodsColor.cs" />
+    <Compile Include="Internal\ExtMethodsType.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ColorControls\ColorPickerDialog.resx">

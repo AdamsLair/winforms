@@ -4,9 +4,9 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms.EditorTemplates
+namespace AdamsLair.WinForms.PropertyEditing.Templates
 {
 	public class StringEditorTemplate : EditorTemplate
 	{

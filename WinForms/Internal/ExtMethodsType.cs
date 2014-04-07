@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
-using System.Reflection;
 
 namespace AdamsLair.WinForms
 {
-	internal static class ReflectionHelper
+	internal static class ExtMethodsType
 	{
-		public const BindingFlags BindInstanceAll = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-		public const BindingFlags BindStaticAll = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-		public const BindingFlags BindAll = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
 		public static object CreateInstanceOf(this Type instanceType, bool noConstructor = false)
 		{
 			try
@@ -31,54 +25,17 @@ namespace AdamsLair.WinForms
 				return null;
 			}
 		}
-		public static object GetDefaultInstanceOf(this Type instanceType)
+		public static bool IsDerivedFrom(this Type type, Type baseType)
 		{
-			if (instanceType.IsValueType)
-				return Activator.CreateInstance(instanceType, true);
-			else
-				return null;
-		}
-
-		public static bool MemberInfoEquals(MemberInfo lhs, MemberInfo rhs)
-		{
-			if (lhs == rhs)
-				return true;
- 
-			if (lhs.DeclaringType != rhs.DeclaringType)
-				return false;
- 
-			// Methods on arrays do not have metadata tokens but their ReflectedType
-			// always equals their DeclaringType
-			if (lhs.DeclaringType != null && lhs.DeclaringType.IsArray)
-				return false;
- 
-			if (lhs.MetadataToken != rhs.MetadataToken || lhs.Module != rhs.Module)
-				return false;
- 
-			if (lhs is MethodInfo)
+			do
 			{
-				MethodInfo lhsMethod = lhs as MethodInfo;
- 
-				if (lhsMethod.IsGenericMethod)
-				{
-					MethodInfo rhsMethod = rhs as MethodInfo;
- 
-					Type[] lhsGenArgs = lhsMethod.GetGenericArguments();
-					Type[] rhsGenArgs = rhsMethod.GetGenericArguments();
-					for (int i = 0; i < rhsGenArgs.Length; i++)
-					{
-						if (lhsGenArgs[i] != rhsGenArgs[i])
-							return false;
-					}
-				}
-			}
-			return true;
-		}
-		public static int GetTypeHierarchyLevel(this Type t)
-		{
-			int level = 0;
-			while (t.BaseType != null) { t = t.BaseType; level++; }
-			return level;
+				if (type.BaseType == baseType)
+					return true;
+
+				type = type.BaseType;
+			} while (type != null);
+
+			return false;
 		}
 		public static Type GetCommonBaseClass(this IEnumerable<Type> types)
 		{
@@ -97,23 +54,6 @@ namespace AdamsLair.WinForms
 				}
 			}
 			return commonBase;
-		}
-		public static bool IsTypeDerivedFrom(this Type type, Type baseType)
-		{
-			do
-			{
-				if (type.BaseType == baseType)
-					return true;
-
-				type = type.BaseType;
-			} while (type != null);
-
-			return false;
-		}
-
-		public static string GetTypeKeyword(this Type T)
-		{
-			return T.Name.Split(new char[] {'`'}, StringSplitOptions.RemoveEmptyEntries)[0].Replace('+', '.');
 		}
 		public static string GetTypeCSCodeName(this Type T, bool shortName = false)
 		{
@@ -188,30 +128,6 @@ namespace AdamsLair.WinForms
 			}
 
 			return typeStr.Replace('+', '.').ToString();
-		}
-
-		public static string[] SplitArgs(string argList, char pushLevel, char popLevel, char separator, int splitLevel)
-		{
-			if (argList == null) return new string[0];
-
-			// Splitting the parameter list without destroying generic arguments
-			int lastSplitIndex = -1;
-			int genArgLevel = 0;
-			List<string> ptm = new List<string>();
-			for (int i = 0; i < argList.Length; i++)
-			{
-				if (argList[i] == separator && genArgLevel == splitLevel)
-				{
-					ptm.Add(argList.Substring(lastSplitIndex + 1, i - lastSplitIndex - 1));
-					lastSplitIndex = i;
-				}
-				else if (argList[i] == pushLevel)
-					genArgLevel++;
-				else if (argList[i] == popLevel)
-					genArgLevel--;
-			}
-			ptm.Add(argList.Substring(lastSplitIndex + 1, argList.Length - lastSplitIndex - 1));
-			return ptm.ToArray();
 		}
 	}
 }

@@ -5,12 +5,20 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.PropertyEditing
 {
 	public abstract class GroupedPropertyEditor : PropertyEditor
 	{
+		public enum GroupHeaderStyle
+		{
+			Flat,
+			Simple,
+			Emboss,
+			SmoothSunken
+		}
+
 		public const int	DefaultIndent		= 15;
 		public const int	DefaultHeaderHeight	= 18;
 
@@ -418,7 +426,7 @@ namespace AdamsLair.WinForms
 			Rectangle buttonRect = this.ButtonRectangle;
 
 			CheckBoxState activeState = CheckBoxState.UncheckedDisabled;
-			CheckBoxState expandState = CheckBoxState.UncheckedDisabled;
+			ExpandBoxState expandState = ExpandBoxState.ExpandDisabled;
 			bool parentExpand = this.ParentUseIndentChildExpand;
 			if (!parentExpand && (this.Hints & HintFlags.HasExpandCheck) != HintFlags.None)
 			{
@@ -426,21 +434,21 @@ namespace AdamsLair.WinForms
 				{
 					if (!this.Expanded)
 					{
-						if (this.expandCheckPressed)		expandState = CheckBoxState.PlusPressed;
-						else if (this.expandCheckHovered)	expandState = CheckBoxState.PlusHot;
-						else								expandState = CheckBoxState.PlusNormal;
+						if (this.expandCheckPressed)		expandState = ExpandBoxState.ExpandPressed;
+						else if (this.expandCheckHovered)	expandState = ExpandBoxState.ExpandHot;
+						else								expandState = ExpandBoxState.ExpandNormal;
 					}
 					else
 					{
-						if (this.expandCheckPressed)		expandState = CheckBoxState.MinusPressed;
-						else if (this.expandCheckHovered)	expandState = CheckBoxState.MinusHot;
-						else								expandState = CheckBoxState.MinusNormal;
+						if (this.expandCheckPressed)		expandState = ExpandBoxState.CollapsePressed;
+						else if (this.expandCheckHovered)	expandState = ExpandBoxState.CollapseHot;
+						else								expandState = ExpandBoxState.CollapseNormal;
 					}
 				}
 				else
 				{
-					if (this.Expanded)	expandState = CheckBoxState.PlusDisabled;
-					else				expandState = CheckBoxState.MinusDisabled;
+					if (this.Expanded)	expandState = ExpandBoxState.ExpandDisabled;
+					else				expandState = ExpandBoxState.CollapseDisabled;
 				}
 			}
 			if ((this.Hints & HintFlags.HasActiveCheck) != HintFlags.None)
@@ -510,30 +518,30 @@ namespace AdamsLair.WinForms
 			bool focusBgColor = this.headerStyle == GroupHeaderStyle.Flat || this.headerStyle == GroupHeaderStyle.Simple;
 			Color headerBgColor = this.headerColor.Value;
 			if (focusBg && focusBgColor) headerBgColor = headerBgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
-			ControlRenderer.DrawGroupHeaderBackground(g, this.headerRect, headerBgColor, this.headerStyle);
+			GroupedPropertyEditor.DrawGroupHeaderBackground(g, this.headerRect, headerBgColor, this.headerStyle);
 			if (focusBg && !focusBgColor)
 			{
-				ControlRenderer.DrawBorder(g, this.headerRect, Renderer.BorderStyle.Simple, BorderState.Normal);
+				this.ControlRenderer.DrawBorder(g, this.headerRect, Drawing.BorderStyle.Simple, BorderState.Normal);
 			}
 			
 			if (!parentExpand && (this.Hints & HintFlags.HasExpandCheck) != HintFlags.None)
-				ControlRenderer.DrawCheckBox(g, this.expandCheckRect.Location, expandState);
+				this.ControlRenderer.DrawExpandBox(g, this.expandCheckRect.Location, expandState);
 			if ((this.Hints & HintFlags.HasActiveCheck) != HintFlags.None)
-				ControlRenderer.DrawCheckBox(g, this.activeCheckRect.Location, activeState);
+				this.ControlRenderer.DrawCheckBox(g, this.activeCheckRect.Location, activeState);
 
 			if (this.headerIcon != null)
 				g.DrawImage(this.Enabled ? this.headerIcon.Normal : this.headerIcon.Disabled, iconRect);
 
-			ControlRenderer.DrawStringLine(g, 
+			this.ControlRenderer.DrawStringLine(g, 
 				this.PropertyName, 
-				this.ValueModified ? ControlRenderer.DefaultFontBold : ControlRenderer.DefaultFont, 
+				this.ValueModified ? this.ControlRenderer.DefaultFontBold : this.ControlRenderer.DefaultFont, 
 				nameTextRect, 
-				this.Enabled && !this.NonPublic ? ControlRenderer.ColorText : ControlRenderer.ColorGrayText);
-			ControlRenderer.DrawStringLine(g, 
+				this.Enabled && !this.NonPublic ? this.ControlRenderer.ColorText : this.ControlRenderer.ColorGrayText);
+			this.ControlRenderer.DrawStringLine(g, 
 				this.headerValueText, 
-				this.ValueModified ? ControlRenderer.DefaultFontBold : ControlRenderer.DefaultFont, 
+				this.ValueModified ? this.ControlRenderer.DefaultFontBold : this.ControlRenderer.DefaultFont, 
 				valueTextRect, 
-				this.Enabled ? ControlRenderer.ColorText : ControlRenderer.ColorGrayText);
+				this.Enabled ? this.ControlRenderer.ColorText : this.ControlRenderer.ColorGrayText);
 		}
 		protected void PaintIndentExpandButton(Graphics g, GroupedPropertyEditor childGroup, int curY)
 		{
@@ -1033,6 +1041,27 @@ namespace AdamsLair.WinForms
 		{
 			this.UpdateHeight();
 			this.Invalidate();
+		}
+		
+		public static void DrawGroupHeaderBackground(Graphics g, Rectangle rect, Color baseColor, GroupHeaderStyle style)
+		{
+			if (rect.Height == 0 || rect.Width == 0) return;
+			Color lightColor = baseColor.ScaleBrightness(style == GroupHeaderStyle.SmoothSunken ? 0.85f : 1.1f);
+			Color darkColor = baseColor.ScaleBrightness(style == GroupHeaderStyle.SmoothSunken ? 0.95f : 0.85f);
+			LinearGradientBrush gradientBrush = new LinearGradientBrush(rect, lightColor, darkColor, 90.0f);
+
+			if (style != GroupHeaderStyle.Simple && style != GroupHeaderStyle.Flat)
+				g.FillRectangle(gradientBrush, rect);
+			else
+				g.FillRectangle(new SolidBrush(baseColor), rect);
+
+			if (style == GroupHeaderStyle.Flat) return;
+
+			g.DrawLine(new Pen(Color.FromArgb(128, Color.White)), rect.Left, rect.Top, rect.Right, rect.Top);
+			g.DrawLine(new Pen(Color.FromArgb(64, Color.Black)), rect.Left, rect.Bottom - 1, rect.Right, rect.Bottom - 1);
+
+			g.DrawLine(new Pen(Color.FromArgb(64, Color.White)), rect.Left, rect.Top, rect.Left, rect.Bottom - 1);
+			g.DrawLine(new Pen(Color.FromArgb(32, Color.Black)), rect.Right, rect.Top, rect.Right, rect.Bottom - 1);
 		}
 	}
 }

@@ -5,9 +5,9 @@ using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ItemViews
 {
 	public class TiledViewItemMouseEventArgs : TiledViewItemEventArgs
 	{

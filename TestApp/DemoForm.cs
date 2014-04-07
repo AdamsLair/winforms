@@ -7,8 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-using AdamsLair.WinForms;
-using AdamsLair.WinForms;
+using AdamsLair.WinForms.ColorControls;
+using AdamsLair.WinForms.PropertyEditing;
+using AdamsLair.WinForms.ItemModels;
+using AdamsLair.WinForms.ItemViews;
 
 namespace AdamsLair.WinForms.TestApp
 {
@@ -197,7 +199,7 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledViewModel.Add(new TiledModelItem { Name = "John" });
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Sally" });
 			this.tiledView.Model = this.tiledViewModel;
-			this.tiledView.ItemAppearance = this.tiledView_AppearanceProvider;
+			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)
@@ -296,17 +298,17 @@ namespace AdamsLair.WinForms.TestApp
 			DragDropEffects result = this.tiledView.DoDragDrop(e.Item, DragDropEffects.All);
 			Console.WriteLine("  Result: {0}", result);
 		}
-		private void tiledView_AppearanceProvider(int modelIndex, object item, out string text, out Image image)
+		private void tiledView_ItemAppearance(object sender, TiledViewItemAppearanceEventArgs e)
 		{
-			text = item.ToString();
-			switch (item.GetHashCode() % 5)
+			e.DisplayedText = e.Item.ToString();
+			switch (e.Item.GetHashCode() % 5)
 			{
 				default:
-				case 0: image = Properties.Resources.ItemSmall; break;
-				case 1: image = Properties.Resources.ItemBig; break;
-				case 2: image = Properties.Resources.ItemHigh; break;
-				case 3: image = Properties.Resources.ItemWide; break;
-				case 4: image = null; break;
+				case 0: e.DisplayedImage = Properties.Resources.ItemSmall; break;
+				case 1: e.DisplayedImage = Properties.Resources.ItemBig; break;
+				case 2: e.DisplayedImage = Properties.Resources.ItemHigh; break;
+				case 3: e.DisplayedImage = Properties.Resources.ItemWide; break;
+				case 4: e.DisplayedImage = null; break;
 			}
 		}
 		private void checkBoxTileViewHighlightHover_CheckedChanged(object sender, EventArgs e)

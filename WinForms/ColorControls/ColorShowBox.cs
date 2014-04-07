@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ColorControls
 {
 	public class ColorShowBox : UserControl
 	{

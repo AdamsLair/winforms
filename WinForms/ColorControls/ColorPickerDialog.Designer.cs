@@ -1,4 +1,4 @@
-﻿namespace AdamsLair.WinForms
+﻿namespace AdamsLair.WinForms.ColorControls
 {
 	partial class ColorPickerDialog
 	{
@@ -52,10 +52,10 @@
 			this.labelHueUnit = new System.Windows.Forms.Label();
 			this.labelSaturationUnit = new System.Windows.Forms.Label();
 			this.labelValueUnit = new System.Windows.Forms.Label();
-			this.alphaSlider = new AdamsLair.WinForms.ColorSlider();
-			this.colorShowBox = new AdamsLair.WinForms.ColorShowBox();
-			this.colorSlider = new AdamsLair.WinForms.ColorSlider();
-			this.colorPanel = new AdamsLair.WinForms.ColorPanel();
+			this.alphaSlider = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorShowBox = new AdamsLair.WinForms.ColorControls.ColorShowBox();
+			this.colorSlider = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorPanel = new AdamsLair.WinForms.ColorControls.ColorPanel();
 			((System.ComponentModel.ISupportInitialize)(this.numHue)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numSaturation)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numValue)).BeginInit();
@@ -434,9 +434,9 @@
 
 		#endregion
 
-		private AdamsLair.WinForms.ColorPanel colorPanel;
-		private AdamsLair.WinForms.ColorSlider colorSlider;
-		private AdamsLair.WinForms.ColorShowBox colorShowBox;
+		private AdamsLair.WinForms.ColorControls.ColorPanel colorPanel;
+		private AdamsLair.WinForms.ColorControls.ColorSlider colorSlider;
+		private AdamsLair.WinForms.ColorControls.ColorShowBox colorShowBox;
 		private System.Windows.Forms.RadioButton radioHue;
 		private System.Windows.Forms.RadioButton radioSaturation;
 		private System.Windows.Forms.RadioButton radioValue;
@@ -449,7 +449,7 @@
 		private System.Windows.Forms.NumericUpDown numRed;
 		private System.Windows.Forms.NumericUpDown numGreen;
 		private System.Windows.Forms.NumericUpDown numBlue;
-		private AdamsLair.WinForms.ColorSlider alphaSlider;
+		private AdamsLair.WinForms.ColorControls.ColorSlider alphaSlider;
 		private System.Windows.Forms.TextBox textBoxHex;
 		private System.Windows.Forms.Label labelHex;
 		private System.Windows.Forms.Label labelOld;

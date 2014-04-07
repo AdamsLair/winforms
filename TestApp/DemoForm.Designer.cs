@@ -28,9 +28,8 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			AdamsLair.WinForms.EmptyListModel emptyListModel1 = new AdamsLair.WinForms.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
-			this.propertyGrid1 = new AdamsLair.WinForms.PropertyGrid();
+			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
 			this.radioDisabled = new System.Windows.Forms.RadioButton();
 			this.radioReadOnly = new System.Windows.Forms.RadioButton();
@@ -52,13 +51,13 @@
 			this.buttonClearTileItems = new System.Windows.Forms.Button();
 			this.buttonRemoveTileItem = new System.Windows.Forms.Button();
 			this.buttonAddTenTileItems = new System.Windows.Forms.Button();
-			this.tiledView = new AdamsLair.WinForms.TiledView();
+			this.tiledView = new AdamsLair.WinForms.ItemViews.TiledView();
 			this.tabPageColorControls = new System.Windows.Forms.TabPage();
-			this.colorSlider3 = new AdamsLair.WinForms.ColorSlider();
-			this.colorPanel2 = new AdamsLair.WinForms.ColorPanel();
-			this.colorSlider2 = new AdamsLair.WinForms.ColorSlider();
-			this.colorSlider1 = new AdamsLair.WinForms.ColorSlider();
-			this.colorPanel1 = new AdamsLair.WinForms.ColorPanel();
+			this.colorSlider3 = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorPanel2 = new AdamsLair.WinForms.ColorControls.ColorPanel();
+			this.colorSlider2 = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorSlider1 = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorPanel1 = new AdamsLair.WinForms.ColorControls.ColorPanel();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
@@ -367,14 +366,13 @@
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
-			this.tiledView.Model = emptyListModel1;
 			this.tiledView.Name = "tiledView";
-			this.tiledView.RowAlignment = AdamsLair.WinForms.TiledView.HorizontalAlignment.Center;
+			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
 			this.tiledView.Size = new System.Drawing.Size(334, 377);
 			this.tiledView.TabIndex = 0;
-			this.tiledView.ItemClicked += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemClicked);
-			this.tiledView.ItemDoubleClicked += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemDoubleClicked);
-			this.tiledView.ItemDrag += new System.EventHandler<AdamsLair.WinForms.TiledViewItemMouseEventArgs>(this.tiledView_ItemDrag);
+			this.tiledView.ItemClicked += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemClicked);
+			this.tiledView.ItemDoubleClicked += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemDoubleClicked);
+			this.tiledView.ItemDrag += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemDrag);
 			// 
 			// tabPageColorControls
 			// 
@@ -458,7 +456,7 @@
 
 		#endregion
 
-		private AdamsLair.WinForms.PropertyGrid propertyGrid1;
+		private AdamsLair.WinForms.PropertyEditing.PropertyGrid propertyGrid1;
 		private System.Windows.Forms.RadioButton radioEnabled;
 		private System.Windows.Forms.RadioButton radioDisabled;
 		private System.Windows.Forms.RadioButton radioReadOnly;
@@ -472,12 +470,12 @@
 		private System.Windows.Forms.TabPage tabPagePropertyGrid;
 		private System.Windows.Forms.TabPage tabPageTiledView;
 		private System.Windows.Forms.TabPage tabPageColorControls;
-		private ColorSlider colorSlider3;
-		private ColorPanel colorPanel2;
-		private ColorSlider colorSlider2;
-		private ColorSlider colorSlider1;
-		private ColorPanel colorPanel1;
-		private TiledView tiledView;
+		private AdamsLair.WinForms.ColorControls.ColorSlider colorSlider3;
+		private AdamsLair.WinForms.ColorControls.ColorPanel colorPanel2;
+		private AdamsLair.WinForms.ColorControls.ColorSlider colorSlider2;
+		private AdamsLair.WinForms.ColorControls.ColorSlider colorSlider1;
+		private AdamsLair.WinForms.ColorControls.ColorPanel colorPanel1;
+		private AdamsLair.WinForms.ItemViews.TiledView tiledView;
 		private System.Windows.Forms.Button buttonClearTileItems;
 		private System.Windows.Forms.Button buttonRemoveTileItem;
 		private System.Windows.Forms.Button buttonAddTenTileItems;

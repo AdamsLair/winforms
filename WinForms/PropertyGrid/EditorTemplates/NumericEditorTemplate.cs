@@ -5,11 +5,11 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Globalization;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 using AdamsLair.WinForms.Properties;
-using ButtonState = AdamsLair.WinForms.Renderer.ButtonState;
+using ButtonState = AdamsLair.WinForms.Drawing.ButtonState;
 
-namespace AdamsLair.WinForms.EditorTemplates
+namespace AdamsLair.WinForms.PropertyEditing.Templates
 {
 	public class NumericEditorTemplate : EditorTemplate
 	{

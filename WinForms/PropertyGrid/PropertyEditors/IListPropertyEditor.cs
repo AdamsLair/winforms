@@ -7,10 +7,10 @@ using System.Reflection;
 
 using IList = System.Collections.IList;
 
-using AdamsLair.WinForms.Renderer;
-using AdamsLair.WinForms.EditorTemplates;
+using AdamsLair.WinForms.Drawing;
+using AdamsLair.WinForms.PropertyEditing.Templates;
 
-namespace AdamsLair.WinForms.PropertyEditors
+namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
 	public class IListPropertyEditor : GroupedPropertyEditor
 	{
@@ -234,7 +234,7 @@ namespace AdamsLair.WinForms.PropertyEditors
 					{
 						// Dynamically adjust IList length
 						while (target.Count < curValue)
-							target.Add(elementType.IsValueType ? ReflectionHelper.CreateInstanceOf(reflectedArrayType) : null);
+							target.Add(elementType.IsValueType ? reflectedArrayType.CreateInstanceOf() : null);
 						while (target.Count > curValue)
 							target.RemoveAt(target.Count - 1);
 					}

@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ColorControls
 {
 	public class ColorSlider : UserControl
 	{
@@ -155,13 +155,13 @@ namespace AdamsLair.WinForms
 		{
 			ColorBlend blend = new ColorBlend();
 			blend.Colors = new Color[] {
-				ExtMethodsSystemDrawingColor.ColorFromHSV(0.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f / 6.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(2.0f / 6.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(3.0f / 6.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(4.0f / 6.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(5.0f / 6.0f, saturation, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f, saturation, brightness) };
+				ExtMethodsColor.ColorFromHSV(0.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(1.0f / 6.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(2.0f / 6.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(3.0f / 6.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(4.0f / 6.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(5.0f / 6.0f, saturation, brightness),
+				ExtMethodsColor.ColorFromHSV(1.0f, saturation, brightness) };
 			blend.Positions = new float[] {
 				0.0f,
 				1.0f / 6.0f,

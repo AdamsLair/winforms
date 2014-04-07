@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ColorControls
 {
 	public class ColorPanel : UserControl
 	{
@@ -224,13 +224,13 @@ namespace AdamsLair.WinForms
 		{
 			ColorBlend blendX = new ColorBlend();
 			blendX.Colors = new Color[] {
-				ExtMethodsSystemDrawingColor.ColorFromHSV(0.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f / 6.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(2.0f / 6.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(3.0f / 6.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(4.0f / 6.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(5.0f / 6.0f, saturation, 1.0f),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f, saturation, 1.0f) };
+				ExtMethodsColor.ColorFromHSV(0.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(1.0f / 6.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(2.0f / 6.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(3.0f / 6.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(4.0f / 6.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(5.0f / 6.0f, saturation, 1.0f),
+				ExtMethodsColor.ColorFromHSV(1.0f, saturation, 1.0f) };
 			blendX.Positions = new float[] {
 				0.0f,
 				1.0f / 6.0f,
@@ -253,13 +253,13 @@ namespace AdamsLair.WinForms
 		{
 			ColorBlend blendX = new ColorBlend();
 			blendX.Colors = new Color[] {
-				ExtMethodsSystemDrawingColor.ColorFromHSV(0.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f / 6.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(2.0f / 6.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(3.0f / 6.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(4.0f / 6.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(5.0f / 6.0f, 1.0f, brightness),
-				ExtMethodsSystemDrawingColor.ColorFromHSV(1.0f, 1.0f, brightness) };
+				ExtMethodsColor.ColorFromHSV(0.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(1.0f / 6.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(2.0f / 6.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(3.0f / 6.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(4.0f / 6.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(5.0f / 6.0f, 1.0f, brightness),
+				ExtMethodsColor.ColorFromHSV(1.0f, 1.0f, brightness) };
 			blendX.Positions = new float[] {
 				0.0f,
 				1.0f / 6.0f,

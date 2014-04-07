@@ -6,9 +6,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.PropertyEditing
 {
 	public class PropertyEditorEventArgs : EventArgs
 	{
@@ -788,7 +788,7 @@ namespace AdamsLair.WinForms
 			if (!staticType.IsClass && !staticType.IsInterface) return staticType;
 
 			Type commonBaseType = dynamicTypes.GetCommonBaseClass();
-			if (staticType.IsTypeDerivedFrom(commonBaseType) || (staticType.IsInterface && commonBaseType == typeof(object)))
+			if (staticType.IsDerivedFrom(commonBaseType) || (staticType.IsInterface && commonBaseType == typeof(object)))
 				return staticType;
 			else
 				return commonBaseType;

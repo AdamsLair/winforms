@@ -8,10 +8,10 @@ using System.Drawing.Drawing2D;
 using System.ComponentModel;
 using System.Reflection;
 
-using AdamsLair.WinForms.PropertyEditors;
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.PropertyEditing.Editors;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.PropertyEditing
 {
 	public class ProviderContext
 	{
@@ -356,7 +356,7 @@ namespace AdamsLair.WinForms
 			if (this.mainEditor is GroupedPropertyEditor)
 			{
 				GroupedPropertyEditor mainGroupEditor = this.mainEditor as GroupedPropertyEditor;
-				mainGroupEditor.HeaderStyle = GroupHeaderStyle.Emboss;
+				mainGroupEditor.HeaderStyle = GroupedPropertyEditor.GroupHeaderStyle.Emboss;
 				mainGroupEditor.Hints &= ~PropertyEditor.HintFlags.HasExpandCheck;
 			}
 		}
@@ -416,7 +416,7 @@ namespace AdamsLair.WinForms
 		}
 		public virtual object CreateObjectInstance(Type objectType)
 		{
-			return ReflectionHelper.CreateInstanceOf(objectType);
+			return objectType.CreateInstanceOf();
 		}
 		internal protected virtual void PrepareSetValue() {}
 		internal protected virtual void PostSetValue() {}

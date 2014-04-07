@@ -4,10 +4,10 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 
-using AdamsLair.WinForms.Renderer;
-using ButtonState = AdamsLair.WinForms.Renderer.ButtonState;
+using AdamsLair.WinForms.Drawing;
+using ButtonState = AdamsLair.WinForms.Drawing.ButtonState;
 
-namespace AdamsLair.WinForms.EditorTemplates
+namespace AdamsLair.WinForms.PropertyEditing.Templates
 {
 	public class MultiComboBoxEditorTemplate : EditorTemplate, IPopupControlHost
 	{
@@ -88,7 +88,7 @@ namespace AdamsLair.WinForms.EditorTemplates
 			else if (this.hovered || this.focused)
 				comboState = ButtonState.Hot;
 
-			ControlRenderer.DrawComboButton(e.Graphics, this.rect, comboState, this.selectedObjStr);
+			ControlRenderer.DrawComboBox(e.Graphics, this.rect, comboState, this.selectedObjStr);
 		}
 		public override void OnLostFocus(EventArgs e)
 		{

@@ -7,10 +7,10 @@ using System.Reflection;
 
 using IDictionary = System.Collections.IDictionary;
 
-using AdamsLair.WinForms.Renderer;
-using AdamsLair.WinForms.EditorTemplates;
+using AdamsLair.WinForms.Drawing;
+using AdamsLair.WinForms.PropertyEditing.Templates;
 
-namespace AdamsLair.WinForms.PropertyEditors
+namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
 	public class IDictionaryPropertyEditor : GroupedPropertyEditor
 	{
@@ -318,7 +318,7 @@ namespace AdamsLair.WinForms.PropertyEditors
 			if (this.buttonIsCreate)
 			{
 				IDictionary newIList = null;
-				newIList = (IDictionary)ReflectionHelper.CreateInstanceOf(this.EditedType);
+				newIList = (IDictionary)this.EditedType.CreateInstanceOf();
 
 				this.SetValue(newIList);
 				this.Expanded = true;
@@ -367,7 +367,7 @@ namespace AdamsLair.WinForms.PropertyEditors
 						if (!target.Contains(key))
 						{
 							// Add a new key value pair
-							target.Add(key, valueType.IsValueType ? ReflectionHelper.CreateInstanceOf(reflectedValueType) : null);
+							target.Add(key, valueType.IsValueType ? reflectedValueType.CreateInstanceOf() : null);
 						}
 					}
 					else

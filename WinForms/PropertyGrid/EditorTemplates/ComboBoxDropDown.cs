@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace AdamsLair.WinForms.EditorTemplates
+namespace AdamsLair.WinForms.PropertyEditing.Templates
 {
 	public partial class ComboBoxDropDown : ListBox
 	{

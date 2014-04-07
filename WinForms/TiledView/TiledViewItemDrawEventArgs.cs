@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ItemViews
 {
 	public class TiledViewItemDrawEventArgs : TiledViewItemEventArgs
 	{
@@ -19,6 +19,7 @@ namespace AdamsLair.WinForms
 		public Graphics Graphics
 		{
 			get { return this.graphics; }
+			internal set { this.graphics = value; }
 		}
 		public ControlRenderer ControlRenderer
 		{
@@ -27,14 +28,17 @@ namespace AdamsLair.WinForms
 		public Rectangle ItemRect
 		{
 			get { return this.itemRect; }
+			internal set { this.itemRect = value; }
 		}
 		public bool IsSelected
 		{
 			get { return this.selected; }
+			internal set { this.selected = value; }
 		}
 		public bool IsHovered
 		{
 			get { return this.hovered; }
+			internal set { this.hovered = value; }
 		}
 		public bool Handled
 		{
@@ -42,6 +46,7 @@ namespace AdamsLair.WinForms
 			set { this.handled = true; }
 		}
 
+		internal TiledViewItemDrawEventArgs(TiledView view) : this(view, -1, null, null, Rectangle.Empty, false, false) {}
 		public TiledViewItemDrawEventArgs(TiledView view, int modelIndex, object item, Graphics graphics, Rectangle itemRect, bool selected, bool hovered) : base(view, modelIndex, item)
 		{
 			this.graphics = graphics;

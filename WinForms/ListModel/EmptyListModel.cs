@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ItemModels
 {
 	public class EmptyListModel : IListModel
 	{

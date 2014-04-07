@@ -1,105 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Drawing;
 using System.Drawing.Drawing2D;
-
 using System.Windows.Forms;
 
 using AdamsLair.WinForms.Properties;
 
-namespace AdamsLair.WinForms.Renderer
+namespace AdamsLair.WinForms.Drawing
 {
-	public enum TextBoxStyle
-	{
-		Plain,
-		Flat,
-		Sunken
-	}
-	public enum GroupHeaderStyle
-	{
-		Flat,
-		Simple,
-		Emboss,
-		SmoothSunken
-	}
-
-	[Flags]
-	public enum TextBoxState
-	{
-		Disabled		= 0x1,
-		Normal			= 0x2,
-		Hot				= 0x4,
-		Focus			= 0x8,
-
-		ReadOnlyFlag	= 0x100
-	}
-	public enum ExpandNodeState
-	{
-		OpenedDisabled,
-		OpenedNormal,
-		OpenedHot,
-		OpenedPressed,
-		ClosedDisabled,
-		ClosedNormal,
-		ClosedHot,
-		ClosedPressed
-	}
-	public enum CheckBoxState
-	{
-		CheckedDisabled		= System.Windows.Forms.VisualStyles.CheckBoxState.CheckedDisabled,
-		CheckedPressed		= System.Windows.Forms.VisualStyles.CheckBoxState.CheckedPressed,
-		CheckedHot			= System.Windows.Forms.VisualStyles.CheckBoxState.CheckedHot,
-		CheckedNormal		= System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal,
-
-		UncheckedDisabled	= System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedDisabled,
-		UncheckedPressed	= System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedPressed,
-		UncheckedHot		= System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedHot,
-		UncheckedNormal		= System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal,
-
-		MixedDisabled		= System.Windows.Forms.VisualStyles.CheckBoxState.MixedDisabled,
-		MixedPressed		= System.Windows.Forms.VisualStyles.CheckBoxState.MixedPressed,
-		MixedHot			= System.Windows.Forms.VisualStyles.CheckBoxState.MixedHot,
-		MixedNormal			= System.Windows.Forms.VisualStyles.CheckBoxState.MixedNormal,
-
-		PlusDisabled,
-		PlusPressed,
-		PlusHot,
-		PlusNormal,
-
-		MinusDisabled,
-		MinusPressed,
-		MinusHot,
-		MinusNormal
-	}
-	public enum ButtonState
-	{
-		Disabled,
-		Normal,
-		Hot,
-		Pressed
-	}
-	public enum BorderState
-	{
-		Normal,
-		Disabled
-	}
-	public enum BorderStyle
-	{
-		Simple,
-		Focus,
-		ContentBox,
-		Sunken
-	}
-
 	public class ControlRenderer
 	{
 		private const int DrawStringWidthAdd = 5;
 
-		private	Size								expandNodeSize		= Size.Empty;
+		private	Size checkBoxSize		= Size.Empty;
+		private	Size expandNodeSize		= Size.Empty;
 		private	Dictionary<ExpandNodeState,Bitmap>	expandNodeImages	= null;
-		private	Size								checkBoxSize		= Size.Empty;
+		private	Dictionary<ExpandBoxState,Bitmap>	expandBoxImages		= null;
 		private	Dictionary<CheckBoxState,Bitmap>	checkBoxImages		= null;
 		private	IconImage	dropDownIcon	= new IconImage(ResourcesCache.DropDownIcon);
 
@@ -175,31 +92,15 @@ namespace AdamsLair.WinForms.Renderer
 			InitCheckBox(state);
 			g.DrawImageUnscaled(checkBoxImages[state], loc);
 		}
+		public void DrawExpandBox(Graphics g, Point loc, ExpandBoxState state)
+		{
+			InitExpandBox(state);
+			g.DrawImageUnscaled(expandBoxImages[state], loc);
+		}
 		public void DrawExpandNode(Graphics g, Point loc, ExpandNodeState state)
 		{
 			InitExpandNode(state);
 			g.DrawImageUnscaled(expandNodeImages[state], loc);
-		}
-
-		public void DrawGroupHeaderBackground(Graphics g, Rectangle rect, Color baseColor, GroupHeaderStyle style)
-		{
-			if (rect.Height == 0 || rect.Width == 0) return;
-			Color lightColor = baseColor.ScaleBrightness(style == GroupHeaderStyle.SmoothSunken ? 0.85f : 1.1f);
-			Color darkColor = baseColor.ScaleBrightness(style == GroupHeaderStyle.SmoothSunken ? 0.95f : 0.85f);
-			LinearGradientBrush gradientBrush = new LinearGradientBrush(rect, lightColor, darkColor, 90.0f);
-
-			if (style != GroupHeaderStyle.Simple && style != GroupHeaderStyle.Flat)
-				g.FillRectangle(gradientBrush, rect);
-			else
-				g.FillRectangle(new SolidBrush(baseColor), rect);
-
-			if (style == GroupHeaderStyle.Flat) return;
-
-			g.DrawLine(new Pen(Color.FromArgb(128, Color.White)), rect.Left, rect.Top, rect.Right, rect.Top);
-			g.DrawLine(new Pen(Color.FromArgb(64, Color.Black)), rect.Left, rect.Bottom - 1, rect.Right, rect.Bottom - 1);
-
-			g.DrawLine(new Pen(Color.FromArgb(64, Color.White)), rect.Left, rect.Top, rect.Left, rect.Bottom - 1);
-			g.DrawLine(new Pen(Color.FromArgb(32, Color.Black)), rect.Right, rect.Top, rect.Right, rect.Bottom - 1);
 		}
 
 		public void DrawStringLine(Graphics g, string text, Font font, Rectangle textRect, Color textColor, StringAlignment align = StringAlignment.Near, StringAlignment lineAlign = StringAlignment.Center, StringTrimming trimming = StringTrimming.EllipsisCharacter)
@@ -470,7 +371,7 @@ namespace AdamsLair.WinForms.Renderer
 				Region[] charRegions = MeasureStringLine(g, text ?? "", charRanges, font, textRectScrolled);
 				RectangleF textRectUntilCursor = charRegions.Length > 0 ? charRegions[0].GetBounds(g) : RectangleF.Empty;
 				int curPixelPos = textRectScrolled.X + (int)textRectUntilCursor.Width + 2;
-				DrawCursor(g, new Rectangle(curPixelPos, textRectScrolled.Top + 1, 1, textRectScrolled.Height - 2));
+				g.FillRectangle(Brushes.Black, new Rectangle(curPixelPos, textRectScrolled.Top + 1, 1, textRectScrolled.Height - 2));
 			}
 
 			g.Restore(oldState);
@@ -518,11 +419,6 @@ namespace AdamsLair.WinForms.Renderer
 				RectangleF bound = measured[0].GetBounds(g);
 				return (int)bound.Right;
 			}}
-		}
-
-		public void DrawCursor(Graphics g, Rectangle rect)
-		{
-			g.FillRectangle(Brushes.Black, rect);
 		}
 
 		public void DrawBorder(Graphics g, Rectangle rect, BorderStyle style, BorderState state)
@@ -725,11 +621,11 @@ namespace AdamsLair.WinForms.Renderer
 
 			g.Restore(graphicsState);
 		}
-		public void DrawComboButton(Graphics g, Rectangle rect, ButtonState state, string text, IconImage icon)
+		public void DrawComboBox(Graphics g, Rectangle rect, ButtonState state, string text, IconImage icon)
 		{
-			DrawComboButton(g, rect, state, text, state == ButtonState.Disabled ? icon.Disabled : icon.Normal);
+			DrawComboBox(g, rect, state, text, state == ButtonState.Disabled ? icon.Disabled : icon.Normal);
 		}
-		public void DrawComboButton(Graphics g, Rectangle rect, ButtonState state, string text, Image icon = null)
+		public void DrawComboBox(Graphics g, Rectangle rect, ButtonState state, string text, Image icon = null)
 		{
 			if (rect.Width < 8 + dropDownIcon.Width || rect.Height < 4) return;
 			GraphicsState graphicsState = g.Save();
@@ -799,7 +695,7 @@ namespace AdamsLair.WinForms.Renderer
 			g.Restore(graphicsState);
 		}
 
-		public void DrawSelectionBox(Graphics g, Rectangle rect, bool solid)
+		public void DrawSelection(Graphics g, Rectangle rect, bool solid)
 		{
 			if (rect.Width < 4 || rect.Height < 4) return;
 
@@ -861,107 +757,122 @@ namespace AdamsLair.WinForms.Renderer
 			g.SmoothingMode = SmoothingMode.Default;
 		}
 
-		private void InitCheckBox(CheckBoxState checkState)
+		private void InitCheckBox(CheckBoxState state)
 		{
-			if (checkBoxImages != null && checkBoxImages.ContainsKey(checkState)) return;
+			if (checkBoxImages != null && checkBoxImages.ContainsKey(state)) return;
 			if (checkBoxImages == null) checkBoxImages = new Dictionary<CheckBoxState,Bitmap>();
 
 			Bitmap image = new Bitmap(CheckBoxSize.Width, CheckBoxSize.Height);
 			using (Graphics checkBoxGraphics = Graphics.FromImage(image))
 			{
-				if (checkState == CheckBoxState.PlusDisabled || 
-					checkState == CheckBoxState.PlusHot ||
-					checkState == CheckBoxState.PlusNormal ||
-					checkState == CheckBoxState.PlusPressed ||
-					checkState == CheckBoxState.MinusDisabled || 
-					checkState == CheckBoxState.MinusHot ||
-					checkState == CheckBoxState.MinusNormal ||
-					checkState == CheckBoxState.MinusPressed)
+				System.Windows.Forms.VisualStyles.CheckBoxState vsState = System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal;
+				switch (state)
 				{
-					Color plusSignColor;
-					Pen expandLineShadowPen;
-					Pen expandLinePen;
+					case CheckBoxState.CheckedDisabled:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.CheckedDisabled;		break;
+					case CheckBoxState.CheckedHot:			vsState = System.Windows.Forms.VisualStyles.CheckBoxState.CheckedHot;			break;
+					case CheckBoxState.CheckedNormal:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal;		break;
+					case CheckBoxState.CheckedPressed:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.CheckedPressed;		break;
+					case CheckBoxState.MixedDisabled:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.MixedDisabled;		break;
+					case CheckBoxState.MixedHot:			vsState = System.Windows.Forms.VisualStyles.CheckBoxState.MixedHot;				break;
+					case CheckBoxState.MixedNormal:			vsState = System.Windows.Forms.VisualStyles.CheckBoxState.MixedNormal;			break;
+					case CheckBoxState.MixedPressed:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.MixedPressed;			break;
+					case CheckBoxState.UncheckedDisabled:	vsState = System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedDisabled;	break;
+					case CheckBoxState.UncheckedHot:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedHot;			break;
+					case CheckBoxState.UncheckedNormal:		vsState = System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal;		break;
+					case CheckBoxState.UncheckedPressed:	vsState = System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedPressed;		break;
+				}
+				CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, vsState);
+			}
+			checkBoxImages[state] = image;
+		}
+		private void InitExpandBox(ExpandBoxState state)
+		{
+			if (expandBoxImages != null && expandBoxImages.ContainsKey(state)) return;
+			if (expandBoxImages == null) expandBoxImages = new Dictionary<ExpandBoxState,Bitmap>();
 
-					if (checkState == CheckBoxState.PlusNormal || checkState == CheckBoxState.MinusNormal)
-					{
-						plusSignColor = Color.FromArgb(24, 32, 82);
-						expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
-						expandLineShadowPen = new Pen(Color.FromArgb(64, plusSignColor));
-						CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal);
-					}
-					else if (checkState == CheckBoxState.PlusHot || checkState == CheckBoxState.MinusHot)
-					{
-						plusSignColor = Color.FromArgb(32, 48, 123);
-						expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
-						expandLineShadowPen = new Pen(Color.FromArgb(64, plusSignColor));
-						CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedHot);
-					}
-					else if (checkState == CheckBoxState.PlusPressed || checkState == CheckBoxState.MinusPressed)
-					{
-						plusSignColor = Color.FromArgb(48, 64, 164);
-						expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
-						expandLineShadowPen = new Pen(Color.FromArgb(96, plusSignColor));
-						CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedPressed);
-					}
-					else //if (checkState == CheckBoxState.PlusDisabled)
-					{
-						plusSignColor = Color.FromArgb(24, 28, 41);
-						expandLinePen = new Pen(Color.FromArgb(128, plusSignColor));
-						expandLineShadowPen = new Pen(Color.FromArgb(32, plusSignColor));
-						CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedDisabled);
-					}
+			Bitmap image = new Bitmap(CheckBoxSize.Width, CheckBoxSize.Height);
+			using (Graphics checkBoxGraphics = Graphics.FromImage(image))
+			{
+				Color plusSignColor;
+				Pen expandLineShadowPen;
+				Pen expandLinePen;
 
-					// Plus Shadow
-					checkBoxGraphics.DrawLine(expandLineShadowPen, 
-						3,
-						image.Height / 2 + 1,
-						image.Width - 4,
-						image.Height / 2 + 1);
-					checkBoxGraphics.DrawLine(expandLineShadowPen, 
-						3,
-						image.Height / 2 - 1,
-						image.Width - 4,
-						image.Height / 2 - 1);
-					if (checkState == CheckBoxState.PlusDisabled ||
-						checkState == CheckBoxState.PlusHot ||
-						checkState == CheckBoxState.PlusNormal ||
-						checkState == CheckBoxState.PlusPressed)
-					{
-						checkBoxGraphics.DrawLine(expandLineShadowPen, 
-							image.Width / 2 + 1,
-							3,
-							image.Width / 2 + 1,
-							image.Height - 4);
-						checkBoxGraphics.DrawLine(expandLineShadowPen, 
-							image.Width / 2 - 1,
-							3,
-							image.Width / 2 - 1,
-							image.Height - 4);
-					}
-					// Plus
-					checkBoxGraphics.DrawLine(expandLinePen, 
-						3,
-						image.Height / 2,
-						image.Width - 4,
-						image.Height / 2);
-					if (checkState == CheckBoxState.PlusDisabled ||
-						checkState == CheckBoxState.PlusHot ||
-						checkState == CheckBoxState.PlusNormal ||
-						checkState == CheckBoxState.PlusPressed)
-					{
-						checkBoxGraphics.DrawLine(expandLinePen, 
-							image.Width / 2,
-							3,
-							image.Width / 2,
-							image.Height - 4);
-					}
+				if (state == ExpandBoxState.ExpandNormal || state == ExpandBoxState.CollapseNormal)
+				{
+					plusSignColor = Color.FromArgb(24, 32, 82);
+					expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
+					expandLineShadowPen = new Pen(Color.FromArgb(64, plusSignColor));
+					CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal);
+				}
+				else if (state == ExpandBoxState.ExpandHot || state == ExpandBoxState.CollapseHot)
+				{
+					plusSignColor = Color.FromArgb(32, 48, 123);
+					expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
+					expandLineShadowPen = new Pen(Color.FromArgb(64, plusSignColor));
+					CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedHot);
+				}
+				else if (state == ExpandBoxState.ExpandPressed || state == ExpandBoxState.CollapsePressed)
+				{
+					plusSignColor = Color.FromArgb(48, 64, 164);
+					expandLinePen = new Pen(Color.FromArgb(255, plusSignColor));
+					expandLineShadowPen = new Pen(Color.FromArgb(96, plusSignColor));
+					CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedPressed);
 				}
 				else
 				{
-					CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, (System.Windows.Forms.VisualStyles.CheckBoxState)checkState);
+					plusSignColor = Color.FromArgb(24, 28, 41);
+					expandLinePen = new Pen(Color.FromArgb(128, plusSignColor));
+					expandLineShadowPen = new Pen(Color.FromArgb(32, plusSignColor));
+					CheckBoxRenderer.DrawCheckBox(checkBoxGraphics, Point.Empty, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedDisabled);
+				}
+
+				// Plus Shadow
+				checkBoxGraphics.DrawLine(expandLineShadowPen, 
+					3,
+					image.Height / 2 + 1,
+					image.Width - 4,
+					image.Height / 2 + 1);
+				checkBoxGraphics.DrawLine(expandLineShadowPen, 
+					3,
+					image.Height / 2 - 1,
+					image.Width - 4,
+					image.Height / 2 - 1);
+				if (state == ExpandBoxState.ExpandDisabled ||
+					state == ExpandBoxState.ExpandHot ||
+					state == ExpandBoxState.ExpandNormal ||
+					state == ExpandBoxState.ExpandPressed)
+				{
+					checkBoxGraphics.DrawLine(expandLineShadowPen, 
+						image.Width / 2 + 1,
+						3,
+						image.Width / 2 + 1,
+						image.Height - 4);
+					checkBoxGraphics.DrawLine(expandLineShadowPen, 
+						image.Width / 2 - 1,
+						3,
+						image.Width / 2 - 1,
+						image.Height - 4);
+				}
+
+				// Plus
+				checkBoxGraphics.DrawLine(expandLinePen, 
+					3,
+					image.Height / 2,
+					image.Width - 4,
+					image.Height / 2);
+				if (state == ExpandBoxState.ExpandDisabled ||
+					state == ExpandBoxState.ExpandHot ||
+					state == ExpandBoxState.ExpandNormal ||
+					state == ExpandBoxState.ExpandPressed)
+				{
+					checkBoxGraphics.DrawLine(expandLinePen, 
+						image.Width / 2,
+						3,
+						image.Width / 2,
+						image.Height - 4);
 				}
 			}
-			checkBoxImages[checkState] = image;
+			expandBoxImages[state] = image;
 		}
 		private void InitExpandNode(ExpandNodeState expandState)
 		{
@@ -981,148 +892,6 @@ namespace AdamsLair.WinForms.Renderer
 				case ExpandNodeState.ClosedPressed:		image = ResourcesCache.ExpandNodeClosedPressed;	break;
 			}
 			expandNodeImages[expandState] = image;
-		}
-	}
-
-	public class IconImage
-	{
-		private	Image		sourceImage	= null;
-		private	Bitmap[]	images		= new Bitmap[4];
-		
-		public Image SourceImage
-		{
-			get { return this.sourceImage; }
-		}
-		public Image Passive
-		{
-			get { return this.images[0]; }
-		}
-		public Image Normal
-		{
-			get { return this.images[1]; }
-		}
-		public Image Active
-		{
-			get { return this.images[2]; }
-		}
-		public Image Disabled
-		{
-			get { return this.images[3]; }
-		}
-
-		public int Width
-		{
-			get { return this.sourceImage.Width; }
-		}
-		public int Height
-		{
-			get { return this.sourceImage.Height; }
-		}
-		public Size Size
-		{
-			get { return this.sourceImage.Size; }
-		}
-
-		public IconImage(Image source)
-		{
-			this.sourceImage = source;
-
-			// Generate specific images
-			var imgAttribs = new System.Drawing.Imaging.ImageAttributes();
-			System.Drawing.Imaging.ColorMatrix colorMatrix = null;
-			{
-				colorMatrix = new System.Drawing.Imaging.ColorMatrix(new float[][] {
-					new float[] {1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.65f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}});
-				imgAttribs.SetColorMatrix(colorMatrix);
-				this.images[0] = new Bitmap(source.Width, source.Height);
-				using (Graphics g = Graphics.FromImage(this.images[0]))
-				{
-					g.DrawImage(source, 
-						new Rectangle(Point.Empty, source.Size), 
-						0, 0, source.Width, source.Height, GraphicsUnit.Pixel, 
-						imgAttribs);
-				}
-			}
-			{
-				colorMatrix = new System.Drawing.Imaging.ColorMatrix(new float[][] {
-					new float[] {1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}});
-				imgAttribs.SetColorMatrix(colorMatrix);
-				this.images[1] = new Bitmap(source.Width, source.Height);
-				using (Graphics g = Graphics.FromImage(this.images[1]))
-				{
-					g.DrawImage(source, 
-						new Rectangle(Point.Empty, source.Size), 
-						0, 0, source.Width, source.Height, GraphicsUnit.Pixel, 
-						imgAttribs);
-				}
-			}
-			{
-				colorMatrix = new System.Drawing.Imaging.ColorMatrix(new float[][] {
-					new float[] {1.3f, 0.0f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 1.3f, 0.0f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 1.3f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}});
-				imgAttribs.SetColorMatrix(colorMatrix);
-				this.images[2] = new Bitmap(source.Width, source.Height);
-				using (Graphics g = Graphics.FromImage(this.images[2]))
-				{
-					g.DrawImage(source, 
-						new Rectangle(Point.Empty, source.Size), 
-						0, 0, source.Width, source.Height, GraphicsUnit.Pixel, 
-						imgAttribs);
-				}
-			}
-			{
-				colorMatrix = new System.Drawing.Imaging.ColorMatrix(new float[][] {
-					new float[] {0.34f, 0.34f, 0.34f, 0.0f, 0.0f},
-					new float[] {0.34f, 0.34f, 0.34f, 0.0f, 0.0f},
-					new float[] {0.34f, 0.34f, 0.34f, 0.0f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.5f, 0.0f},
-					new float[] {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}});
-				imgAttribs.SetColorMatrix(colorMatrix);
-				this.images[3] = new Bitmap(source.Width, source.Height);
-				using (Graphics g = Graphics.FromImage(this.images[3]))
-				{
-					g.DrawImage(source, 
-						new Rectangle(Point.Empty, source.Size), 
-						0, 0, source.Width, source.Height, GraphicsUnit.Pixel, 
-						imgAttribs);
-				}
-			}
-		}
-	}
-
-	public static class ExtMethodsSystemColor
-	{
-		public static Color ScaleBrightness(this Color c, float ratio)
-		{
-			return Color.FromArgb(c.A,
-				(byte)Math.Min(Math.Max((float)c.R * ratio, 0.0f), 255.0f),
-				(byte)Math.Min(Math.Max((float)c.G * ratio, 0.0f), 255.0f),
-				(byte)Math.Min(Math.Max((float)c.B * ratio, 0.0f), 255.0f));
-		}
-		public static Color MixWith(this Color c, Color other, float ratio, bool lockBrightness = false)
-		{
-			float myRatio = 1.0f - ratio;
-			if (lockBrightness)
-			{
-				int oldBrightness = Math.Max(c.R, Math.Max(c.G, c.B));
-				int newBrightness = Math.Max(other.R, Math.Max(other.G, other.B));
-				other = other.ScaleBrightness((float)oldBrightness / (float)newBrightness);
-			}
-			return Color.FromArgb(c.A,
-				(byte)Math.Min(Math.Max((float)c.R * myRatio + (float)other.R * ratio, 0.0f), 255.0f),
-				(byte)Math.Min(Math.Max((float)c.G * myRatio + (float)other.G * ratio, 0.0f), 255.0f),
-				(byte)Math.Min(Math.Max((float)c.B * myRatio + (float)other.B * ratio, 0.0f), 255.0f));
 		}
 	}
 }

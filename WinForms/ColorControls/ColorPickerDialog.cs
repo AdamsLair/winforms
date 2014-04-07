@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ColorControls
 {
 	public partial class ColorPickerDialog : Form
 	{
@@ -40,7 +40,7 @@ namespace AdamsLair.WinForms
 
 			public Color ToColor()
 			{
-				return Color.FromArgb((int)Math.Round(this.a * 255.0f), ExtMethodsSystemDrawingColor.ColorFromHSV(this.h, this.s, this.v));
+				return Color.FromArgb((int)Math.Round(this.a * 255.0f), ExtMethodsColor.ColorFromHSV(this.h, this.s, this.v));
 			}
 		}
 
@@ -152,7 +152,7 @@ namespace AdamsLair.WinForms
 				case PrimaryAttrib.Hue:
 					this.colorPanel.SetupXYGradient(
 						Color.White,
-						ExtMethodsSystemDrawingColor.ColorFromHSV(this.selColor.h, 1.0f, 1.0f),
+						ExtMethodsColor.ColorFromHSV(this.selColor.h, 1.0f, 1.0f),
 						Color.Black,
 						Color.Transparent);
 					break;
@@ -243,13 +243,13 @@ namespace AdamsLair.WinForms
 					break;
 				case PrimaryAttrib.Saturation:
 					this.colorSlider.SetupGradient(
-						ExtMethodsSystemDrawingColor.ColorFromHSV(this.selColor.h, 0.0f, this.selColor.v),
-						ExtMethodsSystemDrawingColor.ColorFromHSV(this.selColor.h, 1.0f, this.selColor.v));
+						ExtMethodsColor.ColorFromHSV(this.selColor.h, 0.0f, this.selColor.v),
+						ExtMethodsColor.ColorFromHSV(this.selColor.h, 1.0f, this.selColor.v));
 					break;
 				case PrimaryAttrib.Brightness:
 					this.colorSlider.SetupGradient(
-						ExtMethodsSystemDrawingColor.ColorFromHSV(this.selColor.h, this.selColor.s, 0.0f),
-						ExtMethodsSystemDrawingColor.ColorFromHSV(this.selColor.h, this.selColor.s, 1.0f));
+						ExtMethodsColor.ColorFromHSV(this.selColor.h, this.selColor.s, 0.0f),
+						ExtMethodsColor.ColorFromHSV(this.selColor.h, this.selColor.s, 1.0f));
 					break;
 				case PrimaryAttrib.Red:
 					tmp = this.selColor.ToColor();

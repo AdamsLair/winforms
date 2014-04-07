@@ -7,14 +7,13 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 
-using AdamsLair.WinForms.Renderer;
+using AdamsLair.WinForms.Drawing;
+using AdamsLair.WinForms.ItemModels;
 
-namespace AdamsLair.WinForms
+namespace AdamsLair.WinForms.ItemViews
 {
 	public class TiledView : UserControl
 	{
-		public delegate void AppearanceProvider(int modelIndex, object item, out string text, out Image image);
-
 		public enum SelectMode
 		{
 			None,
@@ -48,7 +47,6 @@ namespace AdamsLair.WinForms
 		private	SelectMode			userSelectMode		= SelectMode.Multi;
 		private	HorizontalAlignment	rowAlignment		= HorizontalAlignment.Center;
 		private	bool				highlightHoverItems	= true;
-		private	AppearanceProvider	itemAppearance		= null;
 		private	int					additionalSpace		= 0;
 		private	int					tilesPerRow			= 0;
 		private	int					rowCount			= 0;
@@ -59,11 +57,16 @@ namespace AdamsLair.WinForms
 		private	Point				mouseDownLoc		= Point.Empty;
 		private	int					dragIndex			= -1;
 
+		private TiledViewItemAppearanceEventArgs cachedEventItemAppearance = null;
+		private TiledViewItemDrawEventArgs cachedEventItemUserPaint = null;
+
+
 		public event EventHandler SelectionChanged = null;
 		public event EventHandler<TiledViewItemDrawEventArgs> ItemUserPaint = null;
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemClicked = null;
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemDoubleClicked = null;
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemDrag = null;
+		public event EventHandler<TiledViewItemAppearanceEventArgs> ItemAppearance = null;
 
 
 		public IListModel Model
@@ -149,18 +152,6 @@ namespace AdamsLair.WinForms
 				}
 			}
 		}
-		public AppearanceProvider ItemAppearance
-		{
-			get { return this.itemAppearance; }
-			set
-			{
-				if (this.itemAppearance != value)
-				{
-					this.itemAppearance = value ?? this.DefaultAppearanceProvider;
-					this.Invalidate();
-				}
-			}
-		}
 		public object HighlightModelItem
 		{
 			get { return this.hoverIndex != -1 ? this.model.GetItemAt(this.hoverIndex) : null; }
@@ -207,8 +198,6 @@ namespace AdamsLair.WinForms
 			this.itemStringFormat.Alignment = StringAlignment.Center;
 			this.itemStringFormat.LineAlignment = StringAlignment.Center;
 			this.itemStringFormat.Trimming = StringTrimming.EllipsisCharacter;
-
-			this.itemAppearance = this.DefaultAppearanceProvider;
 
 			this.UpdateContentStats();
 		}
@@ -439,20 +428,34 @@ namespace AdamsLair.WinForms
 		protected void UpdateSelectionIndices(int index = 0, int count = -1)
 		{
 			if (count < 0) count = this.model.Count;
+
+			// Iterate over all selected items and check whether their indices are still correct
 			List<int> removeIndices = null;
 			for (int i = 0; i < this.selection.Count; i++)
 			{
 				SelectedItem selected = this.selection[i];
-				if (selected.ModelIndex >= index && selected.ModelIndex < index + count)
+
+				// Skip unaffected items
+				if (selected.ModelIndex < index) continue;
+				if (selected.ModelIndex >= index + count) continue;
+
+				// Check whether the model index can be valid at all, and if it actually still matches its element
+				bool isValid = selected.ModelIndex < this.model.Count;
+				bool isEqual = isValid && object.Equals(this.model.GetItemAt(selected.ModelIndex), selected.Item);
+				if (!isEqual)
 				{
+					// If it doesn't match, retrieve the new index for the given element
 					selected.ModelIndex = this.model.GetIndexOf(selected.Item);
 					if (selected.ModelIndex == -1)
 					{
+						// If the new index is invalid, remove the element from the selection completely
 						if (removeIndices == null) removeIndices = new List<int>();
 						removeIndices.Add(i);
 					}
 				}
 			}
+
+			// Remove previously scheduled elements from the selection
 			if (removeIndices != null)
 			{
 				this.OnSelectionChanging();
@@ -572,14 +575,39 @@ namespace AdamsLair.WinForms
 		{
 			if (this.ItemUserPaint != null)
 			{
-				TiledViewItemDrawEventArgs paintEvent = new TiledViewItemDrawEventArgs(this, modelIndex, item, g, itemRect, selected, hovered);
-				this.ItemUserPaint(this, paintEvent);
-				if (paintEvent.Handled) return;
+				if (this.cachedEventItemUserPaint == null)
+					this.cachedEventItemUserPaint = new TiledViewItemDrawEventArgs(this);
+
+				this.cachedEventItemUserPaint.Handled = false;
+				this.cachedEventItemUserPaint.Graphics = g;
+				this.cachedEventItemUserPaint.ModelIndex = modelIndex;
+				this.cachedEventItemUserPaint.Item = item;
+				this.cachedEventItemUserPaint.ItemRect = itemRect;
+				this.cachedEventItemUserPaint.IsHovered = hovered;
+				this.cachedEventItemUserPaint.IsSelected = selected;
+
+				this.ItemUserPaint(this, this.cachedEventItemUserPaint);
+
+				if (this.cachedEventItemUserPaint.Handled) return;
 			}
 			
-			string text;
-			Image icon;
-			this.itemAppearance(modelIndex, item, out text, out icon);
+			string text = (item != null) ? item.ToString() : "null";
+			Image icon = null;
+			if (this.ItemAppearance != null)
+			{
+				if (this.cachedEventItemAppearance == null)
+					this.cachedEventItemAppearance = new TiledViewItemAppearanceEventArgs(this);
+
+				this.cachedEventItemAppearance.ModelIndex = modelIndex;
+				this.cachedEventItemAppearance.Item = item;
+				this.cachedEventItemAppearance.DisplayedText = text;
+				this.cachedEventItemAppearance.DisplayedImage = icon;
+
+				this.ItemAppearance(this, this.cachedEventItemAppearance);
+
+				text = this.cachedEventItemAppearance.DisplayedText;
+				icon = this.cachedEventItemAppearance.DisplayedImage;
+			}
 
 			bool hasText = !string.IsNullOrEmpty(text);
 			SizeF textSize = SizeF.Empty;
@@ -624,9 +652,9 @@ namespace AdamsLair.WinForms
 			if (this.Enabled)
 			{
 				if (selected || (Control.MouseButtons != MouseButtons.None && this.highlightHoverItems && hovered))
-					this.renderer.DrawSelectionBox(g, itemRect, true);
+					this.renderer.DrawSelection(g, itemRect, true);
 				else if (this.highlightHoverItems && hovered)
-					this.renderer.DrawSelectionBox(g, itemRect, false);
+					this.renderer.DrawSelection(g, itemRect, false);
 			}
 
 			if (hasText)
@@ -824,12 +852,6 @@ namespace AdamsLair.WinForms
 		{
 			// Prevent the Designer from going crazy.
 			return false;
-		}
-
-		public void DefaultAppearanceProvider(int modelIndex, object item, out string text, out Image image)
-		{
-			text = (item != null) ? item.ToString() : "null";
-			image = null;
 		}
 	}
 }
