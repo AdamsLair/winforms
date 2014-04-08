@@ -68,43 +68,43 @@
     <Compile Include="Drawing\ExpandBoxState.cs" />
     <Compile Include="Drawing\TextBoxState.cs" />
     <Compile Include="Drawing\TextBoxStyle.cs" />
-    <Compile Include="ListModel\EmptyListModel.cs" />
-    <Compile Include="ListModel\SimpleListModel.cs" />
-    <Compile Include="PropertyGrid\BitmaskItem.cs" />
+    <Compile Include="ItemModels\EmptyListModel.cs" />
+    <Compile Include="ItemModels\SimpleListModel.cs" />
+    <Compile Include="PropertyEditing\BitmaskItem.cs" />
     <Compile Include="Drawing\ControlRenderer.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\ComboBoxDropDown.cs">
+    <Compile Include="PropertyEditing\EditorTemplates\ComboBoxDropDown.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="PropertyGrid\EditorTemplates\ComboBoxEditorTemplate.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\EditorTemplate.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\BitmaskSelectorDropDown.cs">
+    <Compile Include="PropertyEditing\EditorTemplates\ComboBoxEditorTemplate.cs" />
+    <Compile Include="PropertyEditing\EditorTemplates\EditorTemplate.cs" />
+    <Compile Include="PropertyEditing\EditorTemplates\BitmaskSelectorDropDown.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="PropertyGrid\EditorTemplates\BitmaskEditorTemplate.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\MultiComboBoxDropDown.cs">
+    <Compile Include="PropertyEditing\EditorTemplates\BitmaskEditorTemplate.cs" />
+    <Compile Include="PropertyEditing\EditorTemplates\MultiComboBoxDropDown.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="PropertyGrid\EditorTemplates\MultiComboBoxEditorTemplate.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\NumericEditorTemplate.cs" />
-    <Compile Include="PropertyGrid\EditorTemplates\StringEditorTemplate.cs" />
-    <Compile Include="PropertyGrid\GroupedPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\ObjectItem.cs" />
-    <Compile Include="PropertyGrid\MemberwisePropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PopupControl.cs">
+    <Compile Include="PropertyEditing\EditorTemplates\MultiComboBoxEditorTemplate.cs" />
+    <Compile Include="PropertyEditing\EditorTemplates\NumericEditorTemplate.cs" />
+    <Compile Include="PropertyEditing\EditorTemplates\StringEditorTemplate.cs" />
+    <Compile Include="PropertyEditing\GroupedPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\ObjectItem.cs" />
+    <Compile Include="PropertyEditing\MemberwisePropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PopupControl.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyGrid\PropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\BoolPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\EnumPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\FlaggedEnumPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\BitmaskPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\IListPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\IDictionaryPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\ObjectSelectorPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\StringPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyEditors\NumericPropertyEditor.cs" />
-    <Compile Include="PropertyGrid\PropertyGrid.cs">
+    <Compile Include="PropertyEditing\PropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\BoolPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\EnumPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\FlaggedEnumPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\BitmaskPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\IListPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\IDictionaryPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\ObjectSelectorPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\StringPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyEditors\NumericPropertyEditor.cs" />
+    <Compile Include="PropertyEditing\PropertyGrid.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Properties\ResourcesCache.cs" />
@@ -113,14 +113,14 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ListModel\IListModel.cs" />
-    <Compile Include="ListModel\ListModelEventArgs.cs" />
-    <Compile Include="TiledView\TiledViewItemAppearanceEventArgs.cs" />
-    <Compile Include="TiledView\TiledViewItemMouseEventArgs.cs" />
-    <Compile Include="TiledView\TiledViewItemEventArgs.cs" />
-    <Compile Include="TiledView\TiledViewItemDrawEventArgs.cs" />
-    <Compile Include="TiledView\TiledViewEventArgs.cs" />
-    <Compile Include="TiledView\TiledView.cs">
+    <Compile Include="ItemModels\IListModel.cs" />
+    <Compile Include="ItemModels\ListModelEventArgs.cs" />
+    <Compile Include="ItemViews\TiledViewItemAppearanceEventArgs.cs" />
+    <Compile Include="ItemViews\TiledViewItemMouseEventArgs.cs" />
+    <Compile Include="ItemViews\TiledViewItemEventArgs.cs" />
+    <Compile Include="ItemViews\TiledViewItemDrawEventArgs.cs" />
+    <Compile Include="ItemViews\TiledViewEventArgs.cs" />
+    <Compile Include="ItemViews\TiledView.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Internal\ExtMethodsColor.cs" />

@@ -324,22 +324,13 @@ namespace AdamsLair.WinForms.ColorControls
 			e.Graphics.DrawImage(this.srcImage, colorArea, 0, 0, this.srcImage.Width - 1, this.srcImage.Height - 1, GraphicsUnit.Pixel);
 
 			Pen innerPickerPen = this.valTemp.GetLuminance() > 0.5f ? Pens.Black : Pens.White;
-			if (this.Enabled)
-			{
-				e.Graphics.DrawEllipse(innerPickerPen,
-					pickerVisualPos.X - this.pickerSize / 2,
-					pickerVisualPos.Y - this.pickerSize / 2,
-					this.pickerSize,
-					this.pickerSize);
-			}
-			else
-			{
-				e.Graphics.DrawRectangle(innerPickerPen,
-					pickerVisualPos.X - this.pickerSize / 4,
-					pickerVisualPos.Y - this.pickerSize / 4,
-					this.pickerSize / 2,
-					this.pickerSize / 2);
-			}
+			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			e.Graphics.DrawEllipse(innerPickerPen,
+				pickerVisualPos.X - this.pickerSize / 2,
+				pickerVisualPos.Y - this.pickerSize / 2,
+				this.pickerSize,
+				this.pickerSize);
+			e.Graphics.SmoothingMode = SmoothingMode.Default;
 
 			if (!this.Enabled)
 			{

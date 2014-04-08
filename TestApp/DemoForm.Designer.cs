@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel1 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
@@ -58,6 +59,8 @@
 			this.colorSlider2 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorSlider1 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorPanel1 = new AdamsLair.WinForms.ColorControls.ColorPanel();
+			this.colorPanel3 = new AdamsLair.WinForms.ColorControls.ColorPanel();
+			this.colorSlider4 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
@@ -68,9 +71,9 @@
 			// propertyGrid1
 			// 
 			this.propertyGrid1.AllowDrop = true;
-			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.propertyGrid1.AutoScroll = true;
 			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
 			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -188,9 +191,9 @@
 			// 
 			// tabControl
 			// 
-			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl.Controls.Add(this.tabPagePropertyGrid);
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
@@ -241,8 +244,8 @@
 			// 
 			// trackBarTileViewSize
 			// 
-			this.trackBarTileViewSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.trackBarTileViewSize.BackColor = System.Drawing.SystemColors.Window;
 			this.trackBarTileViewSize.LargeChange = 50;
 			this.trackBarTileViewSize.Location = new System.Drawing.Point(346, 122);
@@ -357,15 +360,16 @@
 			// 
 			// tiledView
 			// 
-			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tiledView.AutoScroll = true;
 			this.tiledView.AutoScrollMinSize = new System.Drawing.Size(0, -2);
 			this.tiledView.BackColor = System.Drawing.SystemColors.Control;
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
+			this.tiledView.Model = emptyListModel1;
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
 			this.tiledView.Size = new System.Drawing.Size(334, 377);
@@ -376,6 +380,8 @@
 			// 
 			// tabPageColorControls
 			// 
+			this.tabPageColorControls.Controls.Add(this.colorSlider4);
+			this.tabPageColorControls.Controls.Add(this.colorPanel3);
 			this.tabPageColorControls.Controls.Add(this.colorSlider3);
 			this.tabPageColorControls.Controls.Add(this.colorPanel2);
 			this.tabPageColorControls.Controls.Add(this.colorSlider2);
@@ -434,6 +440,27 @@
 			this.colorPanel1.TabIndex = 13;
 			this.colorPanel1.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel1.ValuePercentual")));
 			// 
+			// colorPanel3
+			// 
+			this.colorPanel3.BottomLeftColor = System.Drawing.Color.Blue;
+			this.colorPanel3.BottomRightColor = System.Drawing.Color.Black;
+			this.colorPanel3.Enabled = false;
+			this.colorPanel3.Location = new System.Drawing.Point(209, 209);
+			this.colorPanel3.Name = "colorPanel3";
+			this.colorPanel3.Size = new System.Drawing.Size(207, 164);
+			this.colorPanel3.TabIndex = 18;
+			this.colorPanel3.TopLeftColor = System.Drawing.Color.Red;
+			this.colorPanel3.TopRightColor = System.Drawing.Color.Lime;
+			this.colorPanel3.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel3.ValuePercentual")));
+			// 
+			// colorSlider4
+			// 
+			this.colorSlider4.Enabled = false;
+			this.colorSlider4.Location = new System.Drawing.Point(317, 3);
+			this.colorSlider4.Name = "colorSlider4";
+			this.colorSlider4.Size = new System.Drawing.Size(30, 200);
+			this.colorSlider4.TabIndex = 19;
+			// 
 			// DemoForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -485,6 +512,8 @@
 		private System.Windows.Forms.CheckBox checkBoxTileViewHighlightHover;
 		private System.Windows.Forms.CheckBox checkBoxTileViewUserSelect;
 		private System.Windows.Forms.TrackBar trackBarTileViewSize;
+		private ColorControls.ColorSlider colorSlider4;
+		private ColorControls.ColorPanel colorPanel3;
 	}
 }
 
