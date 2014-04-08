@@ -163,6 +163,19 @@ namespace AdamsLair.WinForms.TestApp
 		}
 		#endregion
 
+		private static Bitmap bmpItemSmall	= null;
+		private static Bitmap bmpItemBig	= null;
+		private static Bitmap bmpItemHigh	= null;
+		private static Bitmap bmpItemWide	= null;
+
+		static DemoForm()
+		{
+			bmpItemSmall	= Properties.Resources.ItemSmall;
+			bmpItemBig		= Properties.Resources.ItemBig;
+			bmpItemHigh		= Properties.Resources.ItemHigh;
+			bmpItemWide		= Properties.Resources.ItemWide;
+		}
+
 		private Test objA;
 		private Test objB;
 		private SimpleListModel<TiledModelItem> tiledViewModel;
@@ -304,10 +317,10 @@ namespace AdamsLair.WinForms.TestApp
 			switch (e.Item.GetHashCode() % 5)
 			{
 				default:
-				case 0: e.DisplayedImage = Properties.Resources.ItemSmall; break;
-				case 1: e.DisplayedImage = Properties.Resources.ItemBig; break;
-				case 2: e.DisplayedImage = Properties.Resources.ItemHigh; break;
-				case 3: e.DisplayedImage = Properties.Resources.ItemWide; break;
+				case 0: e.DisplayedImage = bmpItemSmall; break;
+				case 1: e.DisplayedImage = bmpItemBig; break;
+				case 2: e.DisplayedImage = bmpItemHigh; break;
+				case 3: e.DisplayedImage = bmpItemWide; break;
 				case 4: e.DisplayedImage = null; break;
 			}
 		}
