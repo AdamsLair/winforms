@@ -12,7 +12,7 @@ using AdamsLair.WinForms.ItemModels;
 
 namespace AdamsLair.WinForms.ItemViews
 {
-	public class TiledView : UserControl
+	public class TiledView : Panel
 	{
 		public enum SelectMode
 		{
