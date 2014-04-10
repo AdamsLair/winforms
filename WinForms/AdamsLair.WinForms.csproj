@@ -121,7 +121,7 @@
     <Compile Include="ItemViews\TiledViewItemDrawEventArgs.cs" />
     <Compile Include="ItemViews\TiledViewEventArgs.cs" />
     <Compile Include="ItemViews\TiledView.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Internal\ExtMethodsColor.cs" />
     <Compile Include="Internal\ExtMethodsType.cs" />
