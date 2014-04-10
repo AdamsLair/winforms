@@ -760,10 +760,10 @@ namespace AdamsLair.WinForms.ItemViews
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			base.OnKeyDown(e);
+			int focusIndex = (this.hoverIndex == -1 || this.selection.Any()) ? this.selection.Last().ModelIndex : this.hoverIndex;
 			if (e.KeyCode == Keys.Right || e.KeyCode == Keys.Left || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
 			{
 				e.Handled = true;
-				int focusIndex = (this.hoverIndex == -1 && this.selection.Any()) ? this.selection.Last().ModelIndex : this.hoverIndex;
 				if (focusIndex == -1)
 				{
 					focusIndex = this.PickModelIndexAt(0, 0, true, true);
