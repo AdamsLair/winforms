@@ -187,6 +187,9 @@ namespace AdamsLair.WinForms.ItemViews
 
 		public TiledView()
 		{
+			this.SetStyle(ControlStyles.Selectable, true);
+			this.TabStop = true;
+
 			this.AutoScroll = true;
 
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
@@ -277,7 +280,7 @@ namespace AdamsLair.WinForms.ItemViews
 			Rectangle itemRect = this.GetEnclosingRect(index, count, true);
 			this.Invalidate(itemRect);
 		}
-		public int PickModelIndexAt(int x, int y, bool scrolled = false)
+		public int PickModelIndexAt(int x, int y, bool scrolled = true, bool allowNearest = false)
 		{
 			if (scrolled)
 			{
@@ -301,17 +304,35 @@ namespace AdamsLair.WinForms.ItemViews
 					break;
 			}
 
-			if (x < 0) x = 0;
-			if (y < 0) y = 0;
-			if (x >= this.contentSize.Width) x = this.contentSize.Width - 1;
-			if (y >= this.contentSize.Height) y = this.contentSize.Height - 1;
+			if (allowNearest)
+			{
+				if (x < 0) x = 0;
+				if (y < 0) y = 0;
+				if (x >= this.contentSize.Width) x = this.contentSize.Width - 1;
+				if (y >= this.contentSize.Height) y = this.contentSize.Height - 1;
+			}
+			else
+			{
+				if (x < 0) return -1;
+				if (y < 0) return -1;
+				if (x >= this.contentSize.Width) return -1;
+				if (y >= this.contentSize.Height) return -1;
+			}
 
 			int rowIndex = y / (this.tileSize.Height + this.spacing.Height);
 			int colIndex = x / (this.tileSize.Width + this.spacing.Width);
 			int modelIndex = rowIndex * this.tilesPerRow + colIndex;
 
-			if (modelIndex < 0) modelIndex = 0;
-			if (modelIndex >= this.model.Count) modelIndex = this.model.Count - 1;
+			if (allowNearest)
+			{
+				if (modelIndex < 0) modelIndex = 0;
+				if (modelIndex >= this.model.Count) modelIndex = this.model.Count - 1;
+			}
+			else
+			{
+				if (modelIndex < 0) modelIndex = -1;
+				if (modelIndex >= this.model.Count) modelIndex = -1;
+			}
 
 			return modelIndex;
 		}
@@ -685,8 +706,8 @@ namespace AdamsLair.WinForms.ItemViews
 
 			if (this.model.Count > 0)
 			{
-				int firstIndex = this.PickModelIndexAt(e.ClipRectangle.Left, e.ClipRectangle.Top, true);
-				int lastIndex = this.PickModelIndexAt(e.ClipRectangle.Right - 1, e.ClipRectangle.Bottom - 1, true);
+				int firstIndex = this.PickModelIndexAt(e.ClipRectangle.Left, e.ClipRectangle.Top, true, true);
+				int lastIndex = this.PickModelIndexAt(e.ClipRectangle.Right - 1, e.ClipRectangle.Bottom - 1, true, true);
 				Point firstItemPos = this.GetModelIndexLocation(firstIndex, true);
 
 				int firstSelected = this.selection.Count > 0 ? this.selection.Min(s => s.ModelIndex) : -1;
@@ -745,7 +766,7 @@ namespace AdamsLair.WinForms.ItemViews
 				int focusIndex = (this.hoverIndex == -1 && this.selection.Any()) ? this.selection.Last().ModelIndex : this.hoverIndex;
 				if (focusIndex == -1)
 				{
-					focusIndex = this.PickModelIndexAt(0, 0, true);
+					focusIndex = this.PickModelIndexAt(0, 0, true, true);
 					if (focusIndex == -1) return;
 				}
 
@@ -789,6 +810,7 @@ namespace AdamsLair.WinForms.ItemViews
 		}
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
+			this.Focus();
 			base.OnMouseDown(e);
 			this.mouseDownLoc = Point.Empty;
 			this.dragIndex = this.hoverIndex;
