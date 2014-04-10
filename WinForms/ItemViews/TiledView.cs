@@ -70,6 +70,7 @@ namespace AdamsLair.WinForms.ItemViews
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemClicked = null;
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemDoubleClicked = null;
 		public event EventHandler<TiledViewItemMouseEventArgs> ItemDrag = null;
+		public event EventHandler<TiledViewItemEventArgs> ItemEdited = null;
 		public event EventHandler<TiledViewItemAppearanceEventArgs> ItemAppearance = null;
 
 
@@ -326,6 +327,8 @@ namespace AdamsLair.WinForms.ItemViews
 			{
 				if (!this.itemEditor.ApplyValueToItem(this.editedItem.Item))
 					return false;
+				else
+					this.OnItemEdited(this.editedItem.ModelIndex, this.editedItem.Item);
 			}
 
 			this.itemEditor.StopEditing -= this.itemEditor_StopEditing;
@@ -695,6 +698,11 @@ namespace AdamsLair.WinForms.ItemViews
 		{
 			if (this.ItemDrag != null)
 				this.ItemDrag(this, new TiledViewItemMouseEventArgs(this, index, item, location, buttons));
+		}
+		protected virtual void OnItemEdited(int index, object item)
+		{
+			if (this.ItemEdited != null)
+				this.ItemEdited(this, new TiledViewItemEventArgs(this, index, item));
 		}
 		
 		protected override void OnSizeChanged(EventArgs e)
