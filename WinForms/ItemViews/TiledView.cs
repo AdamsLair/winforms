@@ -277,7 +277,7 @@ namespace AdamsLair.WinForms.ItemViews
 				index = 0;
 			}
 			if (count <= 0) return;
-			Rectangle itemRect = this.GetEnclosingRect(index, count, true);
+			Rectangle itemRect = this.GetEnclosingRect(index, count);
 			this.Invalidate(itemRect);
 		}
 		public int PickModelIndexAt(int x, int y, bool scrolled = true, bool allowNearest = false)
@@ -336,7 +336,7 @@ namespace AdamsLair.WinForms.ItemViews
 
 			return modelIndex;
 		}
-		public Point GetModelIndexLocation(int modelIndex, bool scrolled = false)
+		public Point GetModelIndexLocation(int modelIndex, bool scrolled = true)
 		{
 			Point result = this.ClientRectangle.Location;
 			result.X += this.Padding.Left;
@@ -367,7 +367,7 @@ namespace AdamsLair.WinForms.ItemViews
 			}
 			return result;
 		}
-		public Rectangle GetEnclosingRect(int modelIndex, int itemCount, bool scrolled = false)
+		public Rectangle GetEnclosingRect(int modelIndex, int itemCount, bool scrolled = true)
 		{
 			Point first = this.GetModelIndexLocation(modelIndex, scrolled);
 			if (itemCount == 1)
@@ -399,7 +399,7 @@ namespace AdamsLair.WinForms.ItemViews
 		}
 		public void ScrollToModelIndex(int modelIndex)
 		{
-			Point scrolledPos = this.GetModelIndexLocation(modelIndex, true);
+			Point scrolledPos = this.GetModelIndexLocation(modelIndex);
 			if (scrolledPos.Y >= this.Padding.Top && scrolledPos.Y + this.tileSize.Height <= this.ClientSize.Height - this.Padding.Bottom)
 				return;
 			
@@ -708,7 +708,7 @@ namespace AdamsLair.WinForms.ItemViews
 			{
 				int firstIndex = this.PickModelIndexAt(e.ClipRectangle.Left, e.ClipRectangle.Top, true, true);
 				int lastIndex = this.PickModelIndexAt(e.ClipRectangle.Right - 1, e.ClipRectangle.Bottom - 1, true, true);
-				Point firstItemPos = this.GetModelIndexLocation(firstIndex, true);
+				Point firstItemPos = this.GetModelIndexLocation(firstIndex);
 
 				int firstSelected = this.selection.Count > 0 ? this.selection.Min(s => s.ModelIndex) : -1;
 				int lastSelected = this.selection.Count > 0 ? this.selection.Max(s => s.ModelIndex) : -1;
@@ -803,7 +803,7 @@ namespace AdamsLair.WinForms.ItemViews
 			Point diff = new Point(e.X - this.mouseDownLoc.X, e.Y - this.mouseDownLoc.Y);
 			if (this.dragIndex != -1 && Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y) > 4 && this.IsItemSelected(this.dragIndex))
 			{
-				Point itemPos = this.GetModelIndexLocation(this.dragIndex, true);
+				Point itemPos = this.GetModelIndexLocation(this.dragIndex);
 				this.OnItemDrag(this.dragIndex, this.model.GetItemAt(this.dragIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
 				this.dragIndex = -1;
 			}
@@ -834,7 +834,7 @@ namespace AdamsLair.WinForms.ItemViews
 			base.OnMouseClick(e);
 			if (this.hoverIndex != -1)
 			{
-				Point itemPos = this.GetModelIndexLocation(this.hoverIndex, true);
+				Point itemPos = this.GetModelIndexLocation(this.hoverIndex);
 				this.OnItemClicked(this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
 			}
 			this.ProcessUserItemClick(this.hoverIndex);
@@ -844,7 +844,7 @@ namespace AdamsLair.WinForms.ItemViews
 			base.OnMouseDoubleClick(e);
 			if (this.hoverIndex != -1)
 			{
-				Point itemPos = this.GetModelIndexLocation(this.hoverIndex, true);
+				Point itemPos = this.GetModelIndexLocation(this.hoverIndex);
 				this.OnItemDoubleClicked(this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
 			}
 		}
