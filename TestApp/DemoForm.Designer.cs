@@ -43,6 +43,7 @@
 			this.tabControl = new System.Windows.Forms.TabControl();
 			this.tabPagePropertyGrid = new System.Windows.Forms.TabPage();
 			this.tabPageTiledView = new System.Windows.Forms.TabPage();
+			this.checkBoxTiledViewStyle = new System.Windows.Forms.CheckBox();
 			this.trackBarTileViewHeight = new System.Windows.Forms.TrackBar();
 			this.trackBarTileViewWidth = new System.Windows.Forms.TrackBar();
 			this.checkBoxTileViewHighlightHover = new System.Windows.Forms.CheckBox();
@@ -62,7 +63,6 @@
 			this.colorSlider2 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorSlider1 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorPanel1 = new AdamsLair.WinForms.ColorControls.ColorPanel();
-			this.checkBoxTiledViewStyle = new System.Windows.Forms.CheckBox();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
@@ -247,6 +247,18 @@
 			this.tabPageTiledView.Text = "TiledView";
 			this.tabPageTiledView.UseVisualStyleBackColor = true;
 			// 
+			// checkBoxTiledViewStyle
+			// 
+			this.checkBoxTiledViewStyle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkBoxTiledViewStyle.AutoSize = true;
+			this.checkBoxTiledViewStyle.Location = new System.Drawing.Point(317, 389);
+			this.checkBoxTiledViewStyle.Name = "checkBoxTiledViewStyle";
+			this.checkBoxTiledViewStyle.Size = new System.Drawing.Size(49, 17);
+			this.checkBoxTiledViewStyle.TabIndex = 11;
+			this.checkBoxTiledViewStyle.Text = "Style";
+			this.checkBoxTiledViewStyle.UseVisualStyleBackColor = true;
+			this.checkBoxTiledViewStyle.CheckedChanged += new System.EventHandler(this.checkBoxTiledViewStyle_CheckedChanged);
+			// 
 			// trackBarTileViewHeight
 			// 
 			this.trackBarTileViewHeight.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -383,6 +395,7 @@
 			// 
 			// tiledView
 			// 
+			this.tiledView.AllowUserItemEditing = true;
 			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
@@ -393,6 +406,7 @@
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
 			this.tiledView.Model = emptyListModel1;
+			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
 			this.tiledView.Size = new System.Drawing.Size(334, 377);
@@ -484,18 +498,6 @@
 			this.colorPanel1.Size = new System.Drawing.Size(200, 200);
 			this.colorPanel1.TabIndex = 13;
 			this.colorPanel1.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel1.ValuePercentual")));
-			// 
-			// checkBoxTiledViewStyle
-			// 
-			this.checkBoxTiledViewStyle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.checkBoxTiledViewStyle.AutoSize = true;
-			this.checkBoxTiledViewStyle.Location = new System.Drawing.Point(317, 389);
-			this.checkBoxTiledViewStyle.Name = "checkBoxTiledViewStyle";
-			this.checkBoxTiledViewStyle.Size = new System.Drawing.Size(49, 17);
-			this.checkBoxTiledViewStyle.TabIndex = 11;
-			this.checkBoxTiledViewStyle.Text = "Style";
-			this.checkBoxTiledViewStyle.UseVisualStyleBackColor = true;
-			this.checkBoxTiledViewStyle.CheckedChanged += new System.EventHandler(this.checkBoxTiledViewStyle_CheckedChanged);
 			// 
 			// DemoForm
 			// 

@@ -46,6 +46,7 @@ namespace AdamsLair.WinForms.ItemViews
 		private	Size					tileSize			= new Size(50, 50);
 		private	SelectMode				userSelectMode		= SelectMode.Multi;
 		private	HorizontalAlignment		rowAlignment		= HorizontalAlignment.Center;
+		private	bool					allowUserItemEdit	= false;
 		private	bool					highlightHoverItems	= true;
 		private	int						additionalSpace		= 0;
 		private	int						tilesPerRow			= 0;
@@ -111,6 +112,12 @@ namespace AdamsLair.WinForms.ItemViews
 		{
 			get { return this.highlightHoverItems; }
 			set { this.highlightHoverItems = value; }
+		}
+		[DefaultValue(false)]
+		public bool AllowUserItemEditing
+		{
+			get { return this.allowUserItemEdit; }
+			set { this.allowUserItemEdit = value; }
 		}
 		[DefaultValue(typeof(Size), "50, 50")]
 		public Size TileSize
@@ -684,7 +691,7 @@ namespace AdamsLair.WinForms.ItemViews
 			if (this.ItemClicked != null)
 				this.ItemClicked(this, new TiledViewItemMouseEventArgs(this, index, item, location, buttons));
 
-			if (this.itemEditIndex == index)
+			if (this.itemEditIndex == index && this.allowUserItemEdit)
 			{
 				this.BeginEdit(index);
 			}
@@ -921,7 +928,7 @@ namespace AdamsLair.WinForms.ItemViews
 				this.hoverIndex = focusIndex;
 				this.ProcessUserItemClick(focusIndex);
 			}
-			else if (e.KeyCode == Keys.F2)
+			else if (e.KeyCode == Keys.F2 && this.allowUserItemEdit)
 			{
 				e.Handled = true;
 				if (this.IsEditing)
