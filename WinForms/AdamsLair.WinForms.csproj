@@ -68,6 +68,10 @@
     <Compile Include="Drawing\TextBoxStyle.cs" />
     <Compile Include="ItemModels\EmptyListModel.cs" />
     <Compile Include="ItemModels\SimpleListModel.cs" />
+    <Compile Include="ItemViews\ITiledViewItemEditor.cs" />
+    <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="PropertyEditing\BitmaskItem.cs" />
     <Compile Include="Drawing\ControlRenderer.cs" />
     <Compile Include="PropertyEditing\EditorTemplates\ComboBoxDropDown.cs">
