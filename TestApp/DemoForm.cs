@@ -268,18 +268,14 @@ namespace AdamsLair.WinForms.TestApp
 		private void buttonAddTenTileItems_Click(object sender, EventArgs e)
 		{
 			Random rnd = new Random();
-			for (int i = 0; i < 10; i++)
-			{
-				this.tiledViewModel.Add(new TiledModelItem { Name = rnd.Next().ToString() });
-			}
+			IEnumerable<TiledModelItem> newItemQuery = Enumerable.Range(0, 100).Select(i => new TiledModelItem { Name = rnd.Next().ToString() });
+			this.tiledViewModel.AddRange(newItemQuery);
 		}
 		private void buttonAddThousandTileItems_Click(object sender, EventArgs e)
 		{
 			Random rnd = new Random();
-			for (int i = 0; i < 1000; i++)
-			{
-				this.tiledViewModel.Add(new TiledModelItem { Name = rnd.Next().ToString() });
-			}
+			IEnumerable<TiledModelItem> newItemQuery = Enumerable.Range(0, 100000).Select(i => new TiledModelItem { Name = rnd.Next().ToString() });
+			this.tiledViewModel.AddRange(newItemQuery);
 		}
 		private void buttonRemoveTileItem_Click(object sender, EventArgs e)
 		{
@@ -332,9 +328,26 @@ namespace AdamsLair.WinForms.TestApp
 		{
 			this.tiledView.UserSelectMode = this.checkBoxTileViewUserSelect.Checked ? TiledView.SelectMode.Multi : TiledView.SelectMode.None;
 		}
-		private void trackBarTileViewSize_ValueChanged(object sender, EventArgs e)
+		private void trackBarTileViewWidth_ValueChanged(object sender, EventArgs e)
 		{
-			this.tiledView.TileSize = new Size(this.trackBarTileViewSize.Value, this.trackBarTileViewSize.Value);
+			this.tiledView.TileSize = new Size(this.trackBarTileViewWidth.Value, this.tiledView.TileSize.Height);
+		}
+		private void trackBarTileViewHeight_ValueChanged(object sender, EventArgs e)
+		{
+			this.tiledView.TileSize = new Size(this.tiledView.TileSize.Width, this.trackBarTileViewHeight.Value);
+		}
+		private void checkBoxTiledViewStyle_CheckedChanged(object sender, EventArgs e)
+		{
+			if (this.checkBoxTiledViewStyle.Checked)
+			{
+				this.tiledView.BackColor = Color.Black;
+				this.tiledView.ForeColor = Color.FromArgb(192, Color.White);
+			}
+			else
+			{
+				this.tiledView.BackColor = SystemColors.Control;
+				this.tiledView.ForeColor = SystemColors.ControlText;
+			}
 		}
 	}
 }

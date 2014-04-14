@@ -28,7 +28,6 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel4 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
@@ -43,7 +42,9 @@
 			this.tabControl = new System.Windows.Forms.TabControl();
 			this.tabPagePropertyGrid = new System.Windows.Forms.TabPage();
 			this.tabPageTiledView = new System.Windows.Forms.TabPage();
-			this.trackBarTileViewSize = new System.Windows.Forms.TrackBar();
+			this.checkBoxTiledViewStyle = new System.Windows.Forms.CheckBox();
+			this.trackBarTileViewHeight = new System.Windows.Forms.TrackBar();
+			this.trackBarTileViewWidth = new System.Windows.Forms.TrackBar();
 			this.checkBoxTileViewHighlightHover = new System.Windows.Forms.CheckBox();
 			this.checkBoxTileViewUserSelect = new System.Windows.Forms.CheckBox();
 			this.radioTiledDisabled = new System.Windows.Forms.RadioButton();
@@ -66,7 +67,8 @@
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewHeight)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewWidth)).BeginInit();
 			this.tabPageColorControls.SuspendLayout();
 			this.tabPageTimeline.SuspendLayout();
 			this.SuspendLayout();
@@ -74,9 +76,9 @@
 			// propertyGrid1
 			// 
 			this.propertyGrid1.AllowDrop = true;
-			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.propertyGrid1.AutoScroll = true;
 			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
 			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -194,9 +196,9 @@
 			// 
 			// tabControl
 			// 
-			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl.Controls.Add(this.tabPagePropertyGrid);
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
@@ -228,7 +230,9 @@
 			// 
 			// tabPageTiledView
 			// 
-			this.tabPageTiledView.Controls.Add(this.trackBarTileViewSize);
+			this.tabPageTiledView.Controls.Add(this.checkBoxTiledViewStyle);
+			this.tabPageTiledView.Controls.Add(this.trackBarTileViewHeight);
+			this.tabPageTiledView.Controls.Add(this.trackBarTileViewWidth);
 			this.tabPageTiledView.Controls.Add(this.checkBoxTileViewHighlightHover);
 			this.tabPageTiledView.Controls.Add(this.checkBoxTileViewUserSelect);
 			this.tabPageTiledView.Controls.Add(this.radioTiledDisabled);
@@ -246,23 +250,53 @@
 			this.tabPageTiledView.Text = "TiledView";
 			this.tabPageTiledView.UseVisualStyleBackColor = true;
 			// 
-			// trackBarTileViewSize
+			// checkBoxTiledViewStyle
 			// 
-			this.trackBarTileViewSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.trackBarTileViewSize.BackColor = System.Drawing.SystemColors.Window;
-			this.trackBarTileViewSize.LargeChange = 50;
-			this.trackBarTileViewSize.Location = new System.Drawing.Point(346, 122);
-			this.trackBarTileViewSize.Maximum = 250;
-			this.trackBarTileViewSize.Minimum = 16;
-			this.trackBarTileViewSize.Name = "trackBarTileViewSize";
-			this.trackBarTileViewSize.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.trackBarTileViewSize.Size = new System.Drawing.Size(45, 261);
-			this.trackBarTileViewSize.SmallChange = 5;
-			this.trackBarTileViewSize.TabIndex = 9;
-			this.trackBarTileViewSize.TickFrequency = 25;
-			this.trackBarTileViewSize.Value = 50;
-			this.trackBarTileViewSize.ValueChanged += new System.EventHandler(this.trackBarTileViewSize_ValueChanged);
+			this.checkBoxTiledViewStyle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkBoxTiledViewStyle.AutoSize = true;
+			this.checkBoxTiledViewStyle.Location = new System.Drawing.Point(317, 389);
+			this.checkBoxTiledViewStyle.Name = "checkBoxTiledViewStyle";
+			this.checkBoxTiledViewStyle.Size = new System.Drawing.Size(49, 17);
+			this.checkBoxTiledViewStyle.TabIndex = 11;
+			this.checkBoxTiledViewStyle.Text = "Style";
+			this.checkBoxTiledViewStyle.UseVisualStyleBackColor = true;
+			this.checkBoxTiledViewStyle.CheckedChanged += new System.EventHandler(this.checkBoxTiledViewStyle_CheckedChanged);
+			// 
+			// trackBarTileViewHeight
+			// 
+			this.trackBarTileViewHeight.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewHeight.BackColor = System.Drawing.SystemColors.Window;
+			this.trackBarTileViewHeight.LargeChange = 50;
+			this.trackBarTileViewHeight.Location = new System.Drawing.Point(386, 122);
+			this.trackBarTileViewHeight.Maximum = 250;
+			this.trackBarTileViewHeight.Minimum = 16;
+			this.trackBarTileViewHeight.Name = "trackBarTileViewHeight";
+			this.trackBarTileViewHeight.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.trackBarTileViewHeight.Size = new System.Drawing.Size(45, 261);
+			this.trackBarTileViewHeight.SmallChange = 5;
+			this.trackBarTileViewHeight.TabIndex = 10;
+			this.trackBarTileViewHeight.TickFrequency = 25;
+			this.trackBarTileViewHeight.Value = 50;
+			this.trackBarTileViewHeight.ValueChanged += new System.EventHandler(this.trackBarTileViewHeight_ValueChanged);
+			// 
+			// trackBarTileViewWidth
+			// 
+			this.trackBarTileViewWidth.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewWidth.BackColor = System.Drawing.SystemColors.Window;
+			this.trackBarTileViewWidth.LargeChange = 50;
+			this.trackBarTileViewWidth.Location = new System.Drawing.Point(346, 122);
+			this.trackBarTileViewWidth.Maximum = 250;
+			this.trackBarTileViewWidth.Minimum = 16;
+			this.trackBarTileViewWidth.Name = "trackBarTileViewWidth";
+			this.trackBarTileViewWidth.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.trackBarTileViewWidth.Size = new System.Drawing.Size(45, 261);
+			this.trackBarTileViewWidth.SmallChange = 5;
+			this.trackBarTileViewWidth.TabIndex = 9;
+			this.trackBarTileViewWidth.TickFrequency = 25;
+			this.trackBarTileViewWidth.Value = 50;
+			this.trackBarTileViewWidth.ValueChanged += new System.EventHandler(this.trackBarTileViewWidth_ValueChanged);
 			// 
 			// checkBoxTileViewHighlightHover
 			// 
@@ -325,7 +359,7 @@
 			this.buttonAddThousandTileItems.Name = "buttonAddThousandTileItems";
 			this.buttonAddThousandTileItems.Size = new System.Drawing.Size(75, 23);
 			this.buttonAddThousandTileItems.TabIndex = 4;
-			this.buttonAddThousandTileItems.Text = "Add 1000";
+			this.buttonAddThousandTileItems.Text = "Add 100000";
 			this.buttonAddThousandTileItems.UseVisualStyleBackColor = true;
 			this.buttonAddThousandTileItems.Click += new System.EventHandler(this.buttonAddThousandTileItems_Click);
 			// 
@@ -358,15 +392,16 @@
 			this.buttonAddTenTileItems.Name = "buttonAddTenTileItems";
 			this.buttonAddTenTileItems.Size = new System.Drawing.Size(75, 23);
 			this.buttonAddTenTileItems.TabIndex = 1;
-			this.buttonAddTenTileItems.Text = "Add 10";
+			this.buttonAddTenTileItems.Text = "Add 100";
 			this.buttonAddTenTileItems.UseVisualStyleBackColor = true;
 			this.buttonAddTenTileItems.Click += new System.EventHandler(this.buttonAddTenTileItems_Click);
 			// 
 			// tiledView
 			// 
-			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.tiledView.AllowUserItemEditing = true;
+			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.tiledView.AutoScroll = true;
 			this.tiledView.AutoScrollMinSize = new System.Drawing.Size(0, -2);
 			this.tiledView.BackColor = System.Drawing.SystemColors.Control;
@@ -374,10 +409,12 @@
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
 			this.tiledView.Model = emptyListModel4;
+			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
 			this.tiledView.Size = new System.Drawing.Size(334, 377);
 			this.tiledView.TabIndex = 0;
+			this.tiledView.TabStop = true;
 			this.tiledView.ItemClicked += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemClicked);
 			this.tiledView.ItemDoubleClicked += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemDoubleClicked);
 			this.tiledView.ItemDrag += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemDrag);
@@ -501,7 +538,8 @@
 			this.tabPagePropertyGrid.PerformLayout();
 			this.tabPageTiledView.ResumeLayout(false);
 			this.tabPageTiledView.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewHeight)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewWidth)).EndInit();
 			this.tabPageColorControls.ResumeLayout(false);
 			this.tabPageTimeline.ResumeLayout(false);
 			this.ResumeLayout(false);
@@ -538,9 +576,11 @@
 		private System.Windows.Forms.RadioButton radioTiledEnabled;
 		private System.Windows.Forms.CheckBox checkBoxTileViewHighlightHover;
 		private System.Windows.Forms.CheckBox checkBoxTileViewUserSelect;
-		private System.Windows.Forms.TrackBar trackBarTileViewSize;
+		private System.Windows.Forms.TrackBar trackBarTileViewWidth;
 		private ColorControls.ColorSlider colorSlider4;
 		private ColorControls.ColorPanel colorPanel3;
+		private System.Windows.Forms.TrackBar trackBarTileViewHeight;
+		private System.Windows.Forms.CheckBox checkBoxTiledViewStyle;
 		private System.Windows.Forms.TabPage tabPageTimeline;
 		private TimelineControls.TimelineView timelineView1;
 	}

@@ -147,6 +147,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			{
 				this.offset = Math.Min(this.offset, visibleElementCount - 10);
 				this.offsetEditor.Maximum = visibleElementCount - 10;
+				this.offsetEditor.ValueBarMaximum = this.offsetEditor.Maximum;
 				visibleElementCount = 10;
 				showOffset = true;
 			}
