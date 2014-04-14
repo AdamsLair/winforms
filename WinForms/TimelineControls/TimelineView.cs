@@ -15,6 +15,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			this.SetStyle(ControlStyles.Opaque, true);
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+			this.SetStyle(ControlStyles.Selectable, true);
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
