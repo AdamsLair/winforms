@@ -517,7 +517,6 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
-			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);
 			this.timelineView1.Name = "timelineView1";
 			this.timelineView1.Size = new System.Drawing.Size(379, 362);

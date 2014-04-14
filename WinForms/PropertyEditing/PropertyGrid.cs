@@ -10,6 +10,7 @@ using System.Reflection;
 
 using AdamsLair.WinForms.PropertyEditing.Editors;
 using AdamsLair.WinForms.Drawing;
+using AdamsLair.WinForms.NativeWinAPI;
 
 namespace AdamsLair.WinForms.PropertyEditing
 {
@@ -113,6 +114,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public const int EditorPriority_Specialized	= 50;
 		public const int EditorPriority_Override	= 100;
 
+
 		private class MainEditorProvider : IPropertyEditorProvider
 		{
 			private	List<IPropertyEditorProvider>	subProviders	= new List<IPropertyEditorProvider>();
@@ -181,6 +183,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			}
 		}
 
+
 		private	MainEditorProvider	editorProvider		= new MainEditorProvider();
 		private	ControlRenderer		renderer			= null;
 		private	PropertyEditor		mainEditor			= null;
@@ -195,8 +198,10 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool				mouseInside			= false;
 		private	MouseButtons		mouseDownTemp		= MouseButtons.None;
 		
+
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
 		public event EventHandler<PropertyEditorValueEventArgs>	ValueChanged	= null;
+
 
 		public IEnumerable<object> Selection
 		{
@@ -251,10 +256,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				CreateParams cp = base.CreateParams;
 				// This somehow fixes the "ghost scrollbar" bug. Note that it also isn't animated anymore and doesn't react properly to hover events.
-				cp.ExStyle |= 0x02000000;  // Turn on WS_EX_COMPOSITED
+				cp.ExStyle |= (int)ExtendedWindowStyles.Composited;
 				return cp;
 			}
 		}
+
 
 		public PropertyGrid()
 		{
