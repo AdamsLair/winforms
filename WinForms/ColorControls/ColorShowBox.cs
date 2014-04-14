@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 
 namespace AdamsLair.WinForms.ColorControls
 {
-	public class ColorShowBox : UserControl
+	public class ColorShowBox : Control
 	{
 		private	Color	upperColor	= Color.Transparent;
 		private	Color	lowerColor	= Color.Transparent;
@@ -14,7 +14,15 @@ namespace AdamsLair.WinForms.ColorControls
 		public event EventHandler UpperClick = null;
 		public event EventHandler LowerClick = null;
 
-
+		
+		public Rectangle ColorAreaRectangle
+		{
+			get { return new Rectangle(
+				this.ClientRectangle.X + 2,
+				this.ClientRectangle.Y + 2,
+				this.ClientRectangle.Width - 4,
+				this.ClientRectangle.Height - 4); }
+		}
 		public Color Color
 		{
 			get { return this.upperColor; }
@@ -35,8 +43,11 @@ namespace AdamsLair.WinForms.ColorControls
 		public ColorShowBox()
 		{
 			this.DoubleBuffered = true;
+			this.SetStyle(ControlStyles.UserPaint, true);
+			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+			this.SetStyle(ControlStyles.Opaque, true);
+			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
-			this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 		}
 		
 		protected void OnUpperClick()
@@ -62,18 +73,32 @@ namespace AdamsLair.WinForms.ColorControls
 		{
 			base.OnPaint(e);
 
-			e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, Color.LightGray, Color.Gray), this.ClientRectangle);
-			
-			e.Graphics.FillRectangle(new SolidBrush(this.upperColor),
+			Rectangle colorBoxOuter = new Rectangle(
 				this.ClientRectangle.X,
 				this.ClientRectangle.Y,
-				this.ClientRectangle.Width,
-				this.ClientRectangle.Height / 2 + 1);
+				this.ClientRectangle.Width - 1,
+				this.ClientRectangle.Height - 1);
+			Rectangle colorBoxInner = new Rectangle(
+				colorBoxOuter.X + 1,
+				colorBoxOuter.Y + 1,
+				colorBoxOuter.Width - 2,
+				colorBoxOuter.Height - 2);
+			Rectangle colorArea = this.ColorAreaRectangle;
+
+			e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, Color.LightGray, Color.Gray), colorArea);
+			e.Graphics.FillRectangle(new SolidBrush(this.upperColor),
+				colorArea.X,
+				colorArea.Y,
+				colorArea.Width,
+				colorArea.Height / 2 + 1);
 			e.Graphics.FillRectangle(new SolidBrush(this.lowerColor),
-				this.ClientRectangle.X,
-				this.ClientRectangle.Y + this.ClientRectangle.Height / 2 + 1,
-				this.ClientRectangle.Width,
-				this.ClientRectangle.Height / 2);
+				colorArea.X,
+				colorArea.Y + colorArea.Height / 2 + 1,
+				colorArea.Width,
+				colorArea.Height / 2);
+
+			e.Graphics.DrawRectangle(SystemPens.ControlDark, colorBoxOuter);
+			e.Graphics.DrawRectangle(SystemPens.ControlLightLight, colorBoxInner);
 		}
 	}
 }

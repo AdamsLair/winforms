@@ -6,7 +6,7 @@ using System.ComponentModel;
 
 namespace AdamsLair.WinForms.ColorControls
 {
-	public class ColorPanel : UserControl
+	public class ColorPanel : Control
 	{
 		private	Bitmap	srcImage		= null;
 		private	int		pickerSize		= 8;
@@ -16,7 +16,7 @@ namespace AdamsLair.WinForms.ColorControls
 		private	Color	clrBottomLeft	= Color.Transparent;
 		private	Color	clrBottomRight	= Color.Transparent;
 		private	Color	valTemp			= Color.Transparent;
-		private	Timer	pickerDragTimer	= null;
+		private	bool	grabbed			= false;
 		private	bool	designSerializeColor = false;
 
 
@@ -115,23 +115,12 @@ namespace AdamsLair.WinForms.ColorControls
 
 		public ColorPanel()
 		{
-			this.pickerDragTimer = new Timer();
-			this.pickerDragTimer.Interval = 10;
-			this.pickerDragTimer.Tick += pickerDragTimer_Tick;
-
 			this.SetStyle(ControlStyles.UserPaint, true);
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			this.SetStyle(ControlStyles.Opaque, true);
-			this.SetStyle(ControlStyles.Selectable, true);
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
 			this.SetupHueBrightnessGradient();
-		}
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
-			if (this.pickerDragTimer != null)
-				this.pickerDragTimer.Dispose();
 		}
 		
 		public void SetupGradient(Color tl, Color tr, Color bl, Color br, int accuracy = 256)
@@ -349,30 +338,23 @@ namespace AdamsLair.WinForms.ColorControls
 				this.ValuePercentual = new PointF(
 					(float)(e.X - this.ColorAreaRectangle.X) / (float)this.ColorAreaRectangle.Width,
 					1.0f - (float)(e.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height);
-				this.pickerDragTimer.Start();
+				this.grabbed = true;
 			}
 		}
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
-			this.pickerDragTimer.Stop();
+			this.grabbed = false;
 		}
-		private void pickerDragTimer_Tick(object sender, EventArgs e)
+		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			Point pos = this.PointToClient(System.Windows.Forms.Cursor.Position);
-			this.ValuePercentual = new PointF(
-				(float)(pos.X - this.ColorAreaRectangle.X) / (float)this.ColorAreaRectangle.Width,
-				1.0f - (float)(pos.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height);
-		}
-		protected override void OnLostFocus(EventArgs e)
-		{
-			base.OnLostFocus(e);
-			this.Invalidate();
-		}
-		protected override void OnGotFocus(EventArgs e)
-		{
-			base.OnGotFocus(e);
-			this.Invalidate();
+			base.OnMouseMove(e);
+			if (this.grabbed)
+			{
+				this.ValuePercentual = new PointF(
+					(float)(e.X - this.ColorAreaRectangle.X) / (float)this.ColorAreaRectangle.Width,
+					1.0f - (float)(e.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height);
+			}
 		}
 
 		private void ResetTopLeftColor()

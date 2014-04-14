@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColorControls\ColorPanel.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="ColorControls\ColorPickerDialog.cs">
       <SubType>Form</SubType>
@@ -52,10 +52,10 @@
       <DependentUpon>ColorPickerDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ColorControls\ColorShowBox.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="ColorControls\ColorSlider.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Drawing\ExpandNodeState.cs" />
     <Compile Include="Drawing\CheckBoxState.cs" />

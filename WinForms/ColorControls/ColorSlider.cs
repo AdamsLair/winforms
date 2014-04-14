@@ -6,7 +6,7 @@ using System.ComponentModel;
 
 namespace AdamsLair.WinForms.ColorControls
 {
-	public class ColorSlider : UserControl
+	public class ColorSlider : Control
 	{
 		private	Bitmap	srcImage	= null;
 		private	int		pickerSize	= 5;
@@ -15,7 +15,7 @@ namespace AdamsLair.WinForms.ColorControls
 		private	Color	max			= Color.Transparent;
 		private	Color	valTemp		= Color.Transparent;
 		private	bool	innerPicker	= true;
-		private	Timer	pickerDragTimer	= null;
+		private	bool	grabbed		= false;
 		private	bool	designSerializeColor = false;
 
 
@@ -94,22 +94,12 @@ namespace AdamsLair.WinForms.ColorControls
 
 		public ColorSlider()
 		{
-			this.pickerDragTimer = new Timer();
-			this.pickerDragTimer.Interval = 10;
-			this.pickerDragTimer.Tick += new EventHandler(pickerDragTimer_Tick);
-
 			this.SetStyle(ControlStyles.UserPaint, true);
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-			this.SetStyle(ControlStyles.Selectable, true);
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
+			this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 			this.SetupHueGradient();
-		}
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
-			if (this.pickerDragTimer != null)
-				this.pickerDragTimer.Dispose();
 		}
 
 		public void SetupGradient(Color min, Color max, int accuracy = 256)
@@ -196,6 +186,11 @@ namespace AdamsLair.WinForms.ColorControls
 			base.OnEnabledChanged(e);
 			this.Invalidate();
 		}
+		protected override void OnParentBackColorChanged(EventArgs e)
+		{
+			base.OnParentBackColorChanged(e);
+			this.Invalidate();
+		}
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
@@ -255,31 +250,22 @@ namespace AdamsLair.WinForms.ColorControls
 			base.OnMouseDown(e);
 			if (e.Button == System.Windows.Forms.MouseButtons.Left)
 			{
-				this.Focus();
 				this.ValuePercentual = 1.0f - (float)(e.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height;
-				this.pickerDragTimer.Enabled = true;
+				this.grabbed = true;
 			}
 		}
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
-			this.pickerDragTimer.Enabled = false;
+			this.grabbed = false;
 		}
-		
-		private void pickerDragTimer_Tick(object sender, EventArgs e)
+		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			Point pos = this.PointToClient(System.Windows.Forms.Cursor.Position);
-			this.ValuePercentual = 1.0f - (float)(pos.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height;
-		}
-		protected override void OnLostFocus(EventArgs e)
-		{
-			base.OnLostFocus(e);
-			this.Invalidate();
-		}
-		protected override void OnGotFocus(EventArgs e)
-		{
-			base.OnGotFocus(e);
-			this.Invalidate();
+			base.OnMouseMove(e);
+			if (this.grabbed)
+			{
+				this.ValuePercentual = 1.0f - (float)(e.Y - this.ColorAreaRectangle.Y) / (float)this.ColorAreaRectangle.Height;
+			}
 		}
 
 		private void ResetMinimum()

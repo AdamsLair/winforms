@@ -509,15 +509,22 @@ namespace AdamsLair.WinForms.ItemViews
 			Image icon;
 			this.GetItemAppearance(modelIndex, item, out text, out icon);
 			
-
 			TiledViewTextItemEditor editor = new TiledViewTextItemEditor();
 			editor.EditedPropertyName = this.itemEditProperty;
 			editor.BorderStyle = System.Windows.Forms.BorderStyle.None;
+
+			bool styledEditor = this.BackColor != SystemColors.Control;
 			int iconOffset = this.tileSize.Height - editor.PreferredHeight;
 			if (icon == null) iconOffset /= 2;
+
 			editor.Location = new Point(editorPos.X, editorPos.Y + iconOffset);
 			editor.Width = this.tileSize.Width;
 			editor.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			if (styledEditor)
+			{
+				editor.BackColor = this.BackColor;
+				editor.ForeColor = this.ForeColor;
+			}
 
 			return editor;
 		}
