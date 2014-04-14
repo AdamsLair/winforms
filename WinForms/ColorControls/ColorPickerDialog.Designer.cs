@@ -347,7 +347,6 @@
 			// 
 			// colorShowBox
 			// 
-			this.colorShowBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.colorShowBox.Color = System.Drawing.Color.DarkRed;
 			this.colorShowBox.Location = new System.Drawing.Point(363, 12);
 			this.colorShowBox.LowerColor = System.Drawing.Color.Maroon;
