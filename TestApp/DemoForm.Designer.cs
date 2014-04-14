@@ -28,7 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel1 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
+			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel4 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
@@ -54,18 +54,21 @@
 			this.buttonAddTenTileItems = new System.Windows.Forms.Button();
 			this.tiledView = new AdamsLair.WinForms.ItemViews.TiledView();
 			this.tabPageColorControls = new System.Windows.Forms.TabPage();
+			this.colorSlider4 = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.colorPanel3 = new AdamsLair.WinForms.ColorControls.ColorPanel();
 			this.colorSlider3 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorPanel2 = new AdamsLair.WinForms.ColorControls.ColorPanel();
 			this.colorSlider2 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorSlider1 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorPanel1 = new AdamsLair.WinForms.ColorControls.ColorPanel();
-			this.colorPanel3 = new AdamsLair.WinForms.ColorControls.ColorPanel();
-			this.colorSlider4 = new AdamsLair.WinForms.ColorControls.ColorSlider();
+			this.tabPageTimeline = new System.Windows.Forms.TabPage();
+			this.timelineView1 = new AdamsLair.WinForms.TimelineControls.TimelineView();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).BeginInit();
 			this.tabPageColorControls.SuspendLayout();
+			this.tabPageTimeline.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
@@ -197,6 +200,7 @@
 			this.tabControl.Controls.Add(this.tabPagePropertyGrid);
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
+			this.tabControl.Controls.Add(this.tabPageTimeline);
 			this.tabControl.Location = new System.Drawing.Point(12, 12);
 			this.tabControl.Name = "tabControl";
 			this.tabControl.SelectedIndex = 0;
@@ -369,7 +373,7 @@
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
-			this.tiledView.Model = emptyListModel1;
+			this.tiledView.Model = emptyListModel4;
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
 			this.tiledView.Size = new System.Drawing.Size(334, 377);
@@ -394,6 +398,27 @@
 			this.tabPageColorControls.TabIndex = 2;
 			this.tabPageColorControls.Text = "Color";
 			this.tabPageColorControls.UseVisualStyleBackColor = true;
+			// 
+			// colorSlider4
+			// 
+			this.colorSlider4.Enabled = false;
+			this.colorSlider4.Location = new System.Drawing.Point(317, 3);
+			this.colorSlider4.Name = "colorSlider4";
+			this.colorSlider4.Size = new System.Drawing.Size(30, 200);
+			this.colorSlider4.TabIndex = 19;
+			// 
+			// colorPanel3
+			// 
+			this.colorPanel3.BottomLeftColor = System.Drawing.Color.Blue;
+			this.colorPanel3.BottomRightColor = System.Drawing.Color.Black;
+			this.colorPanel3.Enabled = false;
+			this.colorPanel3.Location = new System.Drawing.Point(209, 209);
+			this.colorPanel3.Name = "colorPanel3";
+			this.colorPanel3.Size = new System.Drawing.Size(207, 164);
+			this.colorPanel3.TabIndex = 18;
+			this.colorPanel3.TopLeftColor = System.Drawing.Color.Red;
+			this.colorPanel3.TopRightColor = System.Drawing.Color.Lime;
+			this.colorPanel3.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel3.ValuePercentual")));
 			// 
 			// colorSlider3
 			// 
@@ -440,26 +465,27 @@
 			this.colorPanel1.TabIndex = 13;
 			this.colorPanel1.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel1.ValuePercentual")));
 			// 
-			// colorPanel3
+			// tabPageTimeline
 			// 
-			this.colorPanel3.BottomLeftColor = System.Drawing.Color.Blue;
-			this.colorPanel3.BottomRightColor = System.Drawing.Color.Black;
-			this.colorPanel3.Enabled = false;
-			this.colorPanel3.Location = new System.Drawing.Point(209, 209);
-			this.colorPanel3.Name = "colorPanel3";
-			this.colorPanel3.Size = new System.Drawing.Size(207, 164);
-			this.colorPanel3.TabIndex = 18;
-			this.colorPanel3.TopLeftColor = System.Drawing.Color.Red;
-			this.colorPanel3.TopRightColor = System.Drawing.Color.Lime;
-			this.colorPanel3.ValuePercentual = ((System.Drawing.PointF)(resources.GetObject("colorPanel3.ValuePercentual")));
+			this.tabPageTimeline.Controls.Add(this.timelineView1);
+			this.tabPageTimeline.Location = new System.Drawing.Point(4, 22);
+			this.tabPageTimeline.Name = "tabPageTimeline";
+			this.tabPageTimeline.Size = new System.Drawing.Size(427, 412);
+			this.tabPageTimeline.TabIndex = 3;
+			this.tabPageTimeline.Text = "Timeline";
+			this.tabPageTimeline.UseVisualStyleBackColor = true;
 			// 
-			// colorSlider4
+			// timelineView1
 			// 
-			this.colorSlider4.Enabled = false;
-			this.colorSlider4.Location = new System.Drawing.Point(317, 3);
-			this.colorSlider4.Name = "colorSlider4";
-			this.colorSlider4.Size = new System.Drawing.Size(30, 200);
-			this.colorSlider4.TabIndex = 19;
+			this.timelineView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
+			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.timelineView1.Location = new System.Drawing.Point(23, 24);
+			this.timelineView1.Name = "timelineView1";
+			this.timelineView1.Size = new System.Drawing.Size(379, 362);
+			this.timelineView1.TabIndex = 0;
 			// 
 			// DemoForm
 			// 
@@ -477,6 +503,7 @@
 			this.tabPageTiledView.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewSize)).EndInit();
 			this.tabPageColorControls.ResumeLayout(false);
+			this.tabPageTimeline.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -514,6 +541,8 @@
 		private System.Windows.Forms.TrackBar trackBarTileViewSize;
 		private ColorControls.ColorSlider colorSlider4;
 		private ColorControls.ColorPanel colorPanel3;
+		private System.Windows.Forms.TabPage tabPageTimeline;
+		private TimelineControls.TimelineView timelineView1;
 	}
 }
 

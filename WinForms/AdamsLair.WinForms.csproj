@@ -70,6 +70,9 @@
     <Compile Include="Drawing\TextBoxStyle.cs" />
     <Compile Include="ItemModels\EmptyListModel.cs" />
     <Compile Include="ItemModels\SimpleListModel.cs" />
+    <Compile Include="TimelineControls\TimelineView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="PropertyEditing\BitmaskItem.cs" />
     <Compile Include="Drawing\ControlRenderer.cs" />
     <Compile Include="PropertyEditing\EditorTemplates\ComboBoxDropDown.cs">
@@ -121,10 +124,11 @@
     <Compile Include="ItemViews\TiledViewItemDrawEventArgs.cs" />
     <Compile Include="ItemViews\TiledViewEventArgs.cs" />
     <Compile Include="ItemViews\TiledView.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Internal\ExtMethodsColor.cs" />
     <Compile Include="Internal\ExtMethodsType.cs" />
+    <Compile Include="TimelineControls\TimelineViewTrack.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ColorControls\ColorPickerDialog.resx">
