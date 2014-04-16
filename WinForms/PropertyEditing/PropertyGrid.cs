@@ -246,7 +246,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		{
 			get { return this.focusEditor; }
 		}
-		public ControlRenderer ControlRenderer
+		public ControlRenderer Renderer
 		{
 			get { return this.renderer; }
 		}

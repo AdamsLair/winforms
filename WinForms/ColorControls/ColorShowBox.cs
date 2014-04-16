@@ -3,18 +3,25 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
+using AdamsLair.WinForms.Drawing;
+
 namespace AdamsLair.WinForms.ColorControls
 {
 	public class ColorShowBox : Control
 	{
-		private	Color	upperColor	= Color.Transparent;
-		private	Color	lowerColor	= Color.Transparent;
+		private	ControlRenderer	renderer	= new ControlRenderer();
+		private	Color			upperColor	= Color.Transparent;
+		private	Color			lowerColor	= Color.Transparent;
 
 
 		public event EventHandler UpperClick = null;
 		public event EventHandler LowerClick = null;
 
 		
+		public ControlRenderer Renderer
+		{
+			get { return this.renderer; }
+		}
 		public Rectangle ColorAreaRectangle
 		{
 			get { return new Rectangle(
@@ -73,19 +80,11 @@ namespace AdamsLair.WinForms.ColorControls
 		{
 			base.OnPaint(e);
 
-			Rectangle colorBoxOuter = new Rectangle(
-				this.ClientRectangle.X,
-				this.ClientRectangle.Y,
-				this.ClientRectangle.Width - 1,
-				this.ClientRectangle.Height - 1);
-			Rectangle colorBoxInner = new Rectangle(
-				colorBoxOuter.X + 1,
-				colorBoxOuter.Y + 1,
-				colorBoxOuter.Width - 2,
-				colorBoxOuter.Height - 2);
 			Rectangle colorArea = this.ColorAreaRectangle;
 
-			e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, Color.LightGray, Color.Gray), colorArea);
+			if (this.lowerColor.A < 255 || this.upperColor.A < 255)
+				e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, this.renderer.ColorLightBackground, this.renderer.ColorDarkBackground), colorArea);
+
 			e.Graphics.FillRectangle(new SolidBrush(this.upperColor),
 				colorArea.X,
 				colorArea.Y,
@@ -97,8 +96,7 @@ namespace AdamsLair.WinForms.ColorControls
 				colorArea.Width,
 				colorArea.Height / 2);
 
-			e.Graphics.DrawRectangle(SystemPens.ControlDark, colorBoxOuter);
-			e.Graphics.DrawRectangle(SystemPens.ControlLightLight, colorBoxInner);
+			this.renderer.DrawBorder(e.Graphics, this.ClientRectangle, Drawing.BorderStyle.ContentBox, BorderState.Normal);
 		}
 	}
 }

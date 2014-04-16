@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel1 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
@@ -76,9 +77,9 @@
 			// propertyGrid1
 			// 
 			this.propertyGrid1.AllowDrop = true;
-			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.propertyGrid1.AutoScroll = true;
 			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
 			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -196,9 +197,9 @@
 			// 
 			// tabControl
 			// 
-			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl.Controls.Add(this.tabPagePropertyGrid);
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
@@ -264,8 +265,8 @@
 			// 
 			// trackBarTileViewHeight
 			// 
-			this.trackBarTileViewHeight.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewHeight.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.trackBarTileViewHeight.BackColor = System.Drawing.SystemColors.Window;
 			this.trackBarTileViewHeight.LargeChange = 50;
 			this.trackBarTileViewHeight.Location = new System.Drawing.Point(386, 122);
@@ -282,8 +283,8 @@
 			// 
 			// trackBarTileViewWidth
 			// 
-			this.trackBarTileViewWidth.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTileViewWidth.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.trackBarTileViewWidth.BackColor = System.Drawing.SystemColors.Window;
 			this.trackBarTileViewWidth.LargeChange = 50;
 			this.trackBarTileViewWidth.Location = new System.Drawing.Point(346, 122);
@@ -399,15 +400,16 @@
 			// tiledView
 			// 
 			this.tiledView.AllowUserItemEditing = true;
-			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tiledView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tiledView.AutoScroll = true;
 			this.tiledView.AutoScrollMinSize = new System.Drawing.Size(0, -2);
 			this.tiledView.BackColor = System.Drawing.SystemColors.Control;
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
+			this.tiledView.Model = emptyListModel1;
 			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
@@ -516,11 +518,22 @@
 			this.timelineView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.timelineView1.AutoScroll = true;
+			this.timelineView1.AutoScrollMinSize = new System.Drawing.Size(1500, 800);
 			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
+			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.timelineView1.BottomRulerSize = 50;
+			this.timelineView1.HasBottomRuler = true;
+			this.timelineView1.HasLeftSidebar = true;
+			this.timelineView1.HasRightSidebar = true;
+			this.timelineView1.HasTopRuler = true;
+			this.timelineView1.LeftSidebarSize = 100;
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);
 			this.timelineView1.Name = "timelineView1";
+			this.timelineView1.RightSidebarSize = 75;
 			this.timelineView1.Size = new System.Drawing.Size(379, 362);
 			this.timelineView1.TabIndex = 0;
+			this.timelineView1.TopRulerSize = 20;
 			// 
 			// DemoForm
 			// 

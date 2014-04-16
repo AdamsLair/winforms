@@ -130,6 +130,7 @@
     <Compile Include="Internal\ExtMethodsColor.cs" />
     <Compile Include="Internal\ExtMethodsType.cs" />
     <Compile Include="TimelineControls\TimelineViewTrack.cs" />
+    <Compile Include="TimelineControls\TimelineViewUnitInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ColorControls\ColorPickerDialog.resx">

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
+using AdamsLair.WinForms.Drawing;
 using AdamsLair.WinForms.NativeWinAPI;
 
 namespace AdamsLair.WinForms.TimelineControls
@@ -30,10 +32,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 
-		private SubAreaInfo	areaTopRuler		= new SubAreaInfo(25);
-		private SubAreaInfo	areaBottomRuler		= new SubAreaInfo(50);
-		private SubAreaInfo	areaLeftSidebar		= new SubAreaInfo(100);
-		private SubAreaInfo	areaRightSidebar	= new SubAreaInfo(75);
+		private	ControlRenderer			renderer			= new ControlRenderer();
+		private	TimelineViewUnitInfo	unitInfo			= new TimelineViewUnitInfo("Seconds", "s", 5);
+		private	float					unitOffset			= 0.0f;
+		private SubAreaInfo				areaTopRuler		= new SubAreaInfo(25);
+		private SubAreaInfo				areaBottomRuler		= new SubAreaInfo(50);
+		private SubAreaInfo				areaLeftSidebar		= new SubAreaInfo(100);
+		private SubAreaInfo				areaRightSidebar	= new SubAreaInfo(75);
 
 		private	Rectangle	rectTopRuler;
 		private	Rectangle	rectBottomRuler;
@@ -41,7 +46,25 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	Rectangle	rectRightSidebar;
 		private	Rectangle	rectContentArea;
 
-
+		
+		public ControlRenderer Renderer
+		{
+			get { return this.renderer; }
+		}
+		public TimelineViewUnitInfo UnitInfo
+		{
+			get { return this.unitInfo; }
+			set { this.unitInfo = value; }
+		}
+		public float UnitOffset
+		{
+			get { return this.unitOffset; }
+			set { this.unitOffset = value; }
+		}
+		public float UnitScroll
+		{
+			get { return this.unitInfo.ConvertToUnits(this.AutoScrollPosition.X); }
+		}
 		public bool HasTopRuler
 		{
 			get { return this.areaTopRuler.Active; }
@@ -150,6 +173,14 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.Invalidate();
 			}
 		}
+		protected float GetUnitAtPos(float x)
+		{
+			return this.unitOffset + this.unitInfo.ConvertToUnits(x - this.rectContentArea.X);
+		}
+		protected float GetPosAtUnit(float unit)
+		{
+			return this.rectContentArea.X + this.unitInfo.ConvertToPixels(unit - this.unitOffset);
+		}
 
 		protected override void OnScroll(ScrollEventArgs se)
 		{
@@ -167,9 +198,33 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			e.Graphics.FillRectangle(new SolidBrush(this.BackColor), this.ClientRectangle);
 
+			GraphicsState state;
+
+			// Draw the Top Ruler
+			if (!this.rectTopRuler.IsEmpty)
+			{
+				state = e.Graphics.Save();
+				e.Graphics.SetClip(this.rectTopRuler, CombineMode.Intersect);
+				if (!e.Graphics.ClipBounds.IsEmpty)
+				{
+					this.OnPaintRuler(e.Graphics, this.rectTopRuler, true);
+				}
+				e.Graphics.Restore(state);
+			}
+
+			// Draw the Bottom Ruler
+			if (!this.rectBottomRuler.IsEmpty)
+			{
+				state = e.Graphics.Save();
+				e.Graphics.SetClip(this.rectBottomRuler, CombineMode.Intersect);
+				if (!e.Graphics.ClipBounds.IsEmpty)
+				{
+					this.OnPaintRuler(e.Graphics, this.rectBottomRuler, false);
+				}
+				e.Graphics.Restore(state);
+			}
+
 			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Red)), this.rectContentArea);
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Green)), this.rectTopRuler);
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Blue)), this.rectBottomRuler);
 			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Purple)), this.rectLeftSidebar);
 			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.CornflowerBlue)), this.rectRightSidebar);
 
@@ -177,10 +232,165 @@ namespace AdamsLair.WinForms.TimelineControls
 			format.Alignment = StringAlignment.Center;
 			format.LineAlignment = StringAlignment.Center;
 			e.Graphics.DrawString("ContentArea", this.Font, new SolidBrush(this.ForeColor), this.rectContentArea, format);
-			e.Graphics.DrawString("TopRuler", this.Font, new SolidBrush(this.ForeColor), this.rectTopRuler, format);
-			e.Graphics.DrawString("BottomRuler", this.Font, new SolidBrush(this.ForeColor), this.rectBottomRuler, format);
 			e.Graphics.DrawString("LeftSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectLeftSidebar, format);
 			e.Graphics.DrawString("RightSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectRightSidebar, format);
+		}
+		protected virtual void OnPaintRuler(Graphics g, Rectangle rect, bool top)
+		{
+			// Draw background
+			Rectangle borderRect;
+			if (this.BorderStyle != System.Windows.Forms.BorderStyle.None)
+			{
+				borderRect = new Rectangle(
+					rect.X,
+					top ? rect.Y - 1 : rect.Y,
+					rect.Width,
+					rect.Height + 1);
+			}
+			else
+			{
+				borderRect = rect;
+			}
+			g.FillRectangle(new SolidBrush(this.renderer.ColorVeryLightBackground), rect);
+			this.renderer.DrawBorder(g, borderRect, Drawing.BorderStyle.Simple, BorderState.Normal);
+
+			// Determine drawing geometry
+			Rectangle rectUnitName;
+			Rectangle rectUnitMarkings;
+			{
+				SizeF unitNameSize = g.MeasureString(this.unitInfo.Name, this.renderer.DefaultFont, rect.Width);
+				float markingRatio = 0.5f + 0.5f * (1.0f - Math.Max(Math.Min((float)rect.Height / 32.0f, 1.0f), 0.0f));
+				if (top)
+				{
+					rectUnitName = new Rectangle(
+						rect.X, 
+						rect.Y, 
+						(int)Math.Ceiling(unitNameSize.Width), 
+						(int)Math.Ceiling(unitNameSize.Height));
+					rectUnitMarkings = new Rectangle(
+						rect.X,
+						rect.Bottom - Math.Min((int)(rect.Height * markingRatio), 16),
+						rect.Width,
+						Math.Min((int)(rect.Height * markingRatio), 16));
+				}
+				else
+				{
+					rectUnitName = new Rectangle(
+						rect.X, 
+						rect.Bottom - (int)Math.Ceiling(unitNameSize.Height), 
+						(int)Math.Ceiling(unitNameSize.Width), 
+						(int)Math.Ceiling(unitNameSize.Height));
+					rectUnitMarkings = new Rectangle(
+						rect.X,
+						rect.Top,
+						rect.Width,
+						Math.Min((int)(rect.Height * markingRatio), 16));
+				}
+			}
+
+			// Draw unit name
+			{
+				Rectangle overlap = rectUnitMarkings;
+				overlap.Intersect(rectUnitName);
+				float overlapAmount = Math.Max(Math.Min((float)overlap.Height / (float)rectUnitName.Height, 1.0f), 0.0f);
+				float textOverlapAlpha = (1.0f - (overlapAmount * overlapAmount));
+
+				StringFormat format = new StringFormat(StringFormat.GenericDefault);
+				format.Alignment = StringAlignment.Near;
+				format.LineAlignment = top ? StringAlignment.Near : StringAlignment.Far;
+				g.DrawString(this.unitInfo.Name, this.renderer.DefaultFont, new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), this.renderer.ColorText)), rect, format);
+			}
+
+			// Draw ruler markings
+			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(10.0f));
+			float unitScroll = this.UnitScroll;
+			float beginTime = this.GetUnitAtPos(rect.Left);
+			float endTime = this.GetUnitAtPos(rect.Right);
+			{
+				Pen bigLinePen = new Pen(new SolidBrush(this.renderer.ColorText));
+				Pen medLinePen = new Pen(new SolidBrush(Color.FromArgb(128, this.renderer.ColorText)));
+				Pen minLinePen = new Pen(new SolidBrush(Color.FromArgb(64, this.renderer.ColorText)));
+
+				float timeValue;
+				float maxTime;
+				GetRulerRange(rulerStep * 4, unitScroll, beginTime, endTime, out timeValue, out maxTime);
+
+				int lineIndex = 0;
+				while (timeValue < maxTime)
+				{
+					float markX = this.GetPosAtUnit(timeValue + unitScroll);
+
+					float markLen;
+					Pen markPen;
+					if ((lineIndex % 4) == 0)
+					{
+						markLen = 1.0f;
+						markPen = bigLinePen;
+					}
+					else if ((lineIndex % 2) == 0)
+					{
+						markLen = 0.5f;
+						markPen = medLinePen;
+					}
+					else
+					{
+						markLen = 0.25f;
+						markPen = minLinePen;
+					}
+
+					float markTopY;
+					float markBottomY;
+					float markTextY;
+					if (top)
+					{
+						markTopY = rectUnitMarkings.Bottom - markLen * rectUnitMarkings.Height;
+						markBottomY = rectUnitMarkings.Bottom;
+						markTextY = rectUnitMarkings.Bottom - this.renderer.DefaultFont.Height - Math.Max(Math.Min(3 + rectUnitMarkings.Top - rectUnitName.Bottom, rectUnitMarkings.Height / 2), 0);
+					}
+					else
+					{
+						markTopY = rectUnitMarkings.Top;
+						markBottomY = rectUnitMarkings.Top + markLen * rectUnitMarkings.Height;
+						markTextY = rectUnitMarkings.Top + Math.Max(Math.Min(3 + rectUnitName.Top - rectUnitMarkings.Bottom, rectUnitMarkings.Height / 2), 0);
+					}
+
+					g.DrawLine(markPen, markX, markTopY, markX, markBottomY);
+
+					if ((lineIndex % 4) == 0)
+					{
+						string timeString = this.unitInfo.ConvertToString(timeValue, TimelineViewUnitInfo.NameMode.Short);
+						g.DrawString(
+							timeString, 
+							this.renderer.DefaultFont, 
+							new SolidBrush(markPen.Color), 
+							markX, 
+							markTextY);
+					}
+
+					timeValue += rulerStep;
+					lineIndex++;
+				}
+			}
+		}
+
+		protected static float GetNiceMultiple(float rawMultiple)
+		{
+			float magnitude = (float)Math.Floor(Math.Log10(rawMultiple));
+			float baseValue = (float)Math.Pow(10.0f, magnitude);
+			float factor = rawMultiple / baseValue;
+
+			if (factor < 1.25f) factor = 1.0f;
+			else if (factor < 3.75f) factor = 2.5f;
+			else if (factor < 7.5f) factor = 5.0f;
+			else factor = 10.0f;
+
+			return baseValue * factor;
+		}
+		protected static void GetRulerRange(float stepSize, float scroll, float minTime, float maxTime, out float rangeBegin, out float rangeEnd)
+		{
+			float scrollStepOffset = stepSize * (float)Math.Floor(-scroll / stepSize);
+			rangeBegin = stepSize * (float)Math.Floor(minTime / stepSize) + scrollStepOffset;
+			rangeEnd = stepSize * ((float)Math.Ceiling(maxTime / stepSize) + 1) + scrollStepOffset;
 		}
 	}
 }

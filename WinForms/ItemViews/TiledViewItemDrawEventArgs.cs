@@ -21,9 +21,9 @@ namespace AdamsLair.WinForms.ItemViews
 			get { return this.graphics; }
 			internal set { this.graphics = value; }
 		}
-		public ControlRenderer ControlRenderer
+		public ControlRenderer Renderer
 		{
-			get { return this.View.ControlRenderer; }
+			get { return this.View.Renderer; }
 		}
 		public Rectangle ItemRect
 		{

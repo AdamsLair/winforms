@@ -4,25 +4,32 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
 
+using AdamsLair.WinForms.Drawing;
+
 namespace AdamsLair.WinForms.ColorControls
 {
 	public class ColorSlider : Control
 	{
-		private	Bitmap	srcImage	= null;
-		private	int		pickerSize	= 5;
-		private	float	pickerPos	= 0.5f;
-		private	Color	min			= Color.Transparent;
-		private	Color	max			= Color.Transparent;
-		private	Color	valTemp		= Color.Transparent;
-		private	bool	innerPicker	= true;
-		private	bool	grabbed		= false;
-		private	bool	designSerializeColor = false;
+		private	ControlRenderer	renderer	= new ControlRenderer();
+		private	Bitmap			srcImage	= null;
+		private	int				pickerSize	= 5;
+		private	float			pickerPos	= 0.5f;
+		private	Color			min			= Color.Transparent;
+		private	Color			max			= Color.Transparent;
+		private	Color			valTemp		= Color.Transparent;
+		private	bool			innerPicker	= true;
+		private	bool			grabbed		= false;
+		private	bool			designSerializeColor = false;
 
 
 		public event EventHandler ValueChanged = null;
 		public event EventHandler PercentualValueChanged = null;
 
-
+		
+		public ControlRenderer Renderer
+		{
+			get { return this.renderer; }
+		}
 		public Rectangle ColorAreaRectangle
 		{
 			get { return new Rectangle(
@@ -195,39 +202,34 @@ namespace AdamsLair.WinForms.ColorControls
 		{
 			base.OnPaint(e);
 
-			Rectangle colorBoxOuter = new Rectangle(
+			Rectangle colorBox = new Rectangle(
 				this.ClientRectangle.X + this.pickerSize,
 				this.ClientRectangle.Y + this.pickerSize,
-				this.ClientRectangle.Width - this.pickerSize * 2 - 1,
-				this.ClientRectangle.Height - this.pickerSize * 2 - 1);
-			Rectangle colorBoxInner = new Rectangle(
-				colorBoxOuter.X + 1,
-				colorBoxOuter.Y + 1,
-				colorBoxOuter.Width - 2,
-				colorBoxOuter.Height - 2);
+				this.ClientRectangle.Width - this.pickerSize * 2,
+				this.ClientRectangle.Height - this.pickerSize * 2);
 			Rectangle colorArea = this.ColorAreaRectangle;
 			int pickerVisualPos = colorArea.Y + (int)Math.Round((1.0f - this.pickerPos) * colorArea.Height);
 
 			if (this.min.A < 255 || this.max.A < 255)
-				e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, Color.LightGray, Color.Gray), colorArea);
+				e.Graphics.FillRectangle(new HatchBrush(HatchStyle.LargeCheckerBoard, this.renderer.ColorLightBackground, this.renderer.ColorDarkBackground), colorArea);
 
 			System.Drawing.Imaging.ImageAttributes colorAreaImageAttr = new System.Drawing.Imaging.ImageAttributes();
 			colorAreaImageAttr.SetWrapMode(WrapMode.TileFlipXY);
 			e.Graphics.DrawImage(this.srcImage, colorArea, 0, 0, this.srcImage.Width, this.srcImage.Height - 1, GraphicsUnit.Pixel, colorAreaImageAttr);
 
-			e.Graphics.DrawRectangle(SystemPens.ControlDark, colorBoxOuter);
-			e.Graphics.DrawRectangle(SystemPens.ControlLightLight, colorBoxInner);
+			this.renderer.DrawBorder(e.Graphics, colorBox, Drawing.BorderStyle.ContentBox, BorderState.Normal);
 
-			e.Graphics.DrawLines(this.Enabled ? Pens.Black : SystemPens.ControlDark, new Point[] {
+			Pen outerPickerPen = this.Enabled ? Pens.Black : new Pen(Color.FromArgb(128, Color.Black));
+			e.Graphics.DrawLines(outerPickerPen, new Point[] {
 				new Point(0, pickerVisualPos - this.pickerSize),
 				new Point(this.pickerSize, pickerVisualPos),
 				new Point(0, pickerVisualPos + this.pickerSize),
 				new Point(0, pickerVisualPos - this.pickerSize)});
-			e.Graphics.DrawLines(this.Enabled ? Pens.Black : SystemPens.ControlDark, new Point[] {
-				new Point(colorBoxOuter.Right + this.pickerSize, pickerVisualPos - this.pickerSize),
-				new Point(colorBoxOuter.Right, pickerVisualPos),
-				new Point(colorBoxOuter.Right + this.pickerSize, pickerVisualPos + this.pickerSize),
-				new Point(colorBoxOuter.Right + this.pickerSize, pickerVisualPos - this.pickerSize)});
+			e.Graphics.DrawLines(outerPickerPen, new Point[] {
+				new Point(colorBox.Right - 1 + this.pickerSize, pickerVisualPos - this.pickerSize),
+				new Point(colorBox.Right - 1, pickerVisualPos),
+				new Point(colorBox.Right - 1 + this.pickerSize, pickerVisualPos + this.pickerSize),
+				new Point(colorBox.Right - 1 + this.pickerSize, pickerVisualPos - this.pickerSize)});
 			
 			if (this.innerPicker)
 			{
@@ -242,7 +244,7 @@ namespace AdamsLair.WinForms.ColorControls
 
 			if (!this.Enabled)
 			{
-				e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, SystemColors.Control)), colorArea);
+				e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, this.renderer.ColorBackground)), colorArea);
 			}
 		}
 		protected override void OnMouseDown(MouseEventArgs e)

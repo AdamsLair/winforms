@@ -97,7 +97,7 @@ namespace AdamsLair.WinForms.ItemViews
 				}
 			}
 		}
-		public ControlRenderer ControlRenderer
+		public ControlRenderer Renderer
 		{
 			get { return this.renderer; }
 		}
@@ -1037,11 +1037,6 @@ namespace AdamsLair.WinForms.ItemViews
 		private void model_CountChanged(object sender, EventArgs e)
 		{
 			this.OnModelCountChanged();
-		}
-		private bool ShouldSerializeItemAppearance()
-		{
-			// Prevent the Designer from going crazy.
-			return false;
 		}
 	}
 }

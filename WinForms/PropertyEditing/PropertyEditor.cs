@@ -410,7 +410,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		internal protected ControlRenderer ControlRenderer
 		{
-			get { return this.parentGrid != null ? this.parentGrid.ControlRenderer : null; }
+			get { return this.parentGrid != null ? this.parentGrid.Renderer : null; }
 		}
 		
 
