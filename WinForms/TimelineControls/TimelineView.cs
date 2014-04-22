@@ -33,8 +33,10 @@ namespace AdamsLair.WinForms.TimelineControls
 
 
 		private	ControlRenderer			renderer			= new ControlRenderer();
+		private	List<TimelineViewTrack>	trackList			= new List<TimelineViewTrack>();
 		private	TimelineViewUnitInfo	unitInfo			= new TimelineViewUnitInfo("Seconds", "s", 5);
 		private	float					unitOffset			= 0.0f;
+		private	float					unitZoom			= 1.0f;
 		private SubAreaInfo				areaTopRuler		= new SubAreaInfo(25);
 		private SubAreaInfo				areaBottomRuler		= new SubAreaInfo(50);
 		private SubAreaInfo				areaLeftSidebar		= new SubAreaInfo(100);
@@ -51,6 +53,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.renderer; }
 		}
+		public IEnumerable<TimelineViewTrack> Tracks
+		{
+			get { return this.trackList; }
+		}
 		public TimelineViewUnitInfo UnitInfo
 		{
 			get { return this.unitInfo; }
@@ -63,7 +69,16 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		public float UnitScroll
 		{
-			get { return this.unitInfo.ConvertToUnits(this.AutoScrollPosition.X); }
+			get { return this.unitInfo.ConvertToUnits(this.AutoScrollPosition.X) * this.unitZoom; }
+		}
+		public float UnitZoom
+		{
+			get { return this.unitZoom; }
+			set
+			{
+				this.unitZoom = Math.Max(value, 0.00000001f);
+				this.Invalidate();
+			}
 		}
 		public bool HasTopRuler
 		{
@@ -129,7 +144,42 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.Selectable, true);
 		}
+		
+		public void AddTrack(TimelineViewTrack track)
+		{
+			if (track.ParentView == this) return;
+			if (track.ParentView != null) track.ParentView.RemoveTrack(track);
 
+			this.trackList.Add(track);
+			track.HeightChanged += this.track_HeightChanged;
+			track.ParentView = this;
+		}
+		public void RemoveTrack(TimelineViewTrack track)
+		{
+			if (track.ParentView != this) return;
+
+			track.ParentView = null;
+			track.HeightChanged -= this.track_HeightChanged;
+			this.trackList.Remove(track);
+		}
+		public void ClearTracks()
+		{
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				track.HeightChanged -= this.track_HeightChanged;
+				track.ParentView = null;
+			}
+			this.trackList.Clear();
+		}
+
+		public float GetUnitAtPos(float x)
+		{
+			return this.unitOffset + this.unitInfo.ConvertToUnits(x - this.rectContentArea.X) * this.unitZoom;
+		}
+		public float GetPosAtUnit(float unit)
+		{
+			return this.rectContentArea.X + this.unitInfo.ConvertToPixels(unit - this.unitOffset) / this.unitZoom;
+		}
 		private void UpdateGeometry()
 		{
 			Rectangle lastRectTopRuler		= this.rectTopRuler;
@@ -173,14 +223,6 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.Invalidate();
 			}
 		}
-		protected float GetUnitAtPos(float x)
-		{
-			return this.unitOffset + this.unitInfo.ConvertToUnits(x - this.rectContentArea.X);
-		}
-		protected float GetPosAtUnit(float unit)
-		{
-			return this.rectContentArea.X + this.unitInfo.ConvertToPixels(unit - this.unitOffset);
-		}
 
 		protected override void OnScroll(ScrollEventArgs se)
 		{
@@ -207,7 +249,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.SetClip(this.rectTopRuler, CombineMode.Intersect);
 				if (!e.Graphics.ClipBounds.IsEmpty)
 				{
-					this.OnPaintRuler(e.Graphics, this.rectTopRuler, true);
+					this.OnPaintTopRuler(new TimelineViewPaintEventArgs(this, e.Graphics, this.rectTopRuler));
 				}
 				e.Graphics.Restore(state);
 			}
@@ -219,7 +261,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.SetClip(this.rectBottomRuler, CombineMode.Intersect);
 				if (!e.Graphics.ClipBounds.IsEmpty)
 				{
-					this.OnPaintRuler(e.Graphics, this.rectBottomRuler, false);
+					this.OnPaintBottomRuler(new TimelineViewPaintEventArgs(this, e.Graphics, this.rectBottomRuler));
 				}
 				e.Graphics.Restore(state);
 			}
@@ -235,7 +277,15 @@ namespace AdamsLair.WinForms.TimelineControls
 			e.Graphics.DrawString("LeftSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectLeftSidebar, format);
 			e.Graphics.DrawString("RightSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectRightSidebar, format);
 		}
-		protected virtual void OnPaintRuler(Graphics g, Rectangle rect, bool top)
+		protected virtual void OnPaintTopRuler(TimelineViewPaintEventArgs e)
+		{
+			this.DrawRuler(e.Graphics, e.TargetRect, true);
+		}
+		protected virtual void OnPaintBottomRuler(TimelineViewPaintEventArgs e)
+		{
+			this.DrawRuler(e.Graphics, e.TargetRect, false);
+		}
+		protected void DrawRuler(Graphics g, Rectangle rect, bool top)
 		{
 			// Draw background
 			Rectangle borderRect;
@@ -302,7 +352,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			// Draw ruler markings
-			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(10.0f));
+			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(100.0f * this.unitZoom)) / 4.0f;
 			float unitScroll = this.UnitScroll;
 			float beginTime = this.GetUnitAtPos(rect.Left);
 			float endTime = this.GetUnitAtPos(rect.Right);
@@ -371,6 +421,11 @@ namespace AdamsLair.WinForms.TimelineControls
 					lineIndex++;
 				}
 			}
+		}
+		
+		private void track_HeightChanged(object sender, EventArgs e)
+		{
+			this.Invalidate();
 		}
 
 		protected static float GetNiceMultiple(float rawMultiple)

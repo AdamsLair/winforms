@@ -64,6 +64,7 @@
 			this.colorSlider1 = new AdamsLair.WinForms.ColorControls.ColorSlider();
 			this.colorPanel1 = new AdamsLair.WinForms.ColorControls.ColorPanel();
 			this.tabPageTimeline = new System.Windows.Forms.TabPage();
+			this.trackBarTimelineUnitZoom = new System.Windows.Forms.TrackBar();
 			this.timelineView1 = new AdamsLair.WinForms.TimelineControls.TimelineView();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
@@ -72,6 +73,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewWidth)).BeginInit();
 			this.tabPageColorControls.SuspendLayout();
 			this.tabPageTimeline.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTimelineUnitZoom)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
@@ -505,6 +507,7 @@
 			// 
 			// tabPageTimeline
 			// 
+			this.tabPageTimeline.Controls.Add(this.trackBarTimelineUnitZoom);
 			this.tabPageTimeline.Controls.Add(this.timelineView1);
 			this.tabPageTimeline.Location = new System.Drawing.Point(4, 22);
 			this.tabPageTimeline.Name = "tabPageTimeline";
@@ -512,6 +515,22 @@
 			this.tabPageTimeline.TabIndex = 3;
 			this.tabPageTimeline.Text = "Timeline";
 			this.tabPageTimeline.UseVisualStyleBackColor = true;
+			// 
+			// trackBarTimelineUnitZoom
+			// 
+			this.trackBarTimelineUnitZoom.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.trackBarTimelineUnitZoom.BackColor = System.Drawing.SystemColors.Window;
+			this.trackBarTimelineUnitZoom.Location = new System.Drawing.Point(379, 24);
+			this.trackBarTimelineUnitZoom.Maximum = 1000;
+			this.trackBarTimelineUnitZoom.Minimum = -1000;
+			this.trackBarTimelineUnitZoom.Name = "trackBarTimelineUnitZoom";
+			this.trackBarTimelineUnitZoom.Orientation = System.Windows.Forms.Orientation.Vertical;
+			this.trackBarTimelineUnitZoom.Size = new System.Drawing.Size(45, 362);
+			this.trackBarTimelineUnitZoom.TabIndex = 1;
+			this.trackBarTimelineUnitZoom.TickFrequency = 100;
+			this.trackBarTimelineUnitZoom.Value = 1;
+			this.trackBarTimelineUnitZoom.ValueChanged += new System.EventHandler(this.trackBarTimelineUnitZoom_ValueChanged);
 			// 
 			// timelineView1
 			// 
@@ -531,9 +550,11 @@
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);
 			this.timelineView1.Name = "timelineView1";
 			this.timelineView1.RightSidebarSize = 75;
-			this.timelineView1.Size = new System.Drawing.Size(379, 362);
+			this.timelineView1.Size = new System.Drawing.Size(350, 362);
 			this.timelineView1.TabIndex = 0;
 			this.timelineView1.TopRulerSize = 20;
+			this.timelineView1.UnitOffset = 0F;
+			this.timelineView1.UnitZoom = 1F;
 			// 
 			// DemoForm
 			// 
@@ -553,6 +574,8 @@
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTileViewWidth)).EndInit();
 			this.tabPageColorControls.ResumeLayout(false);
 			this.tabPageTimeline.ResumeLayout(false);
+			this.tabPageTimeline.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.trackBarTimelineUnitZoom)).EndInit();
 			this.ResumeLayout(false);
 
 		}
@@ -594,6 +617,7 @@
 		private System.Windows.Forms.CheckBox checkBoxTiledViewStyle;
 		private System.Windows.Forms.TabPage tabPageTimeline;
 		private TimelineControls.TimelineView timelineView1;
+		private System.Windows.Forms.TrackBar trackBarTimelineUnitZoom;
 	}
 }
 

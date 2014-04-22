@@ -89,7 +89,7 @@ namespace AdamsLair.WinForms.ItemViews
 
 					this.model = value ?? new EmptyListModel();
 					
-					this.OnModelIndicesChanged(0, oldCount);
+					if (oldCount > 0) this.OnModelIndicesChanged(new ListModelItemsEventArgs(0, oldCount));
 					this.OnModelCountChanged();
 
 					this.model.CountChanged += this.model_CountChanged;
@@ -335,7 +335,7 @@ namespace AdamsLair.WinForms.ItemViews
 				if (!this.itemEditor.ApplyValueToItem(this.editedItem.Item))
 					return false;
 				else
-					this.OnItemEdited(this.editedItem.ModelIndex, this.editedItem.Item);
+					this.OnItemEdited(new TiledViewItemEventArgs(this, this.editedItem.ModelIndex, this.editedItem.Item));
 			}
 
 			this.itemEditor.StopEditing -= this.itemEditor_StopEditing;
@@ -688,35 +688,35 @@ namespace AdamsLair.WinForms.ItemViews
 		{
 			this.UpdateContentStats();
 		}
-		protected virtual void OnModelIndicesChanged(int index, int count)
+		protected virtual void OnModelIndicesChanged(ListModelItemsEventArgs e)
 		{
-			this.UpdateSelectionIndices(index, count);
-			this.InvalidateModelIndices(index, count);
+			this.UpdateSelectionIndices(e.Index, e.Count);
+			this.InvalidateModelIndices(e.Index, e.Count);
 		}
-		protected virtual void OnItemClicked(int index, object item, Point location, MouseButtons buttons)
+		protected virtual void OnItemClicked(TiledViewItemMouseEventArgs e)
 		{
 			if (this.ItemClicked != null)
-				this.ItemClicked(this, new TiledViewItemMouseEventArgs(this, index, item, location, buttons));
+				this.ItemClicked(this, e);
 
-			if (this.itemEditIndex == index && this.allowUserItemEdit)
+			if (this.itemEditIndex == e.ModelIndex && this.allowUserItemEdit)
 			{
-				this.BeginEdit(index);
+				this.BeginEdit(e.ModelIndex);
 			}
 		}
-		protected virtual void OnItemDoubleClicked(int index, object item, Point location, MouseButtons buttons)
+		protected virtual void OnItemDoubleClicked(TiledViewItemMouseEventArgs e)
 		{
 			if (this.ItemDoubleClicked != null)
-				this.ItemDoubleClicked(this, new TiledViewItemMouseEventArgs(this, index, item, location, buttons));
+				this.ItemDoubleClicked(this, e);
 		}
-		protected virtual void OnItemDrag(int index, object item, Point location, MouseButtons buttons)
+		protected virtual void OnItemDrag(TiledViewItemMouseEventArgs e)
 		{
 			if (this.ItemDrag != null)
-				this.ItemDrag(this, new TiledViewItemMouseEventArgs(this, index, item, location, buttons));
+				this.ItemDrag(this, e);
 		}
-		protected virtual void OnItemEdited(int index, object item)
+		protected virtual void OnItemEdited(TiledViewItemEventArgs e)
 		{
 			if (this.ItemEdited != null)
-				this.ItemEdited(this, new TiledViewItemEventArgs(this, index, item));
+				this.ItemEdited(this, e);
 		}
 		
 		protected override void OnSizeChanged(EventArgs e)
@@ -757,36 +757,25 @@ namespace AdamsLair.WinForms.ItemViews
 				image = this.cachedEventItemAppearance.DisplayedImage;
 			}
 		}
-		protected virtual void OnPaintItem(Graphics g, int modelIndex, object item, Rectangle itemRect, bool hovered, bool selected)
+		protected virtual void OnPaintItem(TiledViewItemDrawEventArgs e)
 		{
 			if (this.ItemUserPaint != null)
 			{
-				if (this.cachedEventItemUserPaint == null)
-					this.cachedEventItemUserPaint = new TiledViewItemDrawEventArgs(this);
-
-				this.cachedEventItemUserPaint.Handled = false;
-				this.cachedEventItemUserPaint.Graphics = g;
-				this.cachedEventItemUserPaint.ModelIndex = modelIndex;
-				this.cachedEventItemUserPaint.Item = item;
-				this.cachedEventItemUserPaint.ItemRect = itemRect;
-				this.cachedEventItemUserPaint.IsHovered = hovered;
-				this.cachedEventItemUserPaint.IsSelected = selected;
-
-				this.ItemUserPaint(this, this.cachedEventItemUserPaint);
-
-				if (this.cachedEventItemUserPaint.Handled) return;
+				this.ItemUserPaint(this, e);
+				if (e.Handled) return;
 			}
 			
 			string text;
 			Image icon;
-			this.GetItemAppearance(modelIndex, item, out text, out icon);
+			this.GetItemAppearance(e.ModelIndex, e.Item, out text, out icon);
 
-			bool isItemEditing = this.IsEditing && modelIndex == this.editedItem.ModelIndex;
+			bool isItemEditing = this.IsEditing && e.ModelIndex == this.editedItem.ModelIndex;
 			bool hasText = !string.IsNullOrEmpty(text);
 			SizeF textSize = SizeF.Empty;
+			Rectangle itemRect = e.ItemRect;
 			if (hasText)
 			{
-				textSize = g.MeasureString(
+				textSize = e.Graphics.MeasureString(
 					text, 
 					this.Font, 
 					itemRect.Width, 
@@ -806,7 +795,7 @@ namespace AdamsLair.WinForms.ItemViews
 						factor = (float)itemRect.Height / iconSize.Height;
 					iconSize.Height = iconSize.Height * factor;
 					iconSize.Width = iconSize.Width * factor;
-					g.DrawImage(icon, new RectangleF(
+					e.Graphics.DrawImage(icon, new RectangleF(
 						itemRect.X + (itemRect.Width - iconSize.Width) * 0.5f, 
 						itemRect.Y + Math.Max(0, iconAreaHeight - iconSize.Height) * 0.5f, 
 						iconSize.Width, 
@@ -814,7 +803,7 @@ namespace AdamsLair.WinForms.ItemViews
 				}
 				else
 				{
-					g.DrawImageUnscaled(icon, new Rectangle(
+					e.Graphics.DrawImageUnscaled(icon, new Rectangle(
 						itemRect.X + (itemRect.Width - icon.Width) / 2, 
 						itemRect.Y + Math.Max(0, iconAreaHeight - icon.Height) / 2, 
 						icon.Width, 
@@ -824,10 +813,10 @@ namespace AdamsLair.WinForms.ItemViews
 
 			if (this.Enabled && !isItemEditing)
 			{
-				if (selected || (Control.MouseButtons != MouseButtons.None && this.highlightHoverItems && hovered))
-					this.renderer.DrawSelection(g, itemRect, true);
-				else if (this.highlightHoverItems && hovered)
-					this.renderer.DrawSelection(g, itemRect, false);
+				if (e.IsSelected || (Control.MouseButtons != MouseButtons.None && this.highlightHoverItems && e.IsHovered))
+					this.renderer.DrawSelection(e.Graphics, itemRect, true);
+				else if (this.highlightHoverItems && e.IsHovered)
+					this.renderer.DrawSelection(e.Graphics, itemRect, false);
 			}
 
 			if (hasText && !isItemEditing)
@@ -837,7 +826,7 @@ namespace AdamsLair.WinForms.ItemViews
 				else
 					this.itemStringFormat.LineAlignment = StringAlignment.Center;
 
-				g.DrawString(
+				e.Graphics.DrawString(
 					text, 
 					this.Font, 
 					new SolidBrush(this.ForeColor), 
@@ -855,6 +844,9 @@ namespace AdamsLair.WinForms.ItemViews
 				this.ClientRectangle.Width - this.Padding.Horizontal,
 				this.ClientRectangle.Height - this.Padding.Vertical), 
 				System.Drawing.Drawing2D.CombineMode.Intersect);
+			
+			if (this.cachedEventItemUserPaint == null)
+				this.cachedEventItemUserPaint = new TiledViewItemDrawEventArgs(this);
 
 			if (this.model.Count > 0)
 			{
@@ -870,13 +862,15 @@ namespace AdamsLair.WinForms.ItemViews
 				int itemsInRow = 0;
 				for (int i = firstIndex; i <= lastIndex; i++)
 				{
-					this.OnPaintItem(
-						e.Graphics,
-						i, 
-						this.model.GetItemAt(i), 
-						new Rectangle(curPos.X, curPos.Y, this.tileSize.Width, this.tileSize.Height),
-						i == this.hoverIndex,
-						i >= firstSelected && i <= lastSelected && this.selection.Any(s => s.ModelIndex == i));
+					this.cachedEventItemUserPaint.Handled = false;
+					this.cachedEventItemUserPaint.Graphics = e.Graphics;
+					this.cachedEventItemUserPaint.ModelIndex = i;
+					this.cachedEventItemUserPaint.Item = this.model.GetItemAt(i);
+					this.cachedEventItemUserPaint.ItemRect = new Rectangle(curPos.X, curPos.Y, this.tileSize.Width, this.tileSize.Height);
+					this.cachedEventItemUserPaint.IsHovered = i == this.hoverIndex;
+					this.cachedEventItemUserPaint.IsSelected = i >= firstSelected && i <= lastSelected && this.selection.Any(s => s.ModelIndex == i);
+
+					this.OnPaintItem(this.cachedEventItemUserPaint);
 
 					itemsInRow++;
 					if (itemsInRow == this.tilesPerRow)
@@ -970,7 +964,7 @@ namespace AdamsLair.WinForms.ItemViews
 				if (dragSizeReached)
 				{
 					Point itemPos = this.GetModelIndexLocation(this.dragIndex);
-					this.OnItemDrag(this.dragIndex, this.model.GetItemAt(this.dragIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
+					this.OnItemDrag(new TiledViewItemMouseEventArgs(this, this.dragIndex, this.model.GetItemAt(this.dragIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button));
 					this.dragIndex = -1;
 				}
 			}
@@ -1002,7 +996,7 @@ namespace AdamsLair.WinForms.ItemViews
 			if (this.hoverIndex != -1)
 			{
 				Point itemPos = this.GetModelIndexLocation(this.hoverIndex);
-				this.OnItemClicked(this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
+				this.OnItemClicked(new TiledViewItemMouseEventArgs(this, this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button));
 			}
 			this.ProcessUserItemClick(this.hoverIndex);
 			this.itemEditIndex = this.hoverIndex;
@@ -1013,7 +1007,7 @@ namespace AdamsLair.WinForms.ItemViews
 			if (this.hoverIndex != -1)
 			{
 				Point itemPos = this.GetModelIndexLocation(this.hoverIndex);
-				this.OnItemDoubleClicked(this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button);
+				this.OnItemDoubleClicked(new TiledViewItemMouseEventArgs(this, this.hoverIndex, this.model.GetItemAt(this.hoverIndex), new Point(e.X - itemPos.X, e.Y - itemPos.Y), e.Button));
 			}
 		}
 		protected override void OnMouseLeave(EventArgs e)
@@ -1032,7 +1026,7 @@ namespace AdamsLair.WinForms.ItemViews
 
 		private void model_IndicesChanged(object sender, ListModelItemsEventArgs e)
 		{
-			this.OnModelIndicesChanged(e.Index, e.Count);
+			this.OnModelIndicesChanged(e);
 		}
 		private void model_CountChanged(object sender, EventArgs e)
 		{

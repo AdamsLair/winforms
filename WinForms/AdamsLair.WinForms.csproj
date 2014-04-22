@@ -74,6 +74,11 @@
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TimelineControls\EventArgs\TimelineViewPaintEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineViewPaintTrackEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineViewTrackEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineViewEventArgs.cs" />
+    <Compile Include="TimelineControls\TimelineViewGraphTrack.cs" />
     <Compile Include="TimelineControls\TimelineView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -118,12 +123,12 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ItemModels\IListModel.cs" />
-    <Compile Include="ItemModels\ListModelEventArgs.cs" />
-    <Compile Include="ItemViews\TiledViewItemAppearanceEventArgs.cs" />
-    <Compile Include="ItemViews\TiledViewItemMouseEventArgs.cs" />
-    <Compile Include="ItemViews\TiledViewItemEventArgs.cs" />
-    <Compile Include="ItemViews\TiledViewItemDrawEventArgs.cs" />
-    <Compile Include="ItemViews\TiledViewEventArgs.cs" />
+    <Compile Include="ItemModels\EventArgs\ListModelEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\TiledViewItemAppearanceEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\TiledViewItemMouseEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\TiledViewItemEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\TiledViewItemDrawEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\TiledViewEventArgs.cs" />
     <Compile Include="ItemViews\TiledView.cs">
       <SubType>Component</SubType>
     </Compile>

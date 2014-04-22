@@ -349,5 +349,9 @@ namespace AdamsLair.WinForms.TestApp
 				this.tiledView.ForeColor = SystemColors.ControlText;
 			}
 		}
+		private void trackBarTimelineUnitZoom_ValueChanged(object sender, EventArgs e)
+		{
+			this.timelineView1.UnitZoom = (float)Math.Pow(2.0f, (float)this.trackBarTimelineUnitZoom.Value / 100.0f);
+		}
 	}
 }
