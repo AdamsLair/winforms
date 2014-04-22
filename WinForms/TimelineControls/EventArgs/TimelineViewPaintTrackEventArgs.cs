@@ -17,6 +17,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.graphics; }
 		}
+		public ControlRenderer Renderer
+		{
+			get { return this.View.Renderer; }
+		}
 		public Rectangle TargetRect
 		{
 			get { return this.targetRect; }

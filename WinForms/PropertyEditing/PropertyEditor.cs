@@ -640,7 +640,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if ((this.hints & HintFlags.HasPropertyName) == HintFlags.None) return;
 			ControlRenderer.DrawStringLine(g, 
 				this.propertyName, 
-				this.ValueModified ? ControlRenderer.DefaultFontBold : ControlRenderer.DefaultFont, 
+				this.ValueModified ? ControlRenderer.FontBold : ControlRenderer.FontRegular, 
 				this.nameLabelRect, 
 				this.Enabled && !this.NonPublic ? ControlRenderer.ColorText : ControlRenderer.ColorGrayText);
 		}

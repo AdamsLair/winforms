@@ -534,12 +534,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			this.ControlRenderer.DrawStringLine(g, 
 				this.PropertyName, 
-				this.ValueModified ? this.ControlRenderer.DefaultFontBold : this.ControlRenderer.DefaultFont, 
+				this.ValueModified ? this.ControlRenderer.FontBold : this.ControlRenderer.FontRegular, 
 				nameTextRect, 
 				this.Enabled && !this.NonPublic ? this.ControlRenderer.ColorText : this.ControlRenderer.ColorGrayText);
 			this.ControlRenderer.DrawStringLine(g, 
 				this.headerValueText, 
-				this.ValueModified ? this.ControlRenderer.DefaultFontBold : this.ControlRenderer.DefaultFont, 
+				this.ValueModified ? this.ControlRenderer.FontBold : this.ControlRenderer.FontRegular, 
 				valueTextRect, 
 				this.Enabled ? this.ControlRenderer.ColorText : this.ControlRenderer.ColorGrayText);
 		}
@@ -1011,7 +1011,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnParentEditorChanged();
 			if (!this.headerColor.HasValue) this.headerColor = ControlRenderer.ColorBackground;
 			if (this.HeaderHeight == DefaultHeaderHeight)
-				this.HeaderHeight = 5 + (int)Math.Round((float)this.ControlRenderer.DefaultFont.Height);
+				this.HeaderHeight = 5 + (int)Math.Round((float)this.ControlRenderer.FontRegular.Height);
 			if (this.expanded && !this.contentInit)
 				this.InitContent();
 		}

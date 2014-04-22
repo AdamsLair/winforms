@@ -11,6 +11,7 @@ using AdamsLair.WinForms.ColorControls;
 using AdamsLair.WinForms.PropertyEditing;
 using AdamsLair.WinForms.ItemModels;
 using AdamsLair.WinForms.ItemViews;
+using AdamsLair.WinForms.TimelineControls;
 
 namespace AdamsLair.WinForms.TestApp
 {
@@ -213,6 +214,17 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Sally" });
 			this.tiledView.Model = this.tiledViewModel;
 			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
+
+			TimelineViewGraphTrack trackA = new TimelineViewGraphTrack();
+			trackA.FillHeight = 10;
+			TimelineViewGraphTrack trackB = new TimelineViewGraphTrack();
+			trackB.BaseHeight = 50;
+			TimelineViewGraphTrack trackC = new TimelineViewGraphTrack();
+			trackC.BaseHeight = 200;
+			trackC.FillHeight = 100;
+			this.timelineView1.AddTrack(trackA);
+			this.timelineView1.AddTrack(trackB);
+			this.timelineView1.AddTrack(trackC);
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)

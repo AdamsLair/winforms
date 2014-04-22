@@ -135,7 +135,6 @@ namespace AdamsLair.WinForms.TimelineControls
 		public TimelineView()
 		{
 			this.AutoScroll = true;
-			this.AutoScrollMinSize = new Size(1500, 800);
 
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
 			this.SetStyle(ControlStyles.UserPaint, true);
@@ -151,25 +150,31 @@ namespace AdamsLair.WinForms.TimelineControls
 			if (track.ParentView != null) track.ParentView.RemoveTrack(track);
 
 			this.trackList.Add(track);
-			track.HeightChanged += this.track_HeightChanged;
+			track.HeightSettingsChanged += this.track_HeightSettingsChanged;
 			track.ParentView = this;
+
+			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 		public void RemoveTrack(TimelineViewTrack track)
 		{
 			if (track.ParentView != this) return;
 
 			track.ParentView = null;
-			track.HeightChanged -= this.track_HeightChanged;
+			track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
 			this.trackList.Remove(track);
+
+			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 		public void ClearTracks()
 		{
 			foreach (TimelineViewTrack track in this.trackList)
 			{
-				track.HeightChanged -= this.track_HeightChanged;
+				track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
 				track.ParentView = null;
 			}
 			this.trackList.Clear();
+
+			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 
 		public float GetUnitAtPos(float x)
@@ -223,7 +228,52 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.Invalidate();
 			}
 		}
+		private void UpdateContentHeight()
+		{
+			int contentBaseHeight = this.areaTopRuler.Size + this.areaBottomRuler.Size + this.trackList.Sum(t => t.BaseHeight);
+			int additionalHeight = Math.Max(0, this.ClientSize.Height - contentBaseHeight);
+			int availHeight = additionalHeight;
+			int totalFill = this.trackList.Sum(t => t.FillHeight);
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				int growHeight;
+				if (track.FillHeight > 0)
+					growHeight = Math.Min(availHeight, (int)Math.Round((float)additionalHeight * (float)track.FillHeight / (float)totalFill));
+				else
+					growHeight = 0;
+				track.Height = track.BaseHeight + growHeight;
+				availHeight -= growHeight;
+			}
+			
+			Size contentSize = new Size(1500, this.areaTopRuler.Size + this.areaBottomRuler.Size + this.trackList.Sum(t => t.Height));
+			Size autoScrollSize;
+			if (this.ClientSize.Height - 1 > contentBaseHeight)
+				autoScrollSize = new Size(contentSize.Width, 0);
+			else
+				autoScrollSize = contentSize;
+			this.AutoScrollMinSize = autoScrollSize;
+		}
 
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			this.renderer.ColorText = this.ForeColor;
+		}
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			this.renderer.ColorBackground = this.BackColor;
+		}
+		protected override void OnFontChanged(EventArgs e)
+		{
+			base.OnFontChanged(e);
+			this.renderer.FontRegular = this.Font;
+		}
+		protected virtual void OnContentHeightChanged(EventArgs e)
+		{
+			this.UpdateContentHeight();
+			this.Invalidate();
+		}
 		protected override void OnScroll(ScrollEventArgs se)
 		{
 			base.OnScroll(se);
@@ -233,12 +283,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			base.OnResize(eventargs);
 			this.UpdateGeometry();
+			this.UpdateContentHeight();
 		}
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.FillRectangle(new SolidBrush(this.BackColor), this.ClientRectangle);
+			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 
 			GraphicsState state;
 
@@ -266,16 +317,66 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.Restore(state);
 			}
 
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Red)), this.rectContentArea);
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Purple)), this.rectLeftSidebar);
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.CornflowerBlue)), this.rectRightSidebar);
+			// Draw all the tracks
+			int y = 0;
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				if (y + track.Height < e.Graphics.ClipBounds.Top) continue;
+				if (y > e.Graphics.ClipBounds.Bottom) break;
 
-			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
-			format.Alignment = StringAlignment.Center;
-			format.LineAlignment = StringAlignment.Center;
-			e.Graphics.DrawString("ContentArea", this.Font, new SolidBrush(this.ForeColor), this.rectContentArea, format);
-			e.Graphics.DrawString("LeftSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectLeftSidebar, format);
-			e.Graphics.DrawString("RightSidebar", this.Font, new SolidBrush(this.ForeColor), this.rectRightSidebar, format);
+				// Content
+				{
+					Rectangle targetRect = new Rectangle(
+						this.rectContentArea.X,
+						this.rectContentArea.Y + y + this.AutoScrollPosition.Y,
+						this.rectContentArea.Width,
+						track.Height);
+					state = e.Graphics.Save();
+					e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
+					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
+					if (!e.Graphics.ClipBounds.IsEmpty)
+					{
+						track.OnPaint(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+					}
+					e.Graphics.Restore(state);
+				}
+
+				// Left Sidebar
+				{
+					Rectangle targetRect = new Rectangle(
+						this.rectLeftSidebar.X,
+						this.rectLeftSidebar.Y + y + this.AutoScrollPosition.Y,
+						this.rectLeftSidebar.Width,
+						track.Height);
+					state = e.Graphics.Save();
+					e.Graphics.SetClip(this.rectLeftSidebar, CombineMode.Intersect);
+					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
+					if (!e.Graphics.ClipBounds.IsEmpty)
+					{
+						track.OnPaintLeftSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+					}
+					e.Graphics.Restore(state);
+				}
+
+				// Right Sidebar
+				{
+					Rectangle targetRect = new Rectangle(
+						this.rectRightSidebar.X,
+						this.rectRightSidebar.Y + y + this.AutoScrollPosition.Y,
+						this.rectRightSidebar.Width,
+						track.Height);
+					state = e.Graphics.Save();
+					e.Graphics.SetClip(this.rectRightSidebar, CombineMode.Intersect);
+					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
+					if (!e.Graphics.ClipBounds.IsEmpty)
+					{
+						track.OnPaintRightSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+					}
+					e.Graphics.Restore(state);
+				}
+
+				y += track.Height;
+			}
 		}
 		protected virtual void OnPaintTopRuler(TimelineViewPaintEventArgs e)
 		{
@@ -308,7 +409,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			Rectangle rectUnitName;
 			Rectangle rectUnitMarkings;
 			{
-				SizeF unitNameSize = g.MeasureString(this.unitInfo.Name, this.renderer.DefaultFont, rect.Width);
+				SizeF unitNameSize = g.MeasureString(this.unitInfo.Name, this.renderer.FontRegular, rect.Width);
 				float markingRatio = 0.5f + 0.5f * (1.0f - Math.Max(Math.Min((float)rect.Height / 32.0f, 1.0f), 0.0f));
 				if (top)
 				{
@@ -348,11 +449,11 @@ namespace AdamsLair.WinForms.TimelineControls
 				StringFormat format = new StringFormat(StringFormat.GenericDefault);
 				format.Alignment = StringAlignment.Near;
 				format.LineAlignment = top ? StringAlignment.Near : StringAlignment.Far;
-				g.DrawString(this.unitInfo.Name, this.renderer.DefaultFont, new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), this.renderer.ColorText)), rect, format);
+				g.DrawString(this.unitInfo.Name, this.renderer.FontRegular, new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), this.renderer.ColorText)), rect, format);
 			}
 
 			// Draw ruler markings
-			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(100.0f * this.unitZoom)) / 4.0f;
+			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(100.0f * this.unitZoom)) / 10.0f;
 			float unitScroll = this.UnitScroll;
 			float beginTime = this.GetUnitAtPos(rect.Left);
 			float endTime = this.GetUnitAtPos(rect.Right);
@@ -363,7 +464,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 				float timeValue;
 				float maxTime;
-				GetRulerRange(rulerStep * 4, unitScroll, beginTime, endTime, out timeValue, out maxTime);
+				GetRulerRange(rulerStep * 10, unitScroll, beginTime, endTime, out timeValue, out maxTime);
 
 				int lineIndex = 0;
 				while (timeValue < maxTime)
@@ -372,12 +473,12 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					float markLen;
 					Pen markPen;
-					if ((lineIndex % 4) == 0)
+					if ((lineIndex % 10) == 0)
 					{
 						markLen = 1.0f;
 						markPen = bigLinePen;
 					}
-					else if ((lineIndex % 2) == 0)
+					else if ((lineIndex % 5) == 0)
 					{
 						markLen = 0.5f;
 						markPen = medLinePen;
@@ -395,7 +496,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					{
 						markTopY = rectUnitMarkings.Bottom - markLen * rectUnitMarkings.Height;
 						markBottomY = rectUnitMarkings.Bottom;
-						markTextY = rectUnitMarkings.Bottom - this.renderer.DefaultFont.Height - Math.Max(Math.Min(3 + rectUnitMarkings.Top - rectUnitName.Bottom, rectUnitMarkings.Height / 2), 0);
+						markTextY = rectUnitMarkings.Bottom - this.renderer.FontRegular.Height - Math.Max(Math.Min(3 + rectUnitMarkings.Top - rectUnitName.Bottom, rectUnitMarkings.Height / 2), 0);
 					}
 					else
 					{
@@ -406,12 +507,12 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					g.DrawLine(markPen, markX, markTopY, markX, markBottomY);
 
-					if ((lineIndex % 4) == 0)
+					if ((lineIndex % 10) == 0)
 					{
 						string timeString = this.unitInfo.ConvertToString(timeValue, TimelineViewUnitInfo.NameMode.Short);
 						g.DrawString(
 							timeString, 
-							this.renderer.DefaultFont, 
+							this.renderer.FontRegular, 
 							new SolidBrush(markPen.Color), 
 							markX, 
 							markTextY);
@@ -423,9 +524,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 		}
 		
-		private void track_HeightChanged(object sender, EventArgs e)
+		private void track_HeightSettingsChanged(object sender, EventArgs e)
 		{
-			this.Invalidate();
+			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 
 		protected static float GetNiceMultiple(float rawMultiple)

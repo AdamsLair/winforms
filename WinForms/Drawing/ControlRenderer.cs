@@ -13,8 +13,10 @@ namespace AdamsLair.WinForms.Drawing
 	{
 		private const int DrawStringWidthAdd = 5;
 
-		private	Size checkBoxSize		= Size.Empty;
-		private	Size expandNodeSize		= Size.Empty;
+		private	Font	fontRegular			= Properties.ResourcesCache.DefaultFont;
+		private	Font	fontBold			= Properties.ResourcesCache.DefaultFontBold;
+		private	Size	checkBoxSize		= Size.Empty;
+		private	Size	expandNodeSize		= Size.Empty;
 		private	Dictionary<ExpandNodeState,Bitmap>	expandNodeImages	= null;
 		private	Dictionary<ExpandBoxState,Bitmap>	expandBoxImages		= null;
 		private	Dictionary<CheckBoxState,Bitmap>	checkBoxImages		= null;
@@ -42,19 +44,15 @@ namespace AdamsLair.WinForms.Drawing
 				return expandNodeSize;
 			}
 		}
-		public Font DefaultFont
+		public Font FontRegular
 		{
-			get
-			{
-				return Properties.ResourcesCache.DefaultFont;
-			}
+			get { return this.fontRegular; }
+			set { this.fontRegular = value; }
 		}
-		public Font DefaultFontBold
+		public Font FontBold
 		{
-			get
-			{
-				return Properties.ResourcesCache.DefaultFontBold;
-			}
+			get { return this.fontBold; }
+			set { this.fontBold = value; }
 		}
 		public float FocusBrightnessScale { get; set; }
 		public Color ColorHightlight { get; set; }
@@ -70,9 +68,9 @@ namespace AdamsLair.WinForms.Drawing
 
 		public ControlRenderer()
 		{
-			this.ResetColors();
+			this.Reset();
 		}
-		public void ResetColors()
+		public void Reset()
 		{
 			this.FocusBrightnessScale = 0.85f;
 			this.ColorHightlight = SystemColors.Highlight;
@@ -583,7 +581,7 @@ namespace AdamsLair.WinForms.Drawing
 
 			if (icon == null && !string.IsNullOrEmpty(text))
 			{
-				DrawStringLine(g, text, this.DefaultFont, innerRect, colorText, StringAlignment.Center);
+				DrawStringLine(g, text, this.FontRegular, innerRect, colorText, StringAlignment.Center);
 			}
 			else if (string.IsNullOrEmpty(text))
 			{
@@ -597,7 +595,7 @@ namespace AdamsLair.WinForms.Drawing
 			}
 			else
 			{
-				Region[] charRegions = MeasureStringLine(g, text, new [] { new CharacterRange(0, text.Length) }, this.DefaultFont, innerRect);
+				Region[] charRegions = MeasureStringLine(g, text, new [] { new CharacterRange(0, text.Length) }, this.FontRegular, innerRect);
 				SizeF textSize = charRegions[0].GetBounds(g).Size;
 				Size iconTextSize;
 				Rectangle textRect;
@@ -616,7 +614,7 @@ namespace AdamsLair.WinForms.Drawing
 					innerRect.Height);
 
 				g.DrawImageUnscaled(icon, iconRect);
-				DrawStringLine(g, text, this.DefaultFont, textRect, colorText);
+				DrawStringLine(g, text, this.FontRegular, textRect, colorText);
 			}
 
 			g.Restore(graphicsState);
@@ -656,7 +654,7 @@ namespace AdamsLair.WinForms.Drawing
 			
 			if (icon != null && !string.IsNullOrEmpty(text))
 			{
-				Region[] charRegions = MeasureStringLine(g, text, new [] { new CharacterRange(0, text.Length) }, this.DefaultFont, innerRect);
+				Region[] charRegions = MeasureStringLine(g, text, new [] { new CharacterRange(0, text.Length) }, this.FontRegular, innerRect);
 				SizeF textSize = charRegions[0].GetBounds(g).Size;
 				Size iconTextSize;
 				Rectangle textRect;
@@ -675,11 +673,11 @@ namespace AdamsLair.WinForms.Drawing
 					innerRect.Height);
 
 				g.DrawImageUnscaled(icon, iconRect);
-				DrawStringLine(g, text, this.DefaultFont, textRect, colorText);
+				DrawStringLine(g, text, this.FontRegular, textRect, colorText);
 			}
 			else if (!string.IsNullOrEmpty(text))
 			{
-				DrawStringLine(g, text, this.DefaultFont, innerRect, colorText);
+				DrawStringLine(g, text, this.FontRegular, innerRect, colorText);
 			}
 			else if (icon != null)
 			{

@@ -513,7 +513,7 @@ namespace AdamsLair.WinForms.ItemViews
 			editor.EditedPropertyName = this.itemEditProperty;
 			editor.BorderStyle = System.Windows.Forms.BorderStyle.None;
 
-			bool styledEditor = this.BackColor != SystemColors.Control;
+			bool styledEditor = this.renderer.ColorBackground != SystemColors.Control;
 			int iconOffset = this.tileSize.Height - editor.PreferredHeight;
 			if (icon == null) iconOffset /= 2;
 
@@ -522,8 +522,8 @@ namespace AdamsLair.WinForms.ItemViews
 			editor.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			if (styledEditor)
 			{
-				editor.BackColor = this.BackColor;
-				editor.ForeColor = this.ForeColor;
+				editor.BackColor = this.renderer.ColorBackground;
+				editor.ForeColor = this.renderer.ColorText;
 			}
 
 			return editor;
@@ -719,6 +719,21 @@ namespace AdamsLair.WinForms.ItemViews
 				this.ItemEdited(this, e);
 		}
 		
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			this.renderer.ColorText = this.ForeColor;
+		}
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			this.renderer.ColorBackground = this.BackColor;
+		}
+		protected override void OnFontChanged(EventArgs e)
+		{
+			base.OnFontChanged(e);
+			this.renderer.FontRegular = this.Font;
+		}
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
@@ -777,7 +792,7 @@ namespace AdamsLair.WinForms.ItemViews
 			{
 				textSize = e.Graphics.MeasureString(
 					text, 
-					this.Font, 
+					this.renderer.FontRegular, 
 					itemRect.Width, 
 					this.itemStringFormat);
 			}
@@ -828,8 +843,8 @@ namespace AdamsLair.WinForms.ItemViews
 
 				e.Graphics.DrawString(
 					text, 
-					this.Font, 
-					new SolidBrush(this.ForeColor), 
+					this.renderer.FontRegular, 
+					new SolidBrush(this.renderer.ColorText), 
 					itemRect, 
 					this.itemStringFormat);
 			}
@@ -837,7 +852,7 @@ namespace AdamsLair.WinForms.ItemViews
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
-			e.Graphics.FillRectangle(new SolidBrush(this.BackColor), this.ClientRectangle);
+			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 			e.Graphics.SetClip(new Rectangle(
 				this.ClientRectangle.X + this.Padding.Left,
 				this.ClientRectangle.Y + this.Padding.Top,
@@ -888,7 +903,7 @@ namespace AdamsLair.WinForms.ItemViews
 
 			if (!this.Enabled)
 			{
-				e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, this.BackColor)), this.ClientRectangle);
+				e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, this.renderer.ColorBackground)), this.ClientRectangle);
 			}
 		}
 

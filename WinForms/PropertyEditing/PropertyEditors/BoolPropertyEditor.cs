@@ -26,7 +26,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected override void OnParentEditorChanged()
 		{
 			base.OnParentEditorChanged();
-			this.Height = Math.Max(13, 3 + (int)Math.Round((float)this.ControlRenderer.DefaultFont.Height));
+			this.Height = Math.Max(13, 3 + (int)Math.Round((float)this.ControlRenderer.FontRegular.Height));
 		}
 
 		protected override void OnGetValue()

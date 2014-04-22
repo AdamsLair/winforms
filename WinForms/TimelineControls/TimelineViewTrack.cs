@@ -9,10 +9,14 @@ namespace AdamsLair.WinForms.TimelineControls
 	public abstract class TimelineViewTrack
 	{
 		private	TimelineView	parentView	= null;
-		private	int				height		= 100;
+		private	int				baseHeight	= 100;
+		private	int				fillHeight	= 0;
+
+		private	int	height;
 
 
 		public event EventHandler HeightChanged = null;
+		public event EventHandler HeightSettingsChanged = null;
 		
 
 		public TimelineView ParentView
@@ -20,10 +24,34 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.parentView; }
 			internal set { this.parentView = value; }
 		}
+		public int BaseHeight
+		{
+			get { return this.baseHeight; }
+			set
+			{
+				if (this.baseHeight != value)
+				{
+					this.baseHeight = value;
+					this.OnHeightSettingsChanged();
+				}
+			}
+		}
+		public int FillHeight
+		{
+			get { return this.fillHeight; }
+			set
+			{
+				if (this.fillHeight != value)
+				{
+					this.fillHeight = value;
+					this.OnHeightSettingsChanged();
+				}
+			}
+		}
 		public int Height
 		{
 			get { return this.height; }
-			set
+			internal set
 			{
 				if (this.height != value)
 				{
@@ -34,9 +62,68 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 
-		internal protected abstract void OnPaint(TimelineViewTrackPaintEventArgs e);
-		internal protected abstract void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e);
-		internal protected abstract void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e);
+		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e)
+		{
+			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Red)), e.TargetRect);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
+				e.TargetRect.X,
+				e.TargetRect.Y,
+				e.TargetRect.Width - 1,
+				e.TargetRect.Height - 1);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
+				e.TargetRect.X + 1,
+				e.TargetRect.Y + 1,
+				e.TargetRect.Width - 3,
+				e.TargetRect.Height - 3);
+
+			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
+			format.Alignment = StringAlignment.Center;
+			format.LineAlignment = StringAlignment.Center;
+			e.Graphics.DrawString("ContentArea", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
+		}
+		protected internal virtual void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e)
+		{
+			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Purple)), e.TargetRect);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
+				e.TargetRect.X,
+				e.TargetRect.Y,
+				e.TargetRect.Width - 1,
+				e.TargetRect.Height - 1);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
+				e.TargetRect.X + 1,
+				e.TargetRect.Y + 1,
+				e.TargetRect.Width - 3,
+				e.TargetRect.Height - 3);
+
+			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
+			format.Alignment = StringAlignment.Center;
+			format.LineAlignment = StringAlignment.Center;
+			e.Graphics.DrawString("LeftSidebar", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
+		}
+		protected internal virtual void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e)
+		{
+			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.CornflowerBlue)), e.TargetRect);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
+				e.TargetRect.X,
+				e.TargetRect.Y,
+				e.TargetRect.Width - 1,
+				e.TargetRect.Height - 1);
+			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
+				e.TargetRect.X + 1,
+				e.TargetRect.Y + 1,
+				e.TargetRect.Width - 3,
+				e.TargetRect.Height - 3);
+
+			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
+			format.Alignment = StringAlignment.Center;
+			format.LineAlignment = StringAlignment.Center;
+			e.Graphics.DrawString("RightSidebar", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
+		}
+		protected virtual void OnHeightSettingsChanged()
+		{
+			if (this.HeightSettingsChanged != null)
+				this.HeightSettingsChanged(this, EventArgs.Empty);
+		}
 		protected virtual void OnHeightChanged()
 		{
 			if (this.HeightChanged != null)

@@ -160,7 +160,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				showMinMaxBar = (float)((this.ValueBarMaximum - this.ValueBarMinimum) / this.Increment) < 10000.0f;
 			}
 
-			int prefHeight = 5 + (int)Math.Round((float)this.ControlRenderer.DefaultFont.Height);
+			int prefHeight = 5 + (int)Math.Round((float)this.ControlRenderer.FontRegular.Height);
 			if (showMinMaxBar) prefHeight += 3;
 			this.Height = prefHeight;
 			this.numEditor.ShowMinMaxBar = showMinMaxBar;

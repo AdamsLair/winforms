@@ -33,7 +33,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected override void OnParentEditorChanged()
 		{
 			base.OnParentEditorChanged();
-			this.Height = 5 + (int)Math.Round((float)this.ControlRenderer.DefaultFont.Height);
+			this.Height = 5 + (int)Math.Round((float)this.ControlRenderer.FontRegular.Height);
 		}
 
 		protected override void OnGetValue()
