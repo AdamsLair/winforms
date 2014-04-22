@@ -216,12 +216,16 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
 
 			TimelineViewGraphTrack trackA = new TimelineViewGraphTrack();
-			trackA.FillHeight = 10;
+			trackA.BaseHeight = 30;
+			trackA.FillHeight = 20;
+			trackA.Name = "Track A";
 			TimelineViewGraphTrack trackB = new TimelineViewGraphTrack();
 			trackB.BaseHeight = 50;
+			trackB.Name = "Track B";
 			TimelineViewGraphTrack trackC = new TimelineViewGraphTrack();
-			trackC.BaseHeight = 200;
+			trackC.BaseHeight = 250;
 			trackC.FillHeight = 100;
+			trackC.Name = "This is Track C";
 			this.timelineView1.AddTrack(trackA);
 			this.timelineView1.AddTrack(trackB);
 			this.timelineView1.AddTrack(trackC);

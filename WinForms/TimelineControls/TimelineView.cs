@@ -185,6 +185,59 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			return this.rectContentArea.X + this.unitInfo.ConvertToPixels(unit - this.unitOffset) / this.unitZoom;
 		}
+		public Rectangle GetTrackRectangle(TimelineViewTrack track, bool scrolled = true)
+		{
+			int baseY = 0;
+			foreach (TimelineViewTrack t in this.trackList)
+			{
+				if (t == track) break;
+				baseY += t.Height;
+			}
+
+			Rectangle rect = new Rectangle(
+				this.rectLeftSidebar.Left,
+				this.rectLeftSidebar.Y + baseY,
+				this.rectRightSidebar.Right - this.rectLeftSidebar.Left,
+				track.Height);
+
+			rect.X += this.ClientRectangle.X;
+			rect.Y += this.ClientRectangle.Y;
+
+			if (scrolled) rect.Y += this.AutoScrollPosition.Y;
+
+			return rect;
+		}
+		public TimelineViewTrack GetTrackAtPos(int x, int y, bool scrolled = true, bool allowNearest = false)
+		{
+			if (scrolled) y -= this.AutoScrollPosition.Y;
+
+			x -= this.ClientRectangle.X;
+			y -= this.ClientRectangle.Y;
+
+			if (allowNearest)
+			{
+				if (x < 0) x = 0;
+				if (y < 0) y = 0;
+				if (x >= this.ClientSize.Width) x = this.ClientSize.Width - 1;
+				if (y >= this.ClientSize.Height) y = this.ClientSize.Height - 1;
+			}
+			else
+			{
+				if (x < 0) return null;
+				if (y < 0) return null;
+				if (x >= this.ClientSize.Width) return null;
+				if (y >= this.ClientSize.Height) return null;
+			}
+			
+			foreach (TimelineViewTrack t in this.trackList)
+			{
+				y -= t.Height;
+				if (y < 0) return t;
+			}
+
+			return null;
+		}
+
 		private void UpdateGeometry()
 		{
 			Rectangle lastRectTopRuler		= this.rectTopRuler;
@@ -444,7 +497,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				Rectangle overlap = rectUnitMarkings;
 				overlap.Intersect(rectUnitName);
 				float overlapAmount = Math.Max(Math.Min((float)overlap.Height / (float)rectUnitName.Height, 1.0f), 0.0f);
-				float textOverlapAlpha = (1.0f - (overlapAmount * overlapAmount));
+				float textOverlapAlpha = (1.0f - (overlapAmount));
 
 				StringFormat format = new StringFormat(StringFormat.GenericDefault);
 				format.Alignment = StringAlignment.Near;
@@ -529,7 +582,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 
-		protected static float GetNiceMultiple(float rawMultiple)
+		public static float GetNiceMultiple(float rawMultiple)
 		{
 			float magnitude = (float)Math.Floor(Math.Log10(rawMultiple));
 			float baseValue = (float)Math.Pow(10.0f, magnitude);
@@ -542,7 +595,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			return baseValue * factor;
 		}
-		protected static void GetRulerRange(float stepSize, float scroll, float minTime, float maxTime, out float rangeBegin, out float rangeEnd)
+		public static void GetRulerRange(float stepSize, float scroll, float minTime, float maxTime, out float rangeBegin, out float rangeEnd)
 		{
 			float scrollStepOffset = stepSize * (float)Math.Floor(-scroll / stepSize);
 			rangeBegin = stepSize * (float)Math.Floor(minTime / stepSize) + scrollStepOffset;

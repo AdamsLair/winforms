@@ -546,7 +546,7 @@
 			this.timelineView1.HasLeftSidebar = true;
 			this.timelineView1.HasRightSidebar = true;
 			this.timelineView1.HasTopRuler = true;
-			this.timelineView1.LeftSidebarSize = 100;
+			this.timelineView1.LeftSidebarSize = 50;
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);
 			this.timelineView1.Name = "timelineView1";
 			this.timelineView1.RightSidebarSize = 75;
