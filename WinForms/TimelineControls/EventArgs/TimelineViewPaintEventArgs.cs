@@ -17,7 +17,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.graphics; }
 		}
-		public ControlRenderer Renderer
+		public TimelineViewControlRenderer Renderer
 		{
 			get { return this.View.Renderer; }
 		}

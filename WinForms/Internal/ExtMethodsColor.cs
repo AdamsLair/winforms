@@ -12,6 +12,10 @@ namespace AdamsLair.WinForms
 				(byte)Math.Min(Math.Max((float)c.G * ratio, 0.0f), 255.0f),
 				(byte)Math.Min(Math.Max((float)c.B * ratio, 0.0f), 255.0f));
 		}
+		public static Color ScaleAlpha(this Color c, float ratio)
+		{
+			return Color.FromArgb((byte)((float)c.A * ratio), c);
+		}
 		public static Color MixWith(this Color c, Color other, float ratio, bool lockBrightness = false)
 		{
 			float myRatio = 1.0f - ratio;

@@ -74,10 +74,13 @@
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TimelineControls\TimelineViewControlRenderer.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewPaintEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewPaintTrackEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewTrackEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewEventArgs.cs" />
+    <Compile Include="TimelineControls\TimelineViewRulerMarkWeight.cs" />
+    <Compile Include="TimelineControls\TimelineViewRulerMark.cs" />
     <Compile Include="TimelineControls\TimelineViewGraphTrack.cs" />
     <Compile Include="TimelineControls\TimelineView.cs">
       <SubType>Component</SubType>

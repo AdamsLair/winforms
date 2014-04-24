@@ -70,15 +70,15 @@ namespace AdamsLair.WinForms.Drawing
 		{
 			this.Reset();
 		}
-		public void Reset()
+		public virtual void Reset()
 		{
 			this.FocusBrightnessScale = 0.85f;
 			this.ColorHightlight = SystemColors.Highlight;
 			this.ColorVeryDarkBackground = SystemColors.ControlDarkDark;
 			this.ColorDarkBackground = SystemColors.ControlDark;
-			this.ColorLightBackground = SystemColors.ControlLightLight;
-			this.ColorVeryLightBackground = SystemColors.Window;
 			this.ColorBackground = SystemColors.Control;
+			this.ColorLightBackground = SystemColors.ControlLight;
+			this.ColorVeryLightBackground = SystemColors.ControlLightLight;
 			this.ColorText = SystemColors.ControlText;
 			this.ColorMultiple = Color.Bisque;
 			this.ColorGrayText = SystemColors.GrayText;

@@ -83,48 +83,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.parentView.Invalidate(rectOnParent);
 		}
 
-		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e)
-		{
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.Red)), e.TargetRect);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
-				e.TargetRect.X,
-				e.TargetRect.Y,
-				e.TargetRect.Width - 1,
-				e.TargetRect.Height - 1);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
-				e.TargetRect.X + 1,
-				e.TargetRect.Y + 1,
-				e.TargetRect.Width - 3,
-				e.TargetRect.Height - 3);
-
-			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
-			format.Alignment = StringAlignment.Center;
-			format.LineAlignment = StringAlignment.Center;
-			e.Graphics.DrawString("ContentArea", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
-		}
-		protected internal virtual void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e)
-		{
-
-		}
-		protected internal virtual void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e)
-		{
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.CornflowerBlue)), e.TargetRect);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
-				e.TargetRect.X,
-				e.TargetRect.Y,
-				e.TargetRect.Width - 1,
-				e.TargetRect.Height - 1);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
-				e.TargetRect.X + 1,
-				e.TargetRect.Y + 1,
-				e.TargetRect.Width - 3,
-				e.TargetRect.Height - 3);
-
-			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
-			format.Alignment = StringAlignment.Center;
-			format.LineAlignment = StringAlignment.Center;
-			e.Graphics.DrawString("RightSidebar", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
-		}
+		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e) {}
+		protected internal virtual void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e) {}
+		protected internal virtual void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e) {}
 		protected virtual void OnHeightSettingsChanged()
 		{
 			if (this.HeightSettingsChanged != null)
