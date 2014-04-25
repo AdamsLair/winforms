@@ -23,7 +23,7 @@ namespace AdamsLair.WinForms.Properties
 		public readonly	static Bitmap ExpandNodeOpenedPressed	= Resources.ExpandNodeOpenedPressed;
 
 		public readonly static Font DefaultFont = SystemFonts.DefaultFont;
-		public readonly static Font DefaultFontSmall = new Font(DefaultFont.FontFamily, DefaultFont.Size * 0.8f, DefaultFont.Unit);
+		public readonly static Font DefaultFontSmall = new Font(DefaultFont.FontFamily, DefaultFont.Size * 0.9f, DefaultFont.Unit);
 		public readonly static Font DefaultFontBold = new Font(DefaultFont, FontStyle.Bold);
 		public readonly static Font DefaultFontBoldSmall = new Font(DefaultFontSmall, FontStyle.Bold);
 	}

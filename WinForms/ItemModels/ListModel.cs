@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AdamsLair.WinForms.ItemModels
 {
-	public class SimpleListModel<T> : IListModel, IList<T>
+	public class ListModel<T> : IListModel, IList<T>
 	{
 		private List<T> items = new List<T>();
 
@@ -30,8 +30,8 @@ namespace AdamsLair.WinForms.ItemModels
 			}
 		}
 
-		public SimpleListModel() : this(new T[0]) {}
-		public SimpleListModel(IEnumerable<T> items)
+		public ListModel() : this(new T[0]) {}
+		public ListModel(IEnumerable<T> items)
 		{
 			this.items.AddRange(items);
 		}

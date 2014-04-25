@@ -28,7 +28,6 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			AdamsLair.WinForms.ItemModels.EmptyListModel emptyListModel2 = new AdamsLair.WinForms.ItemModels.EmptyListModel();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
@@ -411,7 +410,6 @@
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
-			this.tiledView.Model = emptyListModel2;
 			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;

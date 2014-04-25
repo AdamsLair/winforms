@@ -33,9 +33,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 
+		private const float DefaultPixelsPerUnit = 5.0f;
+		private static List<Type> availableViewTrackTypes = null;
+
+		private	ITimelineModel				model				= new TimelineModel();
 		private	TimelineViewControlRenderer	renderer			= new TimelineViewControlRenderer();
 		private	List<TimelineViewTrack>		trackList			= new List<TimelineViewTrack>();
-		private	TimelineViewUnitInfo		unitInfo			= new TimelineViewUnitInfo("Seconds", "s", 5);
+		private	int							defaultTrackHeight	= 150;
 		private	float						unitOffset			= 0.0f;
 		private	float						unitZoom			= 1.0f;
 		private	int							trackSpacing		= -1;
@@ -51,6 +55,30 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	Rectangle	rectContentArea;
 
 		
+		public ITimelineModel Model
+		{
+			get { return this.model; }
+			set
+			{
+				if (this.model != value)
+				{
+					this.model.UnitChanged		-= this.model_UnitChanged;
+					this.model.TracksAdded		-= this.model_TracksAdded;
+					this.model.TracksRemoved	-= this.model_TracksRemoved;
+
+					this.OnModelTracksRemoved(new TimelineModelTracksEventArgs(this.model.Tracks));
+
+					this.model = value ?? new TimelineModel();
+					
+					this.OnModelUnitChanged(EventArgs.Empty);
+					this.OnModelTracksAdded(new TimelineModelTracksEventArgs(this.model.Tracks));
+
+					this.model.UnitChanged		+= this.model_UnitChanged;
+					this.model.TracksAdded		+= this.model_TracksAdded;
+					this.model.TracksRemoved	+= this.model_TracksRemoved;
+				}
+			}
+		}
 		public TimelineViewControlRenderer Renderer
 		{
 			get { return this.renderer; }
@@ -58,11 +86,6 @@ namespace AdamsLair.WinForms.TimelineControls
 		public IEnumerable<TimelineViewTrack> Tracks
 		{
 			get { return this.trackList; }
-		}
-		public TimelineViewUnitInfo UnitInfo
-		{
-			get { return this.unitInfo; }
-			set { this.unitInfo = value; }
 		}
 		[DefaultValue(0.0f)]
 		public float UnitOffset
@@ -73,7 +96,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float UnitScroll
 		{
-			get { return this.unitInfo.ConvertToUnits(this.AutoScrollPosition.X) * this.unitZoom; }
+			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X) * this.unitZoom; }
 		}
 		[DefaultValue(1.0f)]
 		public float UnitZoom
@@ -84,6 +107,12 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.unitZoom = Math.Max(value, 0.00000001f);
 				this.Invalidate();
 			}
+		}
+		[DefaultValue(150)]
+		public int DefaultTrackHeight
+		{
+			get { return this.defaultTrackHeight; }
+			set { this.defaultTrackHeight = value; }
 		}
 		[DefaultValue(-1)]
 		public int TrackSpacing
@@ -163,46 +192,26 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.SetStyle(ControlStyles.Selectable, true);
 		}
 		
-		public void AddTrack(TimelineViewTrack track)
+		public TimelineViewTrack GetTrackByModel(ITimelineTrackModel trackModel)
 		{
-			if (track.ParentView == this) return;
-			if (track.ParentView != null) track.ParentView.RemoveTrack(track);
-
-			this.trackList.Add(track);
-			track.HeightSettingsChanged += this.track_HeightSettingsChanged;
-			track.ParentView = this;
-
-			this.OnContentHeightChanged(EventArgs.Empty);
-		}
-		public void RemoveTrack(TimelineViewTrack track)
-		{
-			if (track.ParentView != this) return;
-
-			track.ParentView = null;
-			track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
-			this.trackList.Remove(track);
-
-			this.OnContentHeightChanged(EventArgs.Empty);
-		}
-		public void ClearTracks()
-		{
-			foreach (TimelineViewTrack track in this.trackList)
-			{
-				track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
-				track.ParentView = null;
-			}
-			this.trackList.Clear();
-
-			this.OnContentHeightChanged(EventArgs.Empty);
+			return this.trackList.FirstOrDefault(t => t.Model == trackModel);
 		}
 
+		public float ConvertUnitsToPixels(float units)
+		{
+			return units * this.model.UnitBaseScale * DefaultPixelsPerUnit;
+		}
+		public float ConvertPixelsToUnits(float pixels)
+		{
+			return pixels / (this.model.UnitBaseScale * DefaultPixelsPerUnit);
+		}
 		public float GetUnitAtPos(float x)
 		{
-			return this.unitOffset + this.unitInfo.ConvertToUnits(x - this.rectContentArea.X) * this.unitZoom;
+			return this.unitOffset + this.ConvertPixelsToUnits(x - this.rectContentArea.X) * this.unitZoom;
 		}
 		public float GetPosAtUnit(float unit)
 		{
-			return this.rectContentArea.X + this.unitInfo.ConvertToPixels(unit - this.unitOffset) / this.unitZoom;
+			return this.rectContentArea.X + this.ConvertUnitsToPixels(unit - this.unitOffset) / this.unitZoom;
 		}
 		public Rectangle GetTrackRectangle(TimelineViewTrack track, bool scrolled = true)
 		{
@@ -258,7 +267,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		public IEnumerable<TimelineViewRulerMark> GetVisibleRulerMarks()
 		{
-			float rulerStep = GetNiceMultiple(this.unitInfo.ConvertToUnits(100.0f * this.unitZoom)) / 10.0f;
+			float rulerStep = GetNiceMultiple(this.ConvertPixelsToUnits(100.0f * this.unitZoom)) / 10.0f;
 			float unitScroll = this.UnitScroll;
 			float beginTime = this.GetUnitAtPos(this.rectTopRuler.Left);
 			float endTime = this.GetUnitAtPos(this.rectTopRuler.Right);
@@ -361,6 +370,73 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.AutoScrollMinSize = autoScrollSize;
 		}
 
+		protected virtual void OnModelUnitChanged(EventArgs e)
+		{
+			this.Invalidate();
+		}
+		protected virtual void OnModelTracksRemoved(TimelineModelTracksEventArgs e)
+		{
+			foreach (ITimelineTrackModel trackModel in e.Tracks)
+			{
+				TimelineViewTrack track = this.GetTrackByModel(trackModel);
+				if (track == null) continue;
+
+				track.ParentView = null;
+				track.Model = null;
+				track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
+				this.trackList.Remove(track);
+			}
+			this.OnContentHeightChanged(EventArgs.Empty);
+		}
+		protected virtual void OnModelTracksAdded(TimelineModelTracksEventArgs e)
+		{
+			foreach (ITimelineTrackModel trackModel in e.Tracks)
+			{
+				TimelineViewTrack track = this.GetTrackByModel(trackModel);
+				if (track != null) continue;
+
+				// Determine Type of the TimelineViewTrack matching the TimelineTrackModel
+				if (availableViewTrackTypes == null)
+				{
+					availableViewTrackTypes = 
+						AppDomain.CurrentDomain.GetAssemblies().
+						SelectMany(a => a.GetExportedTypes()).
+						Where(t => !t.IsAbstract && !t.IsInterface && typeof(TimelineViewTrack).IsAssignableFrom(t)).
+						ToList();
+				}
+				Type viewTrackType = null;
+				foreach (Type trackType in availableViewTrackTypes)
+				{
+					foreach (TimelineTrackAssignmentAttribute attrib in trackType.GetCustomAttributes(true).OfType<TimelineTrackAssignmentAttribute>())
+					{
+						foreach (Type validModelType in attrib.ValidModelTypes)
+						{
+							if (validModelType.IsInstanceOfType(trackModel))
+							{
+								viewTrackType = trackType;
+								break;
+							}
+						}
+						if (viewTrackType != null) break;
+					}
+					if (viewTrackType != null) break;
+				}
+				if (viewTrackType == null) continue;
+
+				// Create TimelineViewTrack accordingly
+				track = viewTrackType.CreateInstanceOf() as TimelineViewTrack;
+				track.Model = trackModel;
+				track.BaseHeight = this.defaultTrackHeight;
+				track.FillHeight = 100;
+
+				this.trackList.Add(track);
+				track.HeightSettingsChanged += this.track_HeightSettingsChanged;
+				track.ParentView = this;
+			}
+
+			this.OnContentHeightChanged(EventArgs.Empty);
+		}
+
 		protected override void OnForeColorChanged(EventArgs e)
 		{
 			base.OnForeColorChanged(e);
@@ -391,6 +467,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			base.OnResize(eventargs);
 			this.UpdateGeometry();
 			this.UpdateContentHeight();
+		}
+		protected override void OnClick(EventArgs e)
+		{
+			base.OnClick(e);
+			this.Focus();
 		}
 		protected override void OnPaint(PaintEventArgs e)
 		{
@@ -542,8 +623,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			Rectangle rectUnitName;
 			Rectangle rectUnitMarkings;
 			{
-				SizeF unitNameSize = g.MeasureString(this.unitInfo.Name, this.renderer.FontRegular, rect.Width);
+				SizeF unitNameSize = g.MeasureString(this.model.UnitName, this.renderer.FontRegular, rect.Width);
 				float markingRatio = 0.5f + 0.5f * (1.0f - Math.Max(Math.Min((float)rect.Height / 32.0f, 1.0f), 0.0f));
+				if (unitNameSize.IsEmpty) unitNameSize = new SizeF(1.0f, 1.0f);
 				if (top)
 				{
 					rectUnitName = new Rectangle(
@@ -579,10 +661,27 @@ namespace AdamsLair.WinForms.TimelineControls
 				float overlapAmount = Math.Max(Math.Min((float)overlap.Height / (float)rectUnitName.Height, 1.0f), 0.0f);
 				float textOverlapAlpha = (1.0f - (overlapAmount));
 
+				string unitText = null;
+				{
+					string unitTextPrimary = !string.IsNullOrEmpty(this.model.UnitDescription) ? this.model.UnitDescription : null;
+					string unitTextSecondary = !string.IsNullOrEmpty(this.model.UnitName) ? this.model.UnitName : null;
+
+					if (unitTextPrimary != null && unitTextSecondary != null)
+						unitText = string.Format("{0} ({1})", unitTextPrimary, unitTextSecondary);
+					else
+						unitText = (unitTextPrimary ?? unitTextSecondary) ?? "Units";
+				}
+
 				StringFormat format = new StringFormat(StringFormat.GenericDefault);
 				format.Alignment = StringAlignment.Near;
 				format.LineAlignment = top ? StringAlignment.Near : StringAlignment.Far;
-				g.DrawString(this.unitInfo.Name, this.renderer.FontRegular, new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), this.renderer.ColorText)), rect, format);
+
+				g.DrawString(
+					unitText, 
+					this.renderer.FontRegular, 
+					new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), this.renderer.ColorText)), 
+					rect, 
+					format);
 			}
 
 			// Draw ruler markings
@@ -637,10 +736,10 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					if (mark.Weight == TimelineViewRulerMarkWeight.Major)
 					{
-						string timeString = this.unitInfo.ConvertToString(mark.UnitValue, TimelineViewUnitInfo.NameMode.Short);
+						string timeString = string.Format("{0}", mark.UnitValue);
 						g.DrawString(
 							timeString, 
-							this.renderer.FontRegular, 
+							this.renderer.FontSmall, 
 							new SolidBrush(this.renderer.ColorText), 
 							mark.PixelValue, 
 							markTextY);
@@ -652,6 +751,18 @@ namespace AdamsLair.WinForms.TimelineControls
 		private void track_HeightSettingsChanged(object sender, EventArgs e)
 		{
 			this.OnContentHeightChanged(EventArgs.Empty);
+		}
+		private void model_TracksRemoved(object sender, TimelineModelTracksEventArgs e)
+		{
+			this.OnModelTracksRemoved(e);
+		}
+		private void model_TracksAdded(object sender, TimelineModelTracksEventArgs e)
+		{
+			this.OnModelTracksAdded(e);
+		}
+		private void model_UnitChanged(object sender, EventArgs e)
+		{
+			this.OnModelUnitChanged(e);
 		}
 
 		public static float GetNiceMultiple(float rawMultiple)

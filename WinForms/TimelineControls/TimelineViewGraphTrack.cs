@@ -8,6 +8,7 @@ using AdamsLair.WinForms.Drawing;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
+	[TimelineTrackAssignment(typeof(ITimelineGraphTrackModel))]
 	public class TimelineViewGraphTrack : TimelineViewTrack
 	{
 		private	float					verticalUnitTop		= 1.0f;
@@ -125,19 +126,26 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal override void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaintLeftSidebar(e);
-
-			Rectangle rect = e.TargetRect;
+			this.DrawRuler(e.Graphics, e.Renderer, e.TargetRect, true);
+		}
+		protected internal override void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e)
+		{
+			base.OnPaintRightSidebar(e);
+			this.DrawRuler(e.Graphics, e.Renderer, e.TargetRect, false);
+		}
+		protected void DrawRuler(Graphics g, TimelineViewControlRenderer r, Rectangle rect, bool left)
+		{
 			string verticalTopText = string.Format("{0}", (float)Math.Round(this.verticalUnitTop, 2));
 			string verticalBottomText = string.Format("{0}", (float)Math.Round(this.verticalUnitBottom, 2));
-			SizeF verticalTopTextSize = e.Graphics.MeasureString(verticalTopText, e.Renderer.FontRegular);
-			SizeF verticalBottomTextSize = e.Graphics.MeasureString(verticalBottomText, e.Renderer.FontRegular);
+			SizeF verticalTopTextSize = g.MeasureString(verticalTopText, r.FontSmall);
+			SizeF verticalBottomTextSize = g.MeasureString(verticalBottomText, r.FontSmall);
 
 			// Draw background
 			Rectangle borderRect;
 			if (this.ParentView.BorderStyle != System.Windows.Forms.BorderStyle.None)
 			{
 				borderRect = new Rectangle(
-					rect.X - 1,
+					rect.X - (left ? 1 : 0),
 					rect.Y,
 					rect.Width + 1,
 					rect.Height);
@@ -146,8 +154,8 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				borderRect = rect;
 			}
-			e.Graphics.FillRectangle(new SolidBrush(e.Renderer.ColorVeryLightBackground), rect);
-			e.Renderer.DrawBorder(e.Graphics, borderRect, Drawing.BorderStyle.Simple, BorderState.Normal);
+			g.FillRectangle(new SolidBrush(r.ColorVeryLightBackground), rect);
+			r.DrawBorder(g, borderRect, Drawing.BorderStyle.Simple, BorderState.Normal);
 
 			// Determine drawing geometry
 			Rectangle rectTrackName;
@@ -158,7 +166,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				rectTrackName = new Rectangle(
 					rect.X, 
 					rect.Y, 
-					Math.Min(rect.Width, e.Renderer.FontRegular.Height + 2), 
+					Math.Min(rect.Width, r.FontRegular.Height + 2), 
 					rect.Height);
 				rectUnitMarkings = new Rectangle(
 					rect.Right - Math.Min((int)(rect.Width * markingRatio), 16),
@@ -171,6 +179,13 @@ namespace AdamsLair.WinForms.TimelineControls
 					rect.Y,
 					maxUnitWidth,
 					rect.Height);
+
+				if (!left)
+				{
+					rectTrackName.X		= rect.Right - (rectTrackName	.X	- rect.Left) - rectTrackName	.Width;
+					rectUnitMarkings.X	= rect.Right - (rectUnitMarkings.X	- rect.Left) - rectUnitMarkings	.Width;
+					rectUnitRuler.X		= rect.Right - (rectUnitRuler	.X	- rect.Left) - rectUnitRuler	.Width;
+				}
 			}
 
 			// Draw track name
@@ -183,34 +198,34 @@ namespace AdamsLair.WinForms.TimelineControls
 				StringFormat format = new StringFormat(StringFormat.GenericDefault);
 				format.Trimming = StringTrimming.EllipsisCharacter;
 
-				SizeF textSize = e.Graphics.MeasureString(this.Name, e.Renderer.FontRegular, rectTrackName.Height, format);
+				SizeF textSize = g.MeasureString(this.Model.TrackName, r.FontRegular, rectTrackName.Height, format);
 
-				var state = e.Graphics.Save();
-				e.Graphics.TranslateTransform(
+				var state = g.Save();
+				g.TranslateTransform(
 					rectTrackName.X + (int)textSize.Height + 2, 
 					rectTrackName.Y);
-				e.Graphics.RotateTransform(90);
-				e.Graphics.DrawString(
-					this.Name, 
-					e.Renderer.FontRegular, 
-					new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), e.Renderer.ColorText)), 
+				g.RotateTransform(90);
+				g.DrawString(
+					this.Model.TrackName, 
+					r.FontRegular, 
+					new SolidBrush(Color.FromArgb((int)(textOverlapAlpha * 255), r.ColorText)), 
 					new Rectangle(0, 0, rectTrackName.Height, rectTrackName.Width), 
 					format);
-				e.Graphics.Restore(state);
+				g.Restore(state);
 			}
 
 			// Draw vertical unit markings
 			{
-				Pen bigLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkMajor));
-				Pen medLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkRegular));
-				Pen minLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkMinor));
+				Pen bigLinePen = new Pen(new SolidBrush(r.ColorRulerMarkMajor));
+				Pen medLinePen = new Pen(new SolidBrush(r.ColorRulerMarkRegular));
+				Pen minLinePen = new Pen(new SolidBrush(r.ColorRulerMarkMinor));
 
 				// Static Top and Bottom marks
 				SizeF textSize;
-				textSize = e.Graphics.MeasureString(verticalTopText, e.Renderer.FontRegular);
-				e.Graphics.DrawString(verticalTopText, e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Top);
-				textSize = e.Graphics.MeasureString(verticalBottomText, e.Renderer.FontRegular);
-				e.Graphics.DrawString(verticalBottomText, e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Bottom - textSize.Height);
+				textSize = g.MeasureString(verticalTopText, r.FontSmall);
+				g.DrawString(verticalTopText, r.FontSmall, new SolidBrush(r.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Top);
+				textSize = g.MeasureString(verticalBottomText, r.FontSmall);
+				g.DrawString(verticalBottomText, r.FontSmall, new SolidBrush(r.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Bottom - textSize.Height - 1);
 
 				// Dynamic Inbetween marks
 				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks())
@@ -234,55 +249,45 @@ namespace AdamsLair.WinForms.TimelineControls
 							break;
 					}
 
-					int borderDistInner = e.Renderer.FontRegular.Height / 2;
-					int borderDistOuter = e.Renderer.FontRegular.Height / 2 + 15;
-					float markTopX = rectUnitMarkings.Right - markLen * rectUnitMarkings.Width;
-					float markBottomX = rectUnitMarkings.Right;
+					int borderDistInner = r.FontSmall.Height / 2;
+					int borderDistOuter = r.FontSmall.Height / 2 + 15;
 					float borderDist = (float)Math.Min(Math.Abs(mark.PixelValue - rect.Top), Math.Abs(mark.PixelValue - rect.Bottom));
+					
+					float markTopX;
+					float markBottomX;
+					if (left)
+					{
+						markTopX = rectUnitMarkings.Right - markLen * rectUnitMarkings.Width;
+						markBottomX = rectUnitMarkings.Right;
+					}
+					else
+					{
+						markTopX = rectUnitMarkings.Left;
+						markBottomX = rectUnitMarkings.Left + markLen * rectUnitMarkings.Width;
+					}
 
 					if (borderDist > borderDistInner)
 					{
 						float alpha = Math.Min(1.0f, (float)(borderDist - borderDistInner) / (float)(borderDistOuter - borderDistInner));
 						Color markColor = Color.FromArgb((int)(alpha * markPen.Color.A), markPen.Color);
-						Color textColor = Color.FromArgb((int)(alpha * markPen.Color.A), e.Renderer.ColorText);
+						Color textColor = Color.FromArgb((int)(alpha * markPen.Color.A), r.ColorText);
 
-						e.Graphics.DrawLine(new Pen(markColor), (int)markTopX, (int)mark.PixelValue, (int)markBottomX, (int)mark.PixelValue);
+						g.DrawLine(new Pen(markColor), (int)markTopX, (int)mark.PixelValue, (int)markBottomX, (int)mark.PixelValue);
 
 						if (bigMark)
 						{
 							string text = string.Format("{0}", (float)Math.Round(mark.UnitValue, 2));
-							textSize = e.Graphics.MeasureString(text, e.Renderer.FontRegular);
-							e.Graphics.DrawString(
+							textSize = g.MeasureString(text, r.FontSmall);
+							g.DrawString(
 								text, 
-								e.Renderer.FontRegular, 
+								r.FontSmall, 
 								new SolidBrush(textColor), 
-								markTopX - textSize.Width, 
+								left ? markTopX - textSize.Width : markBottomX, 
 								mark.PixelValue - textSize.Height * 0.5f);
 						}
 					}
 				}
 			}
-		}
-		protected internal override void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e)
-		{
-			base.OnPaintRightSidebar(e);
-
-			e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.CornflowerBlue)), e.TargetRect);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.Black)), 
-				e.TargetRect.X,
-				e.TargetRect.Y,
-				e.TargetRect.Width - 1,
-				e.TargetRect.Height - 1);
-			e.Graphics.DrawRectangle(new Pen(Color.FromArgb(64, Color.White)), 
-				e.TargetRect.X + 1,
-				e.TargetRect.Y + 1,
-				e.TargetRect.Width - 3,
-				e.TargetRect.Height - 3);
-
-			StringFormat format = StringFormat.GenericDefault.Clone() as StringFormat;
-			format.Alignment = StringAlignment.Center;
-			format.LineAlignment = StringAlignment.Center;
-			e.Graphics.DrawString("RightSidebar", e.Renderer.FontRegular, new SolidBrush(e.Renderer.ColorText), e.TargetRect, format);
 		}
 	}
 }

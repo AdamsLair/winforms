@@ -40,7 +40,7 @@ namespace AdamsLair.WinForms.ItemViews
 		}
 
 		private	ControlRenderer			renderer			= new ControlRenderer();
-		private	IListModel				model				= new EmptyListModel();
+		private	IListModel				model				= new ListModel<object>();
 		private	Size					contentSize			= Size.Empty;
 		private	Size					spacing				= new Size(2, 2);
 		private	Size					tileSize			= new Size(50, 50);
@@ -87,7 +87,7 @@ namespace AdamsLair.WinForms.ItemViews
 					this.model.CountChanged -= this.model_CountChanged;
 					this.model.IndicesChanged -= this.model_IndicesChanged;
 
-					this.model = value ?? new EmptyListModel();
+					this.model = value ?? new ListModel<object>();
 					
 					if (oldCount > 0) this.OnModelIndicesChanged(new ListModelItemsEventArgs(0, oldCount));
 					this.OnModelCountChanged();

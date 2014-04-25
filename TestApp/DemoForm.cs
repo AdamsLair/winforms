@@ -179,7 +179,8 @@ namespace AdamsLair.WinForms.TestApp
 
 		private Test objA;
 		private Test objB;
-		private SimpleListModel<TiledModelItem> tiledViewModel;
+		private ListModel<TiledModelItem> tiledViewModel;
+		private	TimelineModel timelineViewModel;
 
 		public DemoForm()
 		{
@@ -206,7 +207,7 @@ namespace AdamsLair.WinForms.TestApp
 
 			this.propertyGrid1.SelectObject(this.objA);
 
-			this.tiledViewModel = new SimpleListModel<TiledModelItem>();
+			this.tiledViewModel = new ListModel<TiledModelItem>();
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Frederick" });
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Herbert" });
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Mary" });
@@ -215,20 +216,11 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledView.Model = this.tiledViewModel;
 			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
 
-			TimelineViewGraphTrack trackA = new TimelineViewGraphTrack();
-			trackA.BaseHeight = 30;
-			trackA.FillHeight = 20;
-			trackA.Name = "Track A";
-			TimelineViewGraphTrack trackB = new TimelineViewGraphTrack();
-			trackB.BaseHeight = 50;
-			trackB.Name = "Track B";
-			TimelineViewGraphTrack trackC = new TimelineViewGraphTrack();
-			trackC.BaseHeight = 250;
-			trackC.FillHeight = 100;
-			trackC.Name = "This is Track C";
-			this.timelineView1.AddTrack(trackA);
-			this.timelineView1.AddTrack(trackB);
-			this.timelineView1.AddTrack(trackC);
+			this.timelineViewModel = new TimelineModel();
+			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track A" });
+			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track B" });
+			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track C" });
+			this.timelineView1.Model = this.timelineViewModel;
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)

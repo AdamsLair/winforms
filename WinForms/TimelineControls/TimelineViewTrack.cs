@@ -8,10 +8,10 @@ namespace AdamsLair.WinForms.TimelineControls
 {
 	public abstract class TimelineViewTrack
 	{
-		private	TimelineView	parentView	= null;
-		private	int				baseHeight	= 100;
-		private	int				fillHeight	= 0;
-		private	string			name		= "TimelineViewTrack";
+		private	TimelineView		parentView	= null;
+		private	ITimelineTrackModel	model		= null;
+		private	int					baseHeight	= 100;
+		private	int					fillHeight	= 0;
 
 		private	int	height;
 
@@ -25,13 +25,26 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.parentView; }
 			internal set { this.parentView = value; }
 		}
-		public string Name
+		public ITimelineTrackModel Model
 		{
-			get { return this.name; }
-			set
+			get { return this.model; }
+			internal set
 			{
-				this.name = value;
-				this.Invalidate();
+				if (this.model != value)
+				{
+					if (this.model != null)
+					{
+						this.model.TrackNameChanged -= this.model_TrackNameChanged;
+					}
+
+					this.model = value;
+
+					if (this.model != null)
+					{
+						this.model.TrackNameChanged += this.model_TrackNameChanged;
+					}
+					this.OnModelChanged();
+				}
 			}
 		}
 		public int BaseHeight
@@ -83,6 +96,10 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.parentView.Invalidate(rectOnParent);
 		}
 
+		protected virtual void OnModelChanged()
+		{
+			this.Invalidate();
+		}
 		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e) {}
 		protected internal virtual void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e) {}
 		protected internal virtual void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e) {}
@@ -95,6 +112,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			if (this.HeightChanged != null)
 				this.HeightChanged(this, EventArgs.Empty);
+		}
+
+		private void model_TrackNameChanged(object sender, EventArgs e)
+		{
+			this.Invalidate();
 		}
 	}
 }

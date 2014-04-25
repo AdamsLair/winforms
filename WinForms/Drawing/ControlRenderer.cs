@@ -13,6 +13,7 @@ namespace AdamsLair.WinForms.Drawing
 	{
 		private const int DrawStringWidthAdd = 5;
 
+		private	Font	fontSmall			= Properties.ResourcesCache.DefaultFontSmall;
 		private	Font	fontRegular			= Properties.ResourcesCache.DefaultFont;
 		private	Font	fontBold			= Properties.ResourcesCache.DefaultFontBold;
 		private	Size	checkBoxSize		= Size.Empty;
@@ -43,6 +44,11 @@ namespace AdamsLair.WinForms.Drawing
 				}
 				return expandNodeSize;
 			}
+		}
+		public Font FontSmall
+		{
+			get { return this.fontSmall; }
+			set { this.fontSmall = value; }
 		}
 		public Font FontRegular
 		{
