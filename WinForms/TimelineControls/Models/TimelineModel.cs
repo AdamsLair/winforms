@@ -60,11 +60,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.trackList; }
 		}
 		
-		public void AddTrack(ITimelineTrackModel track)
+		public void Add(ITimelineTrackModel track)
 		{
-			this.AddTracks(new[] { track });
+			this.AddRange(new[] { track });
 		}
-		public void AddTracks(IEnumerable<ITimelineTrackModel> tracks)
+		public void AddRange(IEnumerable<ITimelineTrackModel> tracks)
 		{
 			tracks = tracks.Where(t => !this.trackList.Contains(t)).Distinct().ToArray();
 			if (!tracks.Any()) return;
@@ -74,11 +74,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			if (this.TracksAdded != null)
 				this.TracksAdded(this, new TimelineModelTracksEventArgs(tracks));
 		}
-		public void RemoveTrack(ITimelineTrackModel track)
+		public void Remove(ITimelineTrackModel track)
 		{
-			this.RemoveTracks(new[] { track });
+			this.RemoveRange(new[] { track });
 		}
-		public void RemoveTracks(IEnumerable<ITimelineTrackModel> tracks)
+		public void RemoveRange(IEnumerable<ITimelineTrackModel> tracks)
 		{
 			tracks = tracks.Where(t => this.trackList.Contains(t)).Distinct().ToArray();
 			if (!tracks.Any()) return;
@@ -90,6 +90,15 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			if (this.TracksRemoved != null)
 				this.TracksRemoved(this, new TimelineModelTracksEventArgs(tracks));
+		}
+		public void Clear()
+		{
+			TimelineModelTracksEventArgs args = new TimelineModelTracksEventArgs(this.trackList);
+
+			this.trackList.Clear();
+
+			if (this.TracksRemoved != null)
+				this.TracksRemoved(this, args);
 		}
 	}
 }

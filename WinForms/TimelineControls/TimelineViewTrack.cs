@@ -32,18 +32,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				if (this.model != value)
 				{
-					if (this.model != null)
-					{
-						this.model.TrackNameChanged -= this.model_TrackNameChanged;
-					}
-
+					TimelineTrackModelChangedEventArgs args = new TimelineTrackModelChangedEventArgs(this.model, value);
 					this.model = value;
-
-					if (this.model != null)
-					{
-						this.model.TrackNameChanged += this.model_TrackNameChanged;
-					}
-					this.OnModelChanged();
+					this.OnModelChanged(args);
 				}
 			}
 		}
@@ -89,15 +80,39 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			if (this.parentView == null) return;
 
+			this.Invalidate(this.parentView.UnitScroll, this.parentView.UnitScroll + this.parentView.VisibleUnitWidth);
+		}
+		public void Invalidate(float fromUnits, float toUnits)
+		{
+			if (this.parentView == null) return;
+
 			Rectangle rectOnParent = this.parentView.GetTrackRectangle(this);
+
+			float fromPixels = Math.Max(this.parentView.GetPosAtUnit(fromUnits + this.parentView.UnitScroll), rectOnParent.Left + this.parentView.LeftSidebarSize) - 1;
+			float toPixels = Math.Min(this.parentView.GetPosAtUnit(toUnits + this.parentView.UnitScroll), rectOnParent.Right - this.parentView.RightSidebarSize) + 2;
+
+			Rectangle targetRect = new Rectangle(
+				(int)fromPixels,
+				rectOnParent.Y,
+				(int)(toPixels - fromPixels),
+				rectOnParent.Height);
+			rectOnParent.Intersect(targetRect);
 			rectOnParent.Intersect(this.parentView.ClientRectangle);
 			if (rectOnParent.IsEmpty) return;
 
 			this.parentView.Invalidate(rectOnParent);
 		}
 
-		protected virtual void OnModelChanged()
+		protected virtual void OnModelChanged(TimelineTrackModelChangedEventArgs e)
 		{
+			if (e.OldModel != null)
+			{
+				e.OldModel.TrackNameChanged -= this.model_TrackNameChanged;
+			}
+			if (e.Model != null)
+			{
+				e.Model.TrackNameChanged += this.model_TrackNameChanged;
+			}
 			this.Invalidate();
 		}
 		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e) {}

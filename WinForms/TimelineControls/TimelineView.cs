@@ -39,6 +39,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	ITimelineModel				model				= new TimelineModel();
 		private	TimelineViewControlRenderer	renderer			= new TimelineViewControlRenderer();
 		private	List<TimelineViewTrack>		trackList			= new List<TimelineViewTrack>();
+		private	bool						test	= false;
 		private	int							defaultTrackHeight	= 150;
 		private	float						unitOffset			= 0.0f;
 		private	float						unitZoom			= 1.0f;
@@ -97,6 +98,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		public float UnitScroll
 		{
 			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X) * this.unitZoom; }
+		}
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public float VisibleUnitWidth
+		{
+			get { return this.ConvertPixelsToUnits(this.rectContentArea.Width) * this.unitZoom; }
 		}
 		[DefaultValue(1.0f)]
 		public float UnitZoom

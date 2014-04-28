@@ -22,6 +22,8 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
+		public abstract float EndTime { get; }
+		public abstract float BeginTime { get; }
 
 		public event EventHandler TrackNameChanged;
 	}

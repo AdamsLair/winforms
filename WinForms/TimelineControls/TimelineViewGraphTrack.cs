@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Text;
 
 using AdamsLair.WinForms.Drawing;
@@ -15,6 +16,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	float					verticalUnitBottom	= -1.0f;
 
 
+		public new ITimelineGraphTrackModel Model
+		{
+			get { return base.Model as ITimelineGraphTrackModel; }
+		}
 		public float VerticalUnitTop
 		{
 			get { return this.verticalUnitTop; }
@@ -63,7 +68,21 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			yield break;
 		}
-		
+
+		protected override void OnModelChanged(TimelineTrackModelChangedEventArgs e)
+		{
+			base.OnModelChanged(e);
+			if (e.OldModel != null)
+			{
+				(e.OldModel as ITimelineGraphTrackModel).GraphCollectionChanged -= this.model_GraphCollectionChanged;
+				(e.OldModel as ITimelineGraphTrackModel).GraphChanged -= this.model_GraphChanged;
+			}
+			if (e.Model != null)
+			{
+				(e.Model as ITimelineGraphTrackModel).GraphCollectionChanged += this.model_GraphCollectionChanged;
+				(e.Model as ITimelineGraphTrackModel).GraphChanged += this.model_GraphChanged;
+			}
+		}
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaint(e);
@@ -117,6 +136,26 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					e.Graphics.DrawLine(markPen, (int)rect.Left, (int)mark.PixelValue, (int)rect.Right, (int)mark.PixelValue);
 				}
+			}
+
+			// Draw the graphs
+			{
+				// ToDo / WiP
+				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+				foreach (ITimelineGraph graph in this.Model.Graphs)
+				{
+					PointF[] line = new PointF[101];
+					for (int i = 0; i <= 100; i++)
+					{
+						float pixelX = rect.X + ((float)i / 100.0f) * rect.Width;
+						float unitX = this.ParentView.GetUnitAtPos(pixelX) - this.ParentView.UnitScroll;
+						float unitY = graph.GetValueAtX(unitX);
+						float pixelY = rect.Y + this.GetPosAtUnit(unitY);
+						line[i] = new PointF(pixelX, pixelY);
+					}
+					e.Graphics.DrawLines(Pens.Red, line);
+				}
+				e.Graphics.SmoothingMode = SmoothingMode.Default;
 			}
 
 			// Draw top and bottom borders
@@ -288,6 +327,15 @@ namespace AdamsLair.WinForms.TimelineControls
 					}
 				}
 			}
+		}
+
+		private void model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)
+		{
+			this.Invalidate(e.BeginTime, e.EndTime);
+		}
+		private void model_GraphCollectionChanged(object sender, EventArgs e)
+		{
+			this.Invalidate();
 		}
 	}
 }

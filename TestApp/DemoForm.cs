@@ -217,9 +217,22 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
 
 			this.timelineViewModel = new TimelineModel();
-			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track A" });
-			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track B" });
-			this.timelineViewModel.AddTrack(new TimelineGraphTrackModel { TrackName = "Track C" });
+			{
+				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track A" };
+				graphTrack.Add(new TimelineLinearGraph(new TimelineLinearGraph.Key[]
+				{
+					new TimelineLinearGraph.Key(0.0f, 1.0f),
+					new TimelineLinearGraph.Key(10.0f, 0.75f),
+					new TimelineLinearGraph.Key(15.0f, 0.5f),
+					new TimelineLinearGraph.Key(20.0f, 0.0f),
+					new TimelineLinearGraph.Key(25.0f, -0.5f),
+					new TimelineLinearGraph.Key(30.0f, -0.75f),
+					new TimelineLinearGraph.Key(40.0f, -1.0f)
+				}));
+				this.timelineViewModel.Add(graphTrack);
+			}
+			this.timelineViewModel.Add(new TimelineGraphTrackModel { TrackName = "Track B" });
+			this.timelineViewModel.Add(new TimelineGraphTrackModel { TrackName = "Track C" });
 			this.timelineView1.Model = this.timelineViewModel;
 		}
 

@@ -536,6 +536,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnPaint(e);
 			e.Graphics.FillRectangle(new SolidBrush(this.BackColor), this.ClientRectangle);
 
+			Console.WriteLine(e.ClipRectangle);
 			GraphicsState originalState = e.Graphics.Save();
 			if (this.mainEditor != null)
 			{

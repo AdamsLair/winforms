@@ -5,11 +5,13 @@ using System.Text;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
-	public interface ITimelineGraphTrackModel : ITimelineTrackModel
+	public interface ITimelineGraph
 	{
-		IEnumerable<ITimelineGraph> Graphs { get; }
+		float EndTime { get; }
+		float BeginTime { get; }
 
-		event EventHandler GraphCollectionChanged;
+		float GetValueAtX(float units);
+
 		event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 	}
 }
