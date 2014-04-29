@@ -14,8 +14,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	int					fillHeight	= 0;
 
 		private	int	height;
+		private	float contentBeginTime;
+		private	float contentEndTime;
 
 
+		public event EventHandler ContentWidthChanged = null;
 		public event EventHandler HeightChanged = null;
 		public event EventHandler HeightSettingsChanged = null;
 		
@@ -74,6 +77,14 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
+		public float ContentBeginTime
+		{
+			get { return this.contentBeginTime; }
+		}
+		public float ContentEndTime
+		{
+			get { return this.contentEndTime; }
+		}
 
 
 		public void Invalidate()
@@ -103,6 +114,24 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.parentView.Invalidate(rectOnParent);
 		}
 
+		protected internal void UpdateContentWidth()
+		{
+			float newBegin;
+			float newEnd;
+			this.CalculateContentWidth(out newBegin, out newEnd);
+			if (newBegin != this.contentBeginTime || newEnd != this.contentEndTime)
+			{
+				this.contentBeginTime = newBegin;
+				this.contentEndTime = newEnd;
+				this.OnContentWidthChanged();
+			}
+		}
+		protected virtual void CalculateContentWidth(out float beginTime, out float endTime)
+		{
+			beginTime = 0.0f;
+			endTime = 0.0f;
+		}
+
 		protected virtual void OnModelChanged(TimelineTrackModelChangedEventArgs e)
 		{
 			if (e.OldModel != null)
@@ -113,6 +142,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				e.Model.TrackNameChanged += this.model_TrackNameChanged;
 			}
+			this.UpdateContentWidth();
 			this.Invalidate();
 		}
 		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e) {}
@@ -127,6 +157,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			if (this.HeightChanged != null)
 				this.HeightChanged(this, EventArgs.Empty);
+		}
+		protected virtual void OnContentWidthChanged()
+		{
+			if (this.ContentWidthChanged != null)
+				this.ContentWidthChanged(this, EventArgs.Empty);
 		}
 
 		private void model_TrackNameChanged(object sender, EventArgs e)

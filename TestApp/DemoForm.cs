@@ -231,8 +231,21 @@ namespace AdamsLair.WinForms.TestApp
 				}));
 				this.timelineViewModel.Add(graphTrack);
 			}
-			this.timelineViewModel.Add(new TimelineGraphTrackModel { TrackName = "Track B" });
-			this.timelineViewModel.Add(new TimelineGraphTrackModel { TrackName = "Track C" });
+			{
+				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track B" };
+				graphTrack.Add(new TimelineLinearGraph(new TimelineLinearGraph.Key[]
+				{
+					new TimelineLinearGraph.Key(0.0f, 10.0f),
+					new TimelineLinearGraph.Key(600.0f, -10.0f)
+				}));
+				this.timelineViewModel.Add(graphTrack);
+			}
+			{
+				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track C" };
+				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f));
+				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
+				this.timelineViewModel.Add(graphTrack);
+			}
 			this.timelineView1.Model = this.timelineViewModel;
 		}
 

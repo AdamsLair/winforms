@@ -67,12 +67,18 @@ namespace AdamsLair.WinForms.TimelineControls
 					this.model.TracksAdded		-= this.model_TracksAdded;
 					this.model.TracksRemoved	-= this.model_TracksRemoved;
 
-					this.OnModelTracksRemoved(new TimelineModelTracksEventArgs(this.model.Tracks));
+					if (this.model.Tracks.Any())
+					{
+						this.OnModelTracksRemoved(new TimelineModelTracksEventArgs(this.model.Tracks));
+					}
 
 					this.model = value ?? new TimelineModel();
 					
 					this.OnModelUnitChanged(EventArgs.Empty);
-					this.OnModelTracksAdded(new TimelineModelTracksEventArgs(this.model.Tracks));
+					if (this.model.Tracks.Any())
+					{
+						this.OnModelTracksAdded(new TimelineModelTracksEventArgs(this.model.Tracks));
+					}
 
 					this.model.UnitChanged		+= this.model_UnitChanged;
 					this.model.TracksAdded		+= this.model_TracksAdded;
@@ -97,12 +103,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float UnitScroll
 		{
-			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X) * this.unitZoom; }
+			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X); }
 		}
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float VisibleUnitWidth
 		{
-			get { return this.ConvertPixelsToUnits(this.rectContentArea.Width) * this.unitZoom; }
+			get { return this.ConvertPixelsToUnits(this.rectContentArea.Width); }
 		}
 		[DefaultValue(1.0f)]
 		public float UnitZoom
@@ -112,6 +118,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				this.unitZoom = Math.Max(value, 0.00000001f);
 				this.Invalidate();
+				this.UpdateContentWidth();
 			}
 		}
 		[DefaultValue(150)]
@@ -205,19 +212,19 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		public float ConvertUnitsToPixels(float units)
 		{
-			return units * this.model.UnitBaseScale * DefaultPixelsPerUnit;
+			return units * (this.model.UnitBaseScale * DefaultPixelsPerUnit / this.unitZoom);
 		}
 		public float ConvertPixelsToUnits(float pixels)
 		{
-			return pixels / (this.model.UnitBaseScale * DefaultPixelsPerUnit);
+			return pixels * (this.unitZoom / (this.model.UnitBaseScale * DefaultPixelsPerUnit));
 		}
 		public float GetUnitAtPos(float x)
 		{
-			return this.unitOffset + this.ConvertPixelsToUnits(x - this.rectContentArea.X) * this.unitZoom;
+			return this.unitOffset + this.ConvertPixelsToUnits(x - this.rectContentArea.X);
 		}
 		public float GetPosAtUnit(float unit)
 		{
-			return this.rectContentArea.X + this.ConvertUnitsToPixels(unit - this.unitOffset) / this.unitZoom;
+			return this.rectContentArea.X + this.ConvertUnitsToPixels(unit - this.unitOffset);
 		}
 		public Rectangle GetTrackRectangle(TimelineViewTrack track, bool scrolled = true)
 		{
@@ -273,7 +280,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		public IEnumerable<TimelineViewRulerMark> GetVisibleRulerMarks()
 		{
-			float rulerStep = GetNiceMultiple(this.ConvertPixelsToUnits(100.0f * this.unitZoom)) / 10.0f;
+			float rulerStep = GetNiceMultiple(this.ConvertPixelsToUnits(100.0f)) / 10.0f;
 			float unitScroll = this.UnitScroll;
 			float beginTime = this.GetUnitAtPos(this.rectTopRuler.Left);
 			float endTime = this.GetUnitAtPos(this.rectTopRuler.Right);
@@ -367,18 +374,35 @@ namespace AdamsLair.WinForms.TimelineControls
 				availHeight -= growHeight;
 			}
 			
-			Size contentSize = new Size(1500, this.areaTopRuler.Size + this.areaBottomRuler.Size + this.trackList.Sum(t => t.Height) + this.trackSpacing * (this.trackList.Count - 1) - 2);
+			int contentHeight = this.areaTopRuler.Size + this.areaBottomRuler.Size + this.trackList.Sum(t => t.Height) + this.trackSpacing * (this.trackList.Count - 1) - 2;
 			Size autoScrollSize;
 			if (this.ClientSize.Height >= contentBaseHeight)
-				autoScrollSize = new Size(contentSize.Width, 0);
+				autoScrollSize = new Size(this.AutoScrollMinSize.Width, 0);
 			else
-				autoScrollSize = contentSize;
-			this.AutoScrollMinSize = autoScrollSize;
+				autoScrollSize = new Size(this.AutoScrollMinSize.Width, contentHeight);
+			if (autoScrollSize != this.AutoScrollMinSize)
+				this.AutoScrollMinSize = autoScrollSize;
+		}
+		private void UpdateContentWidth()
+		{
+			float contentBeginTime = 0.0f;
+			float contentEndTime = 0.0f;
+			if (this.trackList.Count > 0)
+			{
+				contentBeginTime = this.trackList.Min(t => t.ContentBeginTime);
+				contentEndTime = this.trackList.Max(t => t.ContentEndTime);
+			}
+
+			int contentWidth = 1 + (int)this.ConvertUnitsToPixels(contentEndTime - this.unitOffset) + this.areaLeftSidebar.Size + this.areaRightSidebar.Size;
+			Size autoScrollSize = new Size(contentWidth, this.AutoScrollMinSize.Height);
+			if (autoScrollSize != this.AutoScrollMinSize)
+				this.AutoScrollMinSize = autoScrollSize;
 		}
 
 		protected virtual void OnModelUnitChanged(EventArgs e)
 		{
 			this.Invalidate();
+			this.UpdateContentWidth();
 		}
 		protected virtual void OnModelTracksRemoved(TimelineModelTracksEventArgs e)
 		{
@@ -389,9 +413,11 @@ namespace AdamsLair.WinForms.TimelineControls
 
 				track.ParentView = null;
 				track.Model = null;
-				track.HeightSettingsChanged -= this.track_HeightSettingsChanged;
+				track.HeightSettingsChanged	-= this.track_HeightSettingsChanged;
+				track.ContentWidthChanged	-= this.track_ContentWidthChanged;
 				this.trackList.Remove(track);
 			}
+			this.OnContentWidthChanged(EventArgs.Empty);
 			this.OnContentHeightChanged(EventArgs.Empty);
 		}
 		protected virtual void OnModelTracksAdded(TimelineModelTracksEventArgs e)
@@ -436,13 +462,14 @@ namespace AdamsLair.WinForms.TimelineControls
 				track.FillHeight = 100;
 
 				this.trackList.Add(track);
-				track.HeightSettingsChanged += this.track_HeightSettingsChanged;
+				track.HeightSettingsChanged	+= this.track_HeightSettingsChanged;
+				track.ContentWidthChanged	+= this.track_ContentWidthChanged;
 				track.ParentView = this;
 			}
 
+			this.OnContentWidthChanged(EventArgs.Empty);
 			this.OnContentHeightChanged(EventArgs.Empty);
 		}
-
 		protected override void OnForeColorChanged(EventArgs e)
 		{
 			base.OnForeColorChanged(e);
@@ -462,6 +489,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.UpdateContentHeight();
 			this.Invalidate();
+		}
+		protected virtual void OnContentWidthChanged(EventArgs e)
+		{
+			this.UpdateContentWidth();
 		}
 		protected override void OnScroll(ScrollEventArgs se)
 		{
@@ -758,6 +789,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.OnContentHeightChanged(EventArgs.Empty);
 		}
+		private void track_ContentWidthChanged(object sender, EventArgs e)
+		{
+			this.OnContentWidthChanged(EventArgs.Empty);
+		}
 		private void model_TracksRemoved(object sender, TimelineModelTracksEventArgs e)
 		{
 			this.OnModelTracksRemoved(e);
@@ -787,6 +822,14 @@ namespace AdamsLair.WinForms.TimelineControls
 		public static IEnumerable<float> EnumerateRulerMarks(float stepSize, float unitScroll, float beginUnits, float endUnits, int stepCountMultiple)
 		{
 			float stepSign = Math.Sign(stepSize);
+			int roundDecimals = 3;
+			{
+				decimal stepSizeDec = (decimal)stepSize;
+				while (Math.Round(stepSizeDec, roundDecimals) != stepSizeDec && roundDecimals < 10)
+				{
+					roundDecimals++;
+				}
+			}
 
 			float stepSizeBig = stepSize * stepCountMultiple;
 			float scrollStepOffset = stepSizeBig * (float)Math.Floor(-unitScroll / stepSizeBig);
@@ -794,10 +837,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			float rangeEnd = stepSizeBig * ((float)Math.Ceiling(endUnits / stepSizeBig) + 1) + scrollStepOffset;
 			float unitValue = rangeBegin;
 
+			int stepCount = 0;
 			while (unitValue * stepSign < rangeEnd * stepSign)
 			{
+				unitValue = (float)Math.Round(rangeBegin + stepCount * stepSize, roundDecimals);
 				yield return unitValue;
-				unitValue += stepSize;
+				stepCount++;
 			}
 			yield break;
 		}

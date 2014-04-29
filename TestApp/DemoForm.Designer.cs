@@ -536,7 +536,6 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.timelineView1.AutoScroll = true;
-			this.timelineView1.AutoScrollMinSize = new System.Drawing.Size(1500, 0);
 			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
 			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);

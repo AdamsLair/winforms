@@ -12,8 +12,8 @@ namespace AdamsLair.WinForms.TimelineControls
 	[TimelineTrackAssignment(typeof(ITimelineGraphTrackModel))]
 	public class TimelineViewGraphTrack : TimelineViewTrack
 	{
-		private	float					verticalUnitTop		= 1.0f;
-		private	float					verticalUnitBottom	= -1.0f;
+		private	float	verticalUnitTop		= 1.0f;
+		private	float	verticalUnitBottom	= -1.0f;
 
 
 		public new ITimelineGraphTrackModel Model
@@ -34,11 +34,11 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		public float GetUnitAtPos(float y)
 		{
-			return this.verticalUnitTop + ((float)y * (this.verticalUnitBottom - this.verticalUnitTop) / (float)this.Height);
+			return this.verticalUnitTop + ((float)y * (this.verticalUnitBottom - this.verticalUnitTop) / (float)(this.Height - 1));
 		}
 		public float GetPosAtUnit(float unit)
 		{
-			return (float)this.Height * ((unit - this.verticalUnitTop) / (this.verticalUnitBottom - this.verticalUnitTop));
+			return (float)(this.Height - 1) * ((unit - this.verticalUnitTop) / (this.verticalUnitBottom - this.verticalUnitTop));
 		}
 		public IEnumerable<TimelineViewRulerMark> GetVisibleRulerMarks()
 		{
@@ -67,6 +67,13 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			yield break;
+		}
+
+		protected override void CalculateContentWidth(out float beginTime, out float endTime)
+		{
+			base.CalculateContentWidth(out beginTime, out endTime);
+			beginTime = this.Model.Graphs.Min(g => g.BeginTime);
+			endTime = this.Model.Graphs.Max(g => g.EndTime);
 		}
 
 		protected override void OnModelChanged(TimelineTrackModelChangedEventArgs e)
@@ -332,10 +339,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		private void model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)
 		{
 			this.Invalidate(e.BeginTime, e.EndTime);
+			this.UpdateContentWidth();
 		}
 		private void model_GraphCollectionChanged(object sender, EventArgs e)
 		{
 			this.Invalidate();
+			this.UpdateContentWidth();
 		}
 	}
 }

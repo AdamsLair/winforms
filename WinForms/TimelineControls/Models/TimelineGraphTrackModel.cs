@@ -18,7 +18,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		public override float BeginTime
 		{
-			get { return this.graphs.Min(g => g.EndTime); }
+			get { return this.graphs.Min(g => g.BeginTime); }
 		}
 		public IEnumerable<ITimelineGraph> Graphs
 		{
