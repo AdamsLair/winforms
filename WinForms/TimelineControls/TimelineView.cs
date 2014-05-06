@@ -95,7 +95,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.trackList; }
 		}
 		[DefaultValue(0.0f)]
-		public float UnitOffset
+		public float UnitOriginOffset
 		{
 			get { return this.unitOffset; }
 			set { this.unitOffset = value; }
@@ -220,11 +220,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		public float GetUnitAtPos(float x)
 		{
-			return this.unitOffset + this.ConvertPixelsToUnits(x - this.rectContentArea.X);
+			return this.unitOffset - this.UnitScroll + this.ConvertPixelsToUnits(x - this.rectContentArea.X);
 		}
 		public float GetPosAtUnit(float unit)
 		{
-			return this.rectContentArea.X + this.ConvertUnitsToPixels(unit - this.unitOffset);
+			return this.rectContentArea.X + this.ConvertUnitsToPixels(unit - this.unitOffset + this.UnitScroll);
 		}
 		public Rectangle GetTrackRectangle(TimelineViewTrack track, bool scrolled = true)
 		{
@@ -282,13 +282,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			float rulerStep = GetNiceMultiple(this.ConvertPixelsToUnits(100.0f)) / 10.0f;
 			float unitScroll = this.UnitScroll;
-			float beginTime = this.GetUnitAtPos(this.rectTopRuler.Left);
-			float endTime = this.GetUnitAtPos(this.rectTopRuler.Right);
+			float beginTime = this.GetUnitAtPos(this.rectTopRuler.Left) + this.UnitScroll;
+			float endTime = this.GetUnitAtPos(this.rectTopRuler.Right) + this.UnitScroll;
 
 			int lineIndex = 0;
 			foreach (float markTime in EnumerateRulerMarks(rulerStep, unitScroll, beginTime, endTime, 10))
 			{
-				float markX = this.GetPosAtUnit(markTime + unitScroll);
+				float markX = this.GetPosAtUnit(markTime);
 
 				TimelineViewRulerMarkWeight weight;
 				if ((lineIndex % 10) == 0)

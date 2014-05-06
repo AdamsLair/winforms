@@ -227,22 +227,19 @@ namespace AdamsLair.WinForms.TestApp
 					new TimelineLinearGraph.Key(20.0f, 0.0f),
 					new TimelineLinearGraph.Key(25.0f, -0.5f),
 					new TimelineLinearGraph.Key(30.0f, -0.75f),
-					new TimelineLinearGraph.Key(40.0f, -1.0f)
+					new TimelineLinearGraph.Key(40.0f, -1.0f),
+					new TimelineLinearGraph.Key(50.0f, 5.0f)
 				}));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track B" };
-				graphTrack.Add(new TimelineLinearGraph(new TimelineLinearGraph.Key[]
-				{
-					new TimelineLinearGraph.Key(0.0f, 10.0f),
-					new TimelineLinearGraph.Key(600.0f, -10.0f)
-				}));
+				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x), 0.0f, 500.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track C" };
-				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f));
+				//graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f));
 				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}

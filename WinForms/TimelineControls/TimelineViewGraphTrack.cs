@@ -147,22 +147,100 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			// Draw the graphs
 			{
-				// ToDo / WiP
-				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 				foreach (ITimelineGraph graph in this.Model.Graphs)
 				{
-					PointF[] line = new PointF[101];
-					for (int i = 0; i <= 100; i++)
+					// Determine graph parameters
+					const float MinPixelStep = 0.5f;
+					float pixelUnitWidth = this.ParentView.ConvertPixelsToUnits(1.0f);
+					float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
+					float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
+
+					// Determine sample points
+					List<PointF> pts = new List<PointF>();
 					{
-						float pixelX = rect.X + ((float)i / 100.0f) * rect.Width;
-						float unitX = this.ParentView.GetUnitAtPos(pixelX) - this.ParentView.UnitScroll;
-						float unitY = graph.GetValueAtX(unitX);
-						float pixelY = rect.Y + this.GetPosAtUnit(unitY);
-						line[i] = new PointF(pixelX, pixelY);
+						// Gather explicit samples (in units, x)
+						List<float> explicitSamples = new List<float>();
+						explicitSamples.Add(this.ContentEndTime);
+						explicitSamples.Add(endUnitX);
+						explicitSamples.Sort();
+
+						// Gather dynamic samples based on graph function fluctuation
+						float errorThreshold = 0.2f * Math.Abs(this.verticalUnitTop - this.verticalUnitBottom) / rect.Height;
+						float curUnitX = beginUnitX;
+						float curUnitY;
+						float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
+						float curPixelY;
+						float lastPixelX = 0.0f;
+						float lastPixelY = 0.0f;
+						int nextExplicitIndex = 0;
+						bool explicitSample = true;
+						int skipCount = 0;
+						while (curUnitX <= endUnitX)
+						{
+							curUnitY = graph.GetValueAtX(curUnitX);
+							curPixelY = rect.Y + this.GetPosAtUnit(curUnitY);
+
+							if (explicitSample)
+							{
+								pts.Add(new PointF(curPixelX, curPixelY));
+								lastPixelX = curPixelX;
+								lastPixelY = curPixelY;
+								explicitSample = false;
+							}
+							else
+							{
+								float error = GetLinearInterpolationError(
+									this.ParentView.GetUnitAtPos(lastPixelX), 
+									this.GetUnitAtPos(lastPixelY - rect.Y), 
+									curUnitX, 
+									curUnitY, 
+									x => graph.GetValueAtX(x));
+								if (error * skipCount >= errorThreshold)
+								{
+									skipCount = 0;
+									pts.Add(new PointF(curPixelX, curPixelY));
+									lastPixelX = curPixelX;
+									lastPixelY = curPixelY;
+								}
+								else
+								{
+									skipCount++;
+								}
+							}
+
+							curPixelX += MinPixelStep;
+							curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
+
+							// Look out for explicit samples
+							if (nextExplicitIndex < explicitSamples.Count && curUnitX >= explicitSamples[nextExplicitIndex])
+							{
+								curUnitX = explicitSamples[nextExplicitIndex];
+								curPixelX = this.ParentView.GetPosAtUnit(curUnitX);
+								nextExplicitIndex++;
+								explicitSample = true;
+							}
+						}
 					}
-					e.Graphics.DrawLines(Pens.Red, line);
+
+					// Draw the graph
+					if (pts.Count >= 2)
+					{
+						e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+						e.Graphics.DrawLines(Pens.Red, pts.ToArray());
+						e.Graphics.SmoothingMode = SmoothingMode.Default;
+						Console.WriteLine("{0}", pts.Count);
+					}
+
+					// Draw boundaries
+					{
+						float beginX = this.ParentView.GetPosAtUnit(beginUnitX);
+						float endX = this.ParentView.GetPosAtUnit(endUnitX);
+						Pen boundaryPen = new Pen(Color.FromArgb(128, Color.Green));
+						boundaryPen.DashStyle = DashStyle.Dash;
+						e.Graphics.DrawLine(boundaryPen, beginX, rect.Top, beginX, rect.Bottom);
+						e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
+					}
 				}
-				e.Graphics.SmoothingMode = SmoothingMode.Default;
 			}
 
 			// Draw top and bottom borders
@@ -345,6 +423,22 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.Invalidate();
 			this.UpdateContentWidth();
+		}
+
+		private static float GetLinearInterpolationError(float beginX, float beginY, float endX, float endY, Func<float,float> func)
+		{
+			float stepSize = (endX - beginX) / 10.0f;
+			float curX = beginX + stepSize;
+			float error = 0.0f;
+			while (curX < endX)
+			{
+				float alpha = (curX - beginX) / (endX - beginX);
+				float interpolatedY = beginY + (endY - beginY) * alpha;
+				float realY = func(curX);
+				error += Math.Abs(interpolatedY - realY);
+				curX += stepSize;
+			}
+			return error / 10.0f;
 		}
 	}
 }

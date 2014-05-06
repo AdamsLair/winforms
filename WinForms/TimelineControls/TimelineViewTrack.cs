@@ -99,8 +99,8 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			Rectangle rectOnParent = this.parentView.GetTrackRectangle(this);
 
-			float fromPixels = Math.Max(this.parentView.GetPosAtUnit(fromUnits + this.parentView.UnitScroll), rectOnParent.Left + this.parentView.LeftSidebarSize) - 1;
-			float toPixels = Math.Min(this.parentView.GetPosAtUnit(toUnits + this.parentView.UnitScroll), rectOnParent.Right - this.parentView.RightSidebarSize) + 2;
+			float fromPixels = Math.Max(this.parentView.GetPosAtUnit(fromUnits), rectOnParent.Left + this.parentView.LeftSidebarSize) - 1;
+			float toPixels = Math.Min(this.parentView.GetPosAtUnit(toUnits), rectOnParent.Right - this.parentView.RightSidebarSize) + 2;
 
 			Rectangle targetRect = new Rectangle(
 				(int)fromPixels,
