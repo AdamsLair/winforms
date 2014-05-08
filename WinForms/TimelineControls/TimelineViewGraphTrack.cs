@@ -149,93 +149,16 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				foreach (ITimelineGraph graph in this.Model.Graphs)
 				{
-					// Determine graph parameters
-					const float MinPixelStep = 0.5f;
-					float pixelUnitWidth = this.ParentView.ConvertPixelsToUnits(1.0f);
-					float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
-					float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
-
-					// Determine sample points
-					List<PointF> pts = new List<PointF>();
-					{
-						// Gather explicit samples (in units, x)
-						List<float> explicitSamples = new List<float>();
-						explicitSamples.Add(this.ContentEndTime);
-						explicitSamples.Add(endUnitX);
-						explicitSamples.Sort();
-
-						// Gather dynamic samples based on graph function fluctuation
-						float errorThreshold = 0.2f * Math.Abs(this.verticalUnitTop - this.verticalUnitBottom) / rect.Height;
-						float curUnitX = beginUnitX;
-						float curUnitY;
-						float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
-						float curPixelY;
-						float lastPixelX = 0.0f;
-						float lastPixelY = 0.0f;
-						int nextExplicitIndex = 0;
-						bool explicitSample = true;
-						int skipCount = 0;
-						while (curUnitX <= endUnitX)
-						{
-							curUnitY = graph.GetValueAtX(curUnitX);
-							curPixelY = rect.Y + this.GetPosAtUnit(curUnitY);
-
-							if (explicitSample)
-							{
-								pts.Add(new PointF(curPixelX, curPixelY));
-								lastPixelX = curPixelX;
-								lastPixelY = curPixelY;
-								explicitSample = false;
-							}
-							else
-							{
-								float error = GetLinearInterpolationError(
-									this.ParentView.GetUnitAtPos(lastPixelX), 
-									this.GetUnitAtPos(lastPixelY - rect.Y), 
-									curUnitX, 
-									curUnitY, 
-									x => graph.GetValueAtX(x));
-								if (error * skipCount >= errorThreshold)
-								{
-									skipCount = 0;
-									pts.Add(new PointF(curPixelX, curPixelY));
-									lastPixelX = curPixelX;
-									lastPixelY = curPixelY;
-								}
-								else
-								{
-									skipCount++;
-								}
-							}
-
-							curPixelX += MinPixelStep;
-							curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
-
-							// Look out for explicit samples
-							if (nextExplicitIndex < explicitSamples.Count && curUnitX >= explicitSamples[nextExplicitIndex])
-							{
-								curUnitX = explicitSamples[nextExplicitIndex];
-								curPixelX = this.ParentView.GetPosAtUnit(curUnitX);
-								nextExplicitIndex++;
-								explicitSample = true;
-							}
-						}
-					}
-
-					// Draw the graph
-					if (pts.Count >= 2)
-					{
-						e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-						e.Graphics.DrawLines(Pens.Red, pts.ToArray());
-						e.Graphics.SmoothingMode = SmoothingMode.Default;
-						Console.WriteLine("{0}", pts.Count);
-					}
+					// Draw curve
+					e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+					this.DrawCurve(e.Graphics, rect, graph.GetValueAtX);
+					e.Graphics.SmoothingMode = SmoothingMode.Default;
 
 					// Draw boundaries
 					{
-						float beginX = this.ParentView.GetPosAtUnit(beginUnitX);
-						float endX = this.ParentView.GetPosAtUnit(endUnitX);
-						Pen boundaryPen = new Pen(Color.FromArgb(128, Color.Green));
+						float beginX = this.ParentView.GetPosAtUnit(this.ContentBeginTime);
+						float endX = this.ParentView.GetPosAtUnit(this.ContentEndTime);
+						Pen boundaryPen = new Pen(Color.FromArgb(128, Color.Red));
 						boundaryPen.DashStyle = DashStyle.Dash;
 						e.Graphics.DrawLine(boundaryPen, beginX, rect.Top, beginX, rect.Bottom);
 						e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
@@ -411,6 +334,88 @@ namespace AdamsLair.WinForms.TimelineControls
 						}
 					}
 				}
+			}
+		}
+		protected void DrawCurve(Graphics g, Rectangle rect, Func<float,float> func)
+		{
+			// Determine graph parameters
+			const float MinPixelStep = 0.5f;
+			float pixelUnitWidth = this.ParentView.ConvertPixelsToUnits(1.0f);
+			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
+			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
+
+			// Determine sample points
+			List<PointF> curvePoints = new List<PointF>();
+			{
+				// Gather explicit samples (in units, x)
+				List<float> explicitSamples = new List<float>();
+				explicitSamples.Add(this.ContentEndTime);
+				explicitSamples.Add(endUnitX);
+				explicitSamples.Sort();
+
+				// Gather dynamic samples based on graph function fluctuation
+				float errorThreshold = 0.2f * Math.Abs(this.verticalUnitTop - this.verticalUnitBottom) / rect.Height;
+				float curUnitX = beginUnitX;
+				float curUnitY;
+				float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
+				float curPixelY;
+				float lastPixelX = 0.0f;
+				float lastPixelY = 0.0f;
+				int nextExplicitIndex = 0;
+				bool explicitSample = true;
+				int skipCount = 0;
+				while (curUnitX <= endUnitX)
+				{
+					curUnitY = func(curUnitX);
+					curPixelY = rect.Y + this.GetPosAtUnit(curUnitY);
+
+					if (explicitSample)
+					{
+						curvePoints.Add(new PointF(curPixelX, curPixelY));
+						lastPixelX = curPixelX;
+						lastPixelY = curPixelY;
+						explicitSample = false;
+					}
+					else
+					{
+						float error = GetLinearInterpolationError(
+							this.ParentView.GetUnitAtPos(lastPixelX), 
+							this.GetUnitAtPos(lastPixelY - rect.Y), 
+							curUnitX, 
+							curUnitY, 
+							x => func(x));
+						if (error * skipCount >= errorThreshold)
+						{
+							skipCount = 0;
+							curvePoints.Add(new PointF(curPixelX, curPixelY));
+							lastPixelX = curPixelX;
+							lastPixelY = curPixelY;
+						}
+						else
+						{
+							skipCount++;
+						}
+					}
+
+					curPixelX += MinPixelStep;
+					curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
+
+					// Look out for explicit samples
+					if (nextExplicitIndex < explicitSamples.Count && curUnitX >= explicitSamples[nextExplicitIndex])
+					{
+						curUnitX = explicitSamples[nextExplicitIndex];
+						curPixelX = this.ParentView.GetPosAtUnit(curUnitX);
+						nextExplicitIndex++;
+						explicitSample = true;
+					}
+				}
+			}
+
+			// Draw the graph
+			if (curvePoints.Count >= 2)
+			{
+				g.DrawLines(Pens.Red, curvePoints.ToArray());
+				Console.WriteLine("{0}", curvePoints.Count);
 			}
 		}
 
