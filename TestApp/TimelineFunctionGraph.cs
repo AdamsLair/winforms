@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AdamsLair.WinForms.TimelineControls
+using AdamsLair.WinForms.TimelineControls;
+
+namespace AdamsLair.WinForms.TestApp
 {
 	public class TimelineFunctionGraph : ITimelineGraph
 	{
 		private Func<float,float> func;
 		private float begin;
 		private float end;
+		private float min;
+		private float max;
 
 		public event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 
@@ -39,6 +43,30 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
+		public float MinValue
+		{
+			get { return this.min; }
+			set
+			{
+				if (this.min != value)
+				{
+					this.min = value;
+					this.RaiseGraphChanged();
+				}
+			}
+		}
+		public float MaxValue
+		{
+			get { return this.max; }
+			set
+			{
+				if (this.max != value)
+				{
+					this.max = value;
+					this.RaiseGraphChanged();
+				}
+			}
+		}
 		public Func<float,float> Function
 		{
 			get { return this.func; }
@@ -53,12 +81,14 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 		
-		public TimelineFunctionGraph() : this(x => x, 0.0f, 1.0f) {}
-		public TimelineFunctionGraph(Func<float,float> func, float begin, float end)
+		public TimelineFunctionGraph() : this(x => x, 0.0f, 1.0f, 0.0f, 1.0f) {}
+		public TimelineFunctionGraph(Func<float,float> func, float begin, float end, float minVal, float maxVal)
 		{
 			this.func = func;
 			this.begin = begin;
 			this.end = end;
+			this.min = minVal;
+			this.max = maxVal;
 		}
 
 		public float GetValueAtX(float time)
@@ -66,6 +96,10 @@ namespace AdamsLair.WinForms.TimelineControls
 			return this.func(time);
 		}
 
+		private void RaiseGraphChanged()
+		{
+			this.RaiseGraphChanged(this.begin, this.end);
+		}
 		private void RaiseGraphChanged(float at)
 		{
 			this.RaiseGraphChanged(at, at);

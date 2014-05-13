@@ -12,6 +12,14 @@ namespace AdamsLair.WinForms.TimelineControls
 	[TimelineTrackAssignment(typeof(ITimelineGraphTrackModel))]
 	public class TimelineViewGraphTrack : TimelineViewTrack
 	{
+		public enum AdjustVerticalMode
+		{
+			GrowAndShrink,
+			Grow,
+			Shrink
+		}
+
+
 		private	float	verticalUnitTop		= 1.0f;
 		private	float	verticalUnitBottom	= -1.0f;
 
@@ -68,6 +76,49 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			yield break;
 		}
+		public void AdjustVerticalUnits(AdjustVerticalMode adjustMode)
+		{
+			float targetTop;
+			float targetBottom;
+
+			if (!this.Model.Graphs.Any())
+			{
+				targetTop = 1.0f;
+				targetBottom = -1.0f;
+			}
+			else
+			{
+				float minUnits = float.MaxValue;
+				float maxUnits = float.MinValue;
+				foreach (ITimelineGraph graph in this.Model.Graphs)
+				{
+					minUnits = Math.Min(minUnits, graph.MinValue);
+					maxUnits = Math.Max(maxUnits, graph.MaxValue);
+				}
+				targetTop = TimelineView.GetNiceMultiple(maxUnits);
+				targetBottom = TimelineView.GetNiceMultiple(minUnits);
+			}
+
+			switch (adjustMode)
+			{
+				default:
+				case AdjustVerticalMode.GrowAndShrink:
+					this.verticalUnitTop = targetTop;
+					this.verticalUnitBottom = targetBottom;
+					break;
+				case AdjustVerticalMode.Grow:
+					this.verticalUnitTop = Math.Max(this.verticalUnitTop, targetTop);
+					this.verticalUnitBottom = Math.Min(this.verticalUnitBottom, targetBottom);
+					break;
+				case AdjustVerticalMode.Shrink:
+					this.verticalUnitTop = Math.Min(this.verticalUnitTop, targetTop);
+					this.verticalUnitBottom = Math.Max(this.verticalUnitBottom, targetBottom);
+					break;
+			}
+
+			if (this.verticalUnitBottom == this.verticalUnitTop)
+				this.verticalUnitTop += 1.0f;
+		}
 
 		protected override void CalculateContentWidth(out float beginTime, out float endTime)
 		{
@@ -89,6 +140,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				(e.Model as ITimelineGraphTrackModel).GraphCollectionChanged += this.model_GraphCollectionChanged;
 				(e.Model as ITimelineGraphTrackModel).GraphChanged += this.model_GraphChanged;
 			}
+			this.AdjustVerticalUnits(AdjustVerticalMode.GrowAndShrink);
 		}
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
@@ -339,8 +391,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected void DrawCurve(Graphics g, Rectangle rect, Func<float,float> func)
 		{
 			// Determine graph parameters
-			const float MinPixelStep = 0.5f;
-			float pixelUnitWidth = this.ParentView.ConvertPixelsToUnits(1.0f);
+			const float MinPixelStep = 0.25f;
+			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(MinPixelStep);
 			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
 			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
 
@@ -351,6 +403,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				List<float> explicitSamples = new List<float>();
 				explicitSamples.Add(this.ContentEndTime);
 				explicitSamples.Add(endUnitX);
+				// Add more explicit samples here, when necessary
 				explicitSamples.Sort();
 
 				// Gather dynamic samples based on graph function fluctuation
@@ -358,29 +411,32 @@ namespace AdamsLair.WinForms.TimelineControls
 				float curUnitX = beginUnitX;
 				float curUnitY;
 				float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
-				float curPixelY;
+				float curPixelY = rect.Y + rect.Height * 0.5f;
 				float lastPixelX = 0.0f;
 				float lastPixelY = 0.0f;
+				float lastSamplePixelX = 0.0f;
+				float lastSamplePixelY = 0.0f;
 				int nextExplicitIndex = 0;
 				bool explicitSample = true;
 				int skipCount = 0;
 				while (curUnitX <= endUnitX)
 				{
+					lastPixelY = curPixelY;
 					curUnitY = func(curUnitX);
 					curPixelY = rect.Y + this.GetPosAtUnit(curUnitY);
 
 					if (explicitSample)
 					{
 						curvePoints.Add(new PointF(curPixelX, curPixelY));
-						lastPixelX = curPixelX;
-						lastPixelY = curPixelY;
+						lastSamplePixelX = curPixelX;
+						lastSamplePixelY = curPixelY;
 						explicitSample = false;
 					}
 					else
 					{
 						float error = GetLinearInterpolationError(
-							this.ParentView.GetUnitAtPos(lastPixelX), 
-							this.GetUnitAtPos(lastPixelY - rect.Y), 
+							this.ParentView.GetUnitAtPos(lastSamplePixelX), 
+							this.GetUnitAtPos(lastSamplePixelY - rect.Y), 
 							curUnitX, 
 							curUnitY, 
 							x => func(x));
@@ -388,8 +444,8 @@ namespace AdamsLair.WinForms.TimelineControls
 						{
 							skipCount = 0;
 							curvePoints.Add(new PointF(curPixelX, curPixelY));
-							lastPixelX = curPixelX;
-							lastPixelY = curPixelY;
+							lastSamplePixelX = curPixelX;
+							lastSamplePixelY = curPixelY;
 						}
 						else
 						{
@@ -397,6 +453,7 @@ namespace AdamsLair.WinForms.TimelineControls
 						}
 					}
 
+					lastPixelX = curPixelX;
 					curPixelX += MinPixelStep;
 					curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
 
@@ -428,6 +485,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.Invalidate();
 			this.UpdateContentWidth();
+			this.AdjustVerticalUnits(AdjustVerticalMode.Grow);
 		}
 
 		private static float GetLinearInterpolationError(float beginX, float beginY, float endX, float endY, Func<float,float> func)

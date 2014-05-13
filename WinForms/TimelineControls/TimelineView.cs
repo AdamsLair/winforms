@@ -808,16 +808,17 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		public static float GetNiceMultiple(float rawMultiple)
 		{
-			float magnitude = (float)Math.Floor(Math.Log10(rawMultiple));
+			float absMultiple = Math.Abs(rawMultiple);
+			float magnitude = (float)Math.Floor(Math.Log10(absMultiple));
 			float baseValue = (float)Math.Pow(10.0f, magnitude);
-			float factor = rawMultiple / baseValue;
+			float factor = absMultiple / baseValue;
 
 			if (factor < 1.25f) factor = 1.0f;
 			else if (factor < 3.75f) factor = 2.5f;
 			else if (factor < 7.5f) factor = 5.0f;
 			else factor = 10.0f;
 
-			return baseValue * factor;
+			return baseValue * factor * Math.Sign(rawMultiple);
 		}
 		public static IEnumerable<float> EnumerateRulerMarks(float stepSize, float unitScroll, float beginUnits, float endUnits, int stepCountMultiple)
 		{

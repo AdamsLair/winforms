@@ -40,6 +40,14 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.values.Count > 0 ? this.values[0].X : 0.0f; }
 		}
+		public float MinValue
+		{
+			get { return this.values.Count > 0 ? this.values.Min(k => k.Y) : 0.0f; }
+		}
+		public float MaxValue
+		{
+			get { return this.values.Count > 0 ? this.values.Max(k => k.Y) : 0.0f; }
+		}
 		public IEnumerable<Key> Samples
 		{
 			get { return this.values; }

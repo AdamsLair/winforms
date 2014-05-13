@@ -234,17 +234,17 @@ namespace AdamsLair.WinForms.TestApp
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track B" };
-				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x), 0.0f, 500.0f));
+				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x), 0.0f, 500.0f, -1.0f, 1.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track C" };
-				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x) * (float)(0.5f + 0.5f * Math.Sin(0.1f * x)), 0.0f, 500.0f));
+				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x) * (float)(0.5f + 0.5f * Math.Sin(0.1f * x)), 0.0f, 500.0f, -1.0f, 1.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track D" };
-				//graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f));
+				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => 0.5f + (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 0.0f));
 				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
