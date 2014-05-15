@@ -92,8 +92,8 @@ namespace AdamsLair.WinForms.TimelineControls
 				float maxUnits = float.MinValue;
 				foreach (ITimelineGraph graph in this.Model.Graphs)
 				{
-					minUnits = Math.Min(minUnits, graph.MinValue);
-					maxUnits = Math.Max(maxUnits, graph.MaxValue);
+					minUnits = Math.Min(minUnits, graph.GetMinValueInRange(graph.BeginTime, graph.EndTime));
+					maxUnits = Math.Max(maxUnits, graph.GetMaxValueInRange(graph.BeginTime, graph.EndTime));
 				}
 				targetTop = TimelineView.GetNiceMultiple(maxUnits);
 				targetBottom = TimelineView.GetNiceMultiple(minUnits);
@@ -123,8 +123,16 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected override void CalculateContentWidth(out float beginTime, out float endTime)
 		{
 			base.CalculateContentWidth(out beginTime, out endTime);
-			beginTime = this.Model.Graphs.Min(g => g.BeginTime);
-			endTime = this.Model.Graphs.Max(g => g.EndTime);
+			if (this.Model.Graphs.Any())
+			{
+				beginTime = this.Model.Graphs.Min(g => g.BeginTime);
+				endTime = this.Model.Graphs.Max(g => g.EndTime);
+			}
+			else
+			{
+				beginTime = 0.0f;
+				endTime = 0.0f;
+			}
 		}
 
 		protected override void OnModelChanged(TimelineTrackModelChangedEventArgs e)
@@ -203,7 +211,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				{
 					// Draw curve
 					e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-					this.DrawCurve(e.Graphics, rect, graph.GetValueAtX);
+					this.DrawCurve(e.Graphics, rect, graph);
 					e.Graphics.SmoothingMode = SmoothingMode.Default;
 
 					// Draw boundaries
@@ -388,11 +396,45 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
-		protected void DrawCurve(Graphics g, Rectangle rect, Func<float,float> func)
+		protected void DrawCurve(Graphics g, Rectangle rect, ITimelineGraph graph)
 		{
 			// Determine graph parameters
-			const float MinPixelStep = 0.25f;
+			const float MinPixelStep = 0.5f;
 			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(MinPixelStep);
+			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
+			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
+
+			var w = new System.Diagnostics.Stopwatch();
+			w.Restart();
+
+			// Determine sample points
+			List<PointF> curvePoints = this.GetCurvePoints(rect, graph.GetValueAtX, MinPixelStep);
+			List<PointF> curvePoints2 = this.GetCurvePoints(rect, x => graph.GetMaxValueInRange(x - MinUnitStep * 20.0f, x + MinUnitStep * 20.0f), MinPixelStep * 5);
+			List<PointF> curvePoints3 = this.GetCurvePoints(rect, x => graph.GetMinValueInRange(x - MinUnitStep * 20.0f, x + MinUnitStep * 20.0f), MinPixelStep * 5);
+			
+			w.Stop();
+			Console.WriteLine("Calc: {0:F}", w.Elapsed.TotalMilliseconds);
+			w.Restart();
+
+			// Draw the graph
+			PointF[] envelopeVertices = new PointF[curvePoints2.Count + curvePoints3.Count];
+			for (int i = 0; i < curvePoints2.Count; i++)
+				envelopeVertices[i] = curvePoints2[i];
+			for (int i = 0; i < curvePoints3.Count; i++)
+				envelopeVertices[curvePoints2.Count + i] = curvePoints3[curvePoints3.Count - i - 1];
+			if (envelopeVertices.Length >= 3) g.FillPolygon(new SolidBrush(Color.FromArgb(48, Color.Red)), envelopeVertices);
+			if (curvePoints.Count >= 2) g.DrawLines(Pens.Red, curvePoints.ToArray());
+			if (curvePoints2.Count >= 2) g.DrawLines(new Pen(Color.FromArgb(128, Color.Red)), curvePoints2.ToArray());
+			if (curvePoints3.Count >= 2) g.DrawLines(new Pen(Color.FromArgb(128, Color.Red)), curvePoints3.ToArray());
+
+			w.Stop();
+			Console.WriteLine("Draw: {0:F}", w.Elapsed.TotalMilliseconds);
+		}
+
+		private List<PointF> GetCurvePoints(Rectangle rect, Func<float,float> func, float minPixelStep)
+		{
+			// Determine graph parameters
+			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
 			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
 			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
 
@@ -454,7 +496,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					}
 
 					lastPixelX = curPixelX;
-					curPixelX += MinPixelStep;
+					curPixelX += minPixelStep;
 					curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
 
 					// Look out for explicit samples
@@ -468,12 +510,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 
-			// Draw the graph
-			if (curvePoints.Count >= 2)
-			{
-				g.DrawLines(Pens.Red, curvePoints.ToArray());
-				Console.WriteLine("{0}", curvePoints.Count);
-			}
+			return curvePoints;
 		}
 
 		private void model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)

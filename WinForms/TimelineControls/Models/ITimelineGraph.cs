@@ -9,10 +9,10 @@ namespace AdamsLair.WinForms.TimelineControls
 	{
 		float EndTime { get; }
 		float BeginTime { get; }
-		float MinValue { get; }
-		float MaxValue { get; }
 
 		float GetValueAtX(float units);
+		float GetMaxValueInRange(float begin, float end);
+		float GetMinValueInRange(float begin, float end);
 
 		event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 	}

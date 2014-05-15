@@ -233,13 +233,75 @@ namespace AdamsLair.WinForms.TestApp
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
+				Func<float,float> func = x => (float)Math.Sin(0.005f * x * x);
+
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track B" };
-				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x), 0.0f, 500.0f, -1.0f, 1.0f));
+				graphTrack.Add(new TimelineFunctionGraph(
+					x => func(x), 
+					delegate (float a, float b) 
+					{
+						float result = Math.Min(func(a), func(b));
+						int intervalIndexA = 1 + (int)((0.005f * a * a / (float)Math.PI) - 0.5f);
+						int intervalIndexB = (int)((0.005f * b * b / (float)Math.PI) - 0.5f);
+						for (int i = intervalIndexA; i <= intervalIndexB; i++)
+						{
+							float x = (float)Math.Sqrt((i + 0.5d) * Math.PI / 0.005d);
+							result = Math.Min(result, func(x));
+							if (result <= -1.0f) break;
+						}
+						return result; 
+					},
+					delegate (float a, float b)
+					{
+						float result = Math.Max(func(a), func(b));
+						int intervalIndexA = 1 + (int)((0.005f * a * a / (float)Math.PI) - 0.5f);
+						int intervalIndexB = (int)((0.005f * b * b / (float)Math.PI) - 0.5f);
+						for (int i = intervalIndexA; i <= intervalIndexB; i++)
+						{
+							float x = (float)Math.Sqrt((i + 0.5d) * Math.PI / 0.005d);
+							result = Math.Max(result, func(x));
+							if (result >= 1.0f) break;
+						}
+						return result; 
+					},
+					0.0f, 
+					500.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
+				Func<float,float> func = x => (float)Math.Sin(0.005f * x * x) * (float)(0.5f + 0.5f * Math.Sin(0.1f * x));
+
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track C" };
-				graphTrack.Add(new TimelineFunctionGraph(x => (float)Math.Sin(0.005f * x * x) * (float)(0.5f + 0.5f * Math.Sin(0.1f * x)), 0.0f, 500.0f, -1.0f, 1.0f));
+				graphTrack.Add(new TimelineFunctionGraph(
+					x => func(x), 
+					delegate (float a, float b) 
+					{
+						float result = Math.Min(func(a), func(b));
+						int intervalIndexA = 1 + (int)((0.005f * a * a / (float)Math.PI) - 0.5f);
+						int intervalIndexB = (int)((0.005f * b * b / (float)Math.PI) - 0.5f);
+						for (int i = intervalIndexA; i <= intervalIndexB; i++)
+						{
+							float x = (float)Math.Sqrt((i + 0.5d) * Math.PI / 0.005d);
+							result = Math.Min(result, func(x));
+							if (result <= -1.0f) break;
+						}
+						return result; 
+					},
+					delegate (float a, float b)
+					{
+						float result = Math.Max(func(a), func(b));
+						int intervalIndexA = 1 + (int)((0.005f * a * a / (float)Math.PI) - 0.5f);
+						int intervalIndexB = (int)((0.005f * b * b / (float)Math.PI) - 0.5f);
+						for (int i = intervalIndexA; i <= intervalIndexB; i++)
+						{
+							float x = (float)Math.Sqrt((i + 0.5d) * Math.PI / 0.005d);
+							result = Math.Max(result, func(x));
+							if (result >= 1.0f) break;
+						}
+						return result; 
+					},
+					0.0f, 
+					500.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{

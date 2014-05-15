@@ -40,14 +40,6 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.values.Count > 0 ? this.values[0].X : 0.0f; }
 		}
-		public float MinValue
-		{
-			get { return this.values.Count > 0 ? this.values.Min(k => k.Y) : 0.0f; }
-		}
-		public float MaxValue
-		{
-			get { return this.values.Count > 0 ? this.values.Max(k => k.Y) : 0.0f; }
-		}
 		public IEnumerable<Key> Samples
 		{
 			get { return this.values; }
@@ -134,6 +126,36 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			float factor = Math.Max(Math.Min((time - this.values[baseIndex].X) / (nextX - this.values[baseIndex].X), 1.0f), 0.0f);
 			return this.values[baseIndex].Y * (1.0f - factor) + this.values[nextIndex].Y * factor;
+		}
+		public float GetMaxValueInRange(float begin, float end)
+		{
+			int frameCount = this.values.Count;
+			if (frameCount == 0) return 0.0f;
+
+			float result = Math.Max(this.GetValueAtX(begin), this.GetValueAtX(end));
+			int index = this.SearchIndexBelow(begin) + 1;
+			while (index < this.values.Count && this.values[index].X < end)
+			{
+				result = Math.Max(result, this.values[index].Y);
+				index++;
+			} 
+
+			return result;
+		}
+		public float GetMinValueInRange(float begin, float end)
+		{
+			int frameCount = this.values.Count;
+			if (frameCount == 0) return 0.0f;
+
+			float result = Math.Min(this.GetValueAtX(begin), this.GetValueAtX(end));
+			int index = this.SearchIndexBelow(begin) + 1;
+			while (index < this.values.Count && this.values[index].X < end)
+			{
+				result = Math.Min(result, this.values[index].Y);
+				index++;
+			} 
+
+			return result;
 		}
 		private int SearchIndexBelow(float x)
 		{

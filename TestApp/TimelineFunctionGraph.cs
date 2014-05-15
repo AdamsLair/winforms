@@ -9,11 +9,14 @@ namespace AdamsLair.WinForms.TestApp
 {
 	public class TimelineFunctionGraph : ITimelineGraph
 	{
-		private Func<float,float> func;
+		public delegate float EnvelopeFunc(float begin, float end);
+		public delegate float ValueFunc(float x);
+
+		private ValueFunc func;
+		private EnvelopeFunc maxFunc;
+		private EnvelopeFunc minFunc;
 		private float begin;
 		private float end;
-		private float min;
-		private float max;
 
 		public event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 
@@ -43,31 +46,7 @@ namespace AdamsLair.WinForms.TestApp
 				}
 			}
 		}
-		public float MinValue
-		{
-			get { return this.min; }
-			set
-			{
-				if (this.min != value)
-				{
-					this.min = value;
-					this.RaiseGraphChanged();
-				}
-			}
-		}
-		public float MaxValue
-		{
-			get { return this.max; }
-			set
-			{
-				if (this.max != value)
-				{
-					this.max = value;
-					this.RaiseGraphChanged();
-				}
-			}
-		}
-		public Func<float,float> Function
+		public ValueFunc Function
 		{
 			get { return this.func; }
 			set
@@ -79,21 +58,52 @@ namespace AdamsLair.WinForms.TestApp
 				}
 			}
 		}
+		public EnvelopeFunc EnvelopeMaxFunction
+		{
+			get { return this.maxFunc; }
+			set
+			{
+				if (this.maxFunc != value)
+				{
+					this.maxFunc = value;
+					this.RaiseGraphChanged(this.begin, this.end);
+				}
+			}
+		}
+		public EnvelopeFunc EnvelopeMinFunction
+		{
+			get { return this.minFunc; }
+			set
+			{
+				if (this.minFunc != value)
+				{
+					this.minFunc = value;
+					this.RaiseGraphChanged(this.begin, this.end);
+				}
+			}
+		}
 
 		
-		public TimelineFunctionGraph() : this(x => x, 0.0f, 1.0f, 0.0f, 1.0f) {}
-		public TimelineFunctionGraph(Func<float,float> func, float begin, float end, float minVal, float maxVal)
+		public TimelineFunctionGraph(ValueFunc func, EnvelopeFunc minFunc, EnvelopeFunc maxFunc, float begin, float end)
 		{
 			this.func = func;
+			this.minFunc = minFunc;
+			this.maxFunc = maxFunc;
 			this.begin = begin;
 			this.end = end;
-			this.min = minVal;
-			this.max = maxVal;
 		}
 
 		public float GetValueAtX(float time)
 		{
 			return this.func(time);
+		}
+		public float GetMaxValueInRange(float begin, float end)
+		{
+			return this.maxFunc(begin, end);
+		}
+		public float GetMinValueInRange(float begin, float end)
+		{
+			return this.minFunc(begin, end);
 		}
 
 		private void RaiseGraphChanged()
