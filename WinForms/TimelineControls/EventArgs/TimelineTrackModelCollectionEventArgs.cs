@@ -8,7 +8,7 @@ using AdamsLair.WinForms.Drawing;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
-	public class TimelineModelTracksEventArgs : EventArgs
+	public class TimelineTrackModelCollectionEventArgs : EventArgs
 	{
 		private ITimelineTrackModel[] tracks = null;
 
@@ -17,7 +17,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.tracks; }
 		}
 
-		public TimelineModelTracksEventArgs(IEnumerable<ITimelineTrackModel> tracks)
+		public TimelineTrackModelCollectionEventArgs(IEnumerable<ITimelineTrackModel> tracks)
 		{
 			this.tracks = tracks.ToArray();
 		}

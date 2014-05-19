@@ -13,7 +13,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		IEnumerable<ITimelineTrackModel> Tracks { get; }
 
 		event EventHandler<EventArgs> UnitChanged; 
-		event EventHandler<TimelineModelTracksEventArgs> TracksAdded;
-		event EventHandler<TimelineModelTracksEventArgs> TracksRemoved;
+		event EventHandler<TimelineTrackModelCollectionEventArgs> TracksAdded;
+		event EventHandler<TimelineTrackModelCollectionEventArgs> TracksRemoved;
 	}
 }

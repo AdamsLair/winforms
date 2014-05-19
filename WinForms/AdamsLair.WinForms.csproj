@@ -73,25 +73,28 @@
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TimelineControls\EventArgs\TimelineGraphModelChangedEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineGraphCollectionEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineTrackModelEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineTrackModelChangedEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineGraphEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineGraphRangeEventArgs.cs" />
-    <Compile Include="TimelineControls\EventArgs\TimelineModelTracksEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineTrackModelCollectionEventArgs.cs" />
     <Compile Include="TimelineControls\Models\ITimelineModel.cs" />
     <Compile Include="TimelineControls\Models\ITimelineTrackModel.cs" />
     <Compile Include="TimelineControls\Models\ITimelineGraphTrackModel.cs" />
-    <Compile Include="TimelineControls\Models\ITimelineGraph.cs" />
-    <Compile Include="TimelineControls\Models\TimelineLinearGraph.cs" />
-    <Compile Include="TimelineControls\TimelineTrackAssignmentAttribute.cs" />
+    <Compile Include="TimelineControls\Models\ITimelineGraphModel.cs" />
+    <Compile Include="TimelineControls\Models\TimelineLinearGraphModel.cs" />
+    <Compile Include="TimelineControls\TimelineModelViewAssignmentAttribute.cs" />
     <Compile Include="TimelineControls\Models\TimelineTrackModel.cs" />
     <Compile Include="TimelineControls\Models\TimelineGraphTrackModel.cs" />
     <Compile Include="TimelineControls\Models\TimelineModel.cs" />
     <Compile Include="TimelineControls\TimelineViewControlRenderer.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewPaintEventArgs.cs" />
-    <Compile Include="TimelineControls\EventArgs\TimelineViewPaintTrackEventArgs.cs" />
+    <Compile Include="TimelineControls\EventArgs\TimelineViewTrackPaintEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewTrackEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewEventArgs.cs" />
+    <Compile Include="TimelineControls\TimelineViewGraph.cs" />
     <Compile Include="TimelineControls\TimelineViewRulerMarkWeight.cs" />
     <Compile Include="TimelineControls\TimelineViewRulerMark.cs" />
     <Compile Include="TimelineControls\TimelineViewGraphTrack.cs" />

@@ -10,12 +10,12 @@ namespace AdamsLair.WinForms.TimelineControls
 {
 	public class TimelineGraphEventArgs : EventArgs
 	{
-		private ITimelineGraph graph;
-		public ITimelineGraph Graph
+		private ITimelineGraphModel graph;
+		public ITimelineGraphModel Graph
 		{
 			get { return this.graph; }
 		}
-		public TimelineGraphEventArgs(ITimelineGraph graph)
+		public TimelineGraphEventArgs(ITimelineGraphModel graph)
 		{
 			this.graph = graph;
 		}

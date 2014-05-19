@@ -7,9 +7,10 @@ namespace AdamsLair.WinForms.TimelineControls
 {
 	public interface ITimelineGraphTrackModel : ITimelineTrackModel
 	{
-		IEnumerable<ITimelineGraph> Graphs { get; }
+		IEnumerable<ITimelineGraphModel> Graphs { get; }
 
-		event EventHandler GraphCollectionChanged;
+		event EventHandler<TimelineGraphCollectionEventArgs> GraphsAdded;
+		event EventHandler<TimelineGraphCollectionEventArgs> GraphsRemoved;
 		event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 	}
 }

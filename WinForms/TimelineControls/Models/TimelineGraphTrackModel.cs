@@ -7,9 +7,10 @@ namespace AdamsLair.WinForms.TimelineControls
 {
 	public class TimelineGraphTrackModel : TimelineTrackModel, ITimelineGraphTrackModel
 	{
-		private List<ITimelineGraph> graphs = new List<ITimelineGraph>();
-
-		public event EventHandler GraphCollectionChanged;
+		private List<ITimelineGraphModel> graphs = new List<ITimelineGraphModel>();
+		
+		public event EventHandler<TimelineGraphCollectionEventArgs> GraphsAdded;
+		public event EventHandler<TimelineGraphCollectionEventArgs> GraphsRemoved;
 		public event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 
 		public override float EndTime
@@ -20,58 +21,59 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.graphs.Min(g => g.BeginTime); }
 		}
-		public IEnumerable<ITimelineGraph> Graphs
+		public IEnumerable<ITimelineGraphModel> Graphs
 		{
 			get { return this.graphs; }
 		}
 
-		public void Add(ITimelineGraph graph)
+		public void Add(ITimelineGraphModel graph)
 		{
 			this.AddRange(new[] { graph });
 		}
-		public void AddRange(IEnumerable<ITimelineGraph> graphs)
+		public void AddRange(IEnumerable<ITimelineGraphModel> graphs)
 		{
 			graphs = graphs.Where(t => !this.graphs.Contains(t)).Distinct().ToArray();
 			if (!graphs.Any()) return;
 			
-			foreach (ITimelineGraph graph in graphs)
+			foreach (ITimelineGraphModel graph in graphs)
 			{
 				graph.GraphChanged += this.graph_GraphChanged;
 			}
 			this.graphs.AddRange(graphs);
 
-			if (this.GraphCollectionChanged != null)
-				this.GraphCollectionChanged(this, EventArgs.Empty);
+			if (this.GraphsAdded != null)
+				this.GraphsAdded(this, new TimelineGraphCollectionEventArgs(graphs));
 		}
-		public void Remove(ITimelineGraph graph)
+		public void Remove(ITimelineGraphModel graph)
 		{
 			this.RemoveRange(new[] { graph });
 		}
-		public void RemoveRange(IEnumerable<ITimelineGraph> graphs)
+		public void RemoveRange(IEnumerable<ITimelineGraphModel> graphs)
 		{
 			graphs = graphs.Where(t => this.graphs.Contains(t)).Distinct().ToArray();
 			if (!graphs.Any()) return;
 
-			foreach (ITimelineGraph graph in graphs)
+			foreach (ITimelineGraphModel graph in graphs)
 			{
 				graph.GraphChanged -= this.graph_GraphChanged;
 				this.graphs.Remove(graph);
 			}
-
-			if (this.GraphCollectionChanged != null)
-				this.GraphCollectionChanged(this, EventArgs.Empty);
+			
+			if (this.GraphsRemoved != null)
+				this.GraphsRemoved(this, new TimelineGraphCollectionEventArgs(graphs));
 		}
 		public void Clear()
 		{
-			foreach (ITimelineGraph graph in this.graphs)
+			ITimelineGraphModel[] oldGraphs = this.graphs.ToArray();
+
+			foreach (ITimelineGraphModel graph in this.graphs)
 			{
 				graph.GraphChanged -= this.graph_GraphChanged;
 			}
-
 			this.graphs.Clear();
-
-			if (this.GraphCollectionChanged != null)
-				this.GraphCollectionChanged(this, EventArgs.Empty);
+			
+			if (this.GraphsRemoved != null)
+				this.GraphsRemoved(this, new TimelineGraphCollectionEventArgs(oldGraphs));
 		}
 
 		private void graph_GraphChanged(object sender, TimelineGraphRangeEventArgs e)

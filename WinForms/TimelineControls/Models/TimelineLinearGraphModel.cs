@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
-	public class TimelineLinearGraph : ITimelineGraph
+	public class TimelineLinearGraphModel : ITimelineGraphModel
 	{
 		public struct Key : IComparable<Key>, IEquatable<Key>
 		{
@@ -55,13 +55,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 		
-		public TimelineLinearGraph() {}
-		public TimelineLinearGraph(IEnumerable<Key> samples)
+		public TimelineLinearGraphModel() {}
+		public TimelineLinearGraphModel(IEnumerable<Key> samples)
 		{
 			this.values = samples.ToList();
 			this.values.Sort();
 		}
-		public TimelineLinearGraph(IEnumerable<float> samples, float sampleRate, float startX = 0.0f)
+		public TimelineLinearGraphModel(IEnumerable<float> samples, float sampleRate, float startX = 0.0f)
 		{
 			int sampleCount = samples.Count();
 			this.values.Capacity = sampleCount;

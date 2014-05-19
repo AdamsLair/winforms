@@ -13,8 +13,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	List<ITimelineTrackModel>	trackList	= new List<ITimelineTrackModel>();
 
 		public event EventHandler<EventArgs> UnitChanged;
-		public event EventHandler<TimelineModelTracksEventArgs> TracksAdded;
-		public event EventHandler<TimelineModelTracksEventArgs> TracksRemoved;
+		public event EventHandler<TimelineTrackModelCollectionEventArgs> TracksAdded;
+		public event EventHandler<TimelineTrackModelCollectionEventArgs> TracksRemoved;
 
 		public string UnitName
 		{
@@ -72,7 +72,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.trackList.AddRange(tracks);
 
 			if (this.TracksAdded != null)
-				this.TracksAdded(this, new TimelineModelTracksEventArgs(tracks));
+				this.TracksAdded(this, new TimelineTrackModelCollectionEventArgs(tracks));
 		}
 		public void Remove(ITimelineTrackModel track)
 		{
@@ -89,11 +89,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			if (this.TracksRemoved != null)
-				this.TracksRemoved(this, new TimelineModelTracksEventArgs(tracks));
+				this.TracksRemoved(this, new TimelineTrackModelCollectionEventArgs(tracks));
 		}
 		public void Clear()
 		{
-			TimelineModelTracksEventArgs args = new TimelineModelTracksEventArgs(this.trackList);
+			TimelineTrackModelCollectionEventArgs args = new TimelineTrackModelCollectionEventArgs(this.trackList);
 
 			this.trackList.Clear();
 

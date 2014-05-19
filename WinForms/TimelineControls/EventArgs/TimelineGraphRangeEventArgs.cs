@@ -22,7 +22,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.endTime; }
 		}
 
-		public TimelineGraphRangeEventArgs(ITimelineGraph graph, float beginTime, float endTime) : base(graph)
+		public TimelineGraphRangeEventArgs(ITimelineGraphModel graph, float beginTime, float endTime) : base(graph)
 		{
 			this.beginTime = beginTime;
 			this.endTime = endTime;

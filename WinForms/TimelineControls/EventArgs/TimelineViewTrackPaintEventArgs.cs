@@ -12,6 +12,8 @@ namespace AdamsLair.WinForms.TimelineControls
 	{
 		private Graphics	graphics	= null;
 		private	Rectangle	targetRect	= Rectangle.Empty;
+		private	float		beginTime	= 0.0f;
+		private	float		endTime		= 0.0f;
 
 		public Graphics Graphics
 		{
@@ -25,11 +27,22 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.targetRect; }
 		}
+		public float BeginTime
+		{
+			get { return this.beginTime; }
+		}
+		public float EndTime
+		{
+			get { return this.endTime; }
+		}
 
-		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, Rectangle targetRect) : base(track)
+		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, Rectangle targetRect) : this(track, graphics, targetRect, track.ContentBeginTime, track.ContentEndTime) {}
+		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, Rectangle targetRect, float beginTime, float endTime) : base(track)
 		{
 			this.graphics = graphics;
 			this.targetRect = targetRect;
+			this.beginTime = beginTime;
+			this.endTime = endTime;
 		}
 	}
 }

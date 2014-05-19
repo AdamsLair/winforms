@@ -9,7 +9,7 @@ using AdamsLair.WinForms.Drawing;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
-	[TimelineTrackAssignment(typeof(ITimelineGraphTrackModel))]
+	[TimelineModelViewAssignment(typeof(ITimelineGraphTrackModel))]
 	public class TimelineViewGraphTrack : TimelineViewTrack
 	{
 		public enum AdjustVerticalMode
@@ -18,27 +18,107 @@ namespace AdamsLair.WinForms.TimelineControls
 			Grow,
 			Shrink
 		}
+		public enum DrawingQuality
+		{
+			High,
+			Low,
+
+			Default = High
+		}
+		public enum PrecisionLevel
+		{
+			High,
+			Medium,
+			Low,
+
+			Default = Medium
+		}
 
 
-		private	float	verticalUnitTop		= 1.0f;
-		private	float	verticalUnitBottom	= -1.0f;
+		private static List<Type> availableViewGraphTypes = null;
+
+		private	float					verticalUnitTop		= 1.0f;
+		private	float					verticalUnitBottom	= -1.0f;
+		private	List<TimelineViewGraph>	graphList			= new List<TimelineViewGraph>();
+		private	DrawingQuality			curveQuality		= DrawingQuality.Default;
+		private	PrecisionLevel			curvePrecision		= PrecisionLevel.Default;
+		private	PrecisionLevel			envelopePrecision	= PrecisionLevel.Default;
 
 
 		public new ITimelineGraphTrackModel Model
 		{
 			get { return base.Model as ITimelineGraphTrackModel; }
 		}
+		public IEnumerable<TimelineViewGraph> Graphs
+		{
+			get { return this.graphList; }
+		}
 		public float VerticalUnitTop
 		{
 			get { return this.verticalUnitTop; }
-			set { this.verticalUnitTop = value; }
+			set
+			{
+				if (this.verticalUnitTop != value)
+				{
+					this.verticalUnitTop = value;
+					this.Invalidate();
+				}
+			}
 		}
 		public float VerticalUnitBottom
 		{
 			get { return this.verticalUnitBottom; }
-			set { this.verticalUnitBottom = value; }
+			set
+			{
+				if (this.verticalUnitBottom != value)
+				{
+					this.verticalUnitBottom = value;
+					this.Invalidate();
+				}
+			}
+		}
+		public DrawingQuality CurveQuality
+		{
+			get { return this.curveQuality; }
+			set
+			{
+				if (this.curveQuality != value)
+				{
+					this.curveQuality = value;
+					this.Invalidate();
+				}
+			}
+		}
+		public PrecisionLevel CurvePrecision
+		{
+			get { return this.curvePrecision; }
+			set
+			{
+				if (this.curvePrecision != value)
+				{
+					this.curvePrecision = value;
+					this.Invalidate();
+				}
+			}
+		}
+		public PrecisionLevel EnvelopePrecision
+		{
+			get { return this.envelopePrecision; }
+			set
+			{
+				if (this.envelopePrecision != value)
+				{
+					this.envelopePrecision = value;
+					this.Invalidate();
+				}
+			}
 		}
 		
+		
+		public TimelineViewGraph GetGraphByModel(ITimelineGraphModel graphModel)
+		{
+			return this.graphList.FirstOrDefault(t => t.Model == graphModel);
+		}
 
 		public float GetUnitAtPos(float y)
 		{
@@ -81,7 +161,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			float targetTop;
 			float targetBottom;
 
-			if (!this.Model.Graphs.Any())
+			if (this.graphList.Count == 0)
 			{
 				targetTop = 1.0f;
 				targetBottom = -1.0f;
@@ -90,10 +170,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				float minUnits = float.MaxValue;
 				float maxUnits = float.MinValue;
-				foreach (ITimelineGraph graph in this.Model.Graphs)
+				foreach (TimelineViewGraph graph in this.graphList)
 				{
-					minUnits = Math.Min(minUnits, graph.GetMinValueInRange(graph.BeginTime, graph.EndTime));
-					maxUnits = Math.Max(maxUnits, graph.GetMaxValueInRange(graph.BeginTime, graph.EndTime));
+					ITimelineGraphModel graphModel = graph.Model;
+					minUnits = Math.Min(minUnits, graphModel.GetMinValueInRange(graphModel.BeginTime, graphModel.EndTime));
+					maxUnits = Math.Max(maxUnits, graphModel.GetMaxValueInRange(graphModel.BeginTime, graphModel.EndTime));
 				}
 				targetTop = TimelineView.GetNiceMultiple(maxUnits);
 				targetBottom = TimelineView.GetNiceMultiple(minUnits);
@@ -118,15 +199,17 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			if (this.verticalUnitBottom == this.verticalUnitTop)
 				this.verticalUnitTop += 1.0f;
+
+			this.Invalidate();
 		}
 
 		protected override void CalculateContentWidth(out float beginTime, out float endTime)
 		{
 			base.CalculateContentWidth(out beginTime, out endTime);
-			if (this.Model.Graphs.Any())
+			if (this.graphList.Count > 0)
 			{
-				beginTime = this.Model.Graphs.Min(g => g.BeginTime);
-				endTime = this.Model.Graphs.Max(g => g.EndTime);
+				beginTime = this.graphList.Min(g => g.Model.BeginTime);
+				endTime = this.graphList.Max(g => g.Model.EndTime);
 			}
 			else
 			{
@@ -137,18 +220,97 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		protected override void OnModelChanged(TimelineTrackModelChangedEventArgs e)
 		{
-			base.OnModelChanged(e);
 			if (e.OldModel != null)
 			{
-				(e.OldModel as ITimelineGraphTrackModel).GraphCollectionChanged -= this.model_GraphCollectionChanged;
-				(e.OldModel as ITimelineGraphTrackModel).GraphChanged -= this.model_GraphChanged;
+				ITimelineGraphTrackModel oldModel = e.OldModel as ITimelineGraphTrackModel;
+
+				oldModel.GraphsAdded -= this.model_GraphsAdded;
+				oldModel.GraphsRemoved -= this.model_GraphsRemoved;
+				oldModel.GraphChanged -= this.model_GraphChanged;
+
+				if (oldModel.Graphs.Any())
+				{
+					this.OnModelGraphsRemoved(new TimelineGraphCollectionEventArgs(oldModel.Graphs));
+				}
 			}
 			if (e.Model != null)
 			{
-				(e.Model as ITimelineGraphTrackModel).GraphCollectionChanged += this.model_GraphCollectionChanged;
-				(e.Model as ITimelineGraphTrackModel).GraphChanged += this.model_GraphChanged;
+				ITimelineGraphTrackModel newModel = e.Model as ITimelineGraphTrackModel;
+
+				if (newModel.Graphs.Any())
+				{
+					this.OnModelGraphsAdded(new TimelineGraphCollectionEventArgs(newModel.Graphs));
+				}
+
+				newModel.GraphsAdded += this.model_GraphsAdded;
+				newModel.GraphsRemoved += this.model_GraphsRemoved;
+				newModel.GraphChanged += this.model_GraphChanged;
 			}
+			base.OnModelChanged(e);
 			this.AdjustVerticalUnits(AdjustVerticalMode.GrowAndShrink);
+		}
+		protected virtual void OnModelGraphsAdded(TimelineGraphCollectionEventArgs e)
+		{
+			foreach (ITimelineGraphModel graphModel in e.Graphs)
+			{
+				TimelineViewGraph graph = this.GetGraphByModel(graphModel);
+				if (graph != null) continue;
+
+				// Determine Type of the TimelineViewTrack matching the TimelineTrackModel
+				if (availableViewGraphTypes == null)
+				{
+					availableViewGraphTypes = 
+						AppDomain.CurrentDomain.GetAssemblies().
+						SelectMany(a => a.GetExportedTypes()).
+						Where(t => !t.IsAbstract && !t.IsInterface && typeof(TimelineViewGraph).IsAssignableFrom(t)).
+						ToList();
+				}
+				Type viewGraphType = null;
+				foreach (Type graphType in availableViewGraphTypes)
+				{
+					foreach (TimelineModelViewAssignmentAttribute attrib in graphType.GetCustomAttributes(true).OfType<TimelineModelViewAssignmentAttribute>())
+					{
+						foreach (Type validModelType in attrib.ValidModelTypes)
+						{
+							if (validModelType.IsInstanceOfType(graphModel))
+							{
+								viewGraphType = graphType;
+								break;
+							}
+						}
+						if (viewGraphType != null) break;
+					}
+					if (viewGraphType != null) break;
+				}
+				if (viewGraphType == null) continue;
+
+				// Create TimelineViewTrack accordingly
+				graph = viewGraphType.CreateInstanceOf() as TimelineViewGraph;
+				graph.Model = graphModel;
+
+				this.graphList.Add(graph);
+				graph.ParentTrack = this;
+			}
+
+			this.Invalidate();
+			this.UpdateContentWidth();
+			this.AdjustVerticalUnits(AdjustVerticalMode.Grow);
+		}
+		protected virtual void OnModelGraphsRemoved(TimelineGraphCollectionEventArgs e)
+		{
+			foreach (ITimelineGraphModel graphModel in e.Graphs)
+			{
+				TimelineViewGraph graph = this.GetGraphByModel(graphModel);
+				if (graph == null) continue;
+
+				graph.ParentTrack = null;
+				graph.Model = null;
+				this.graphList.Remove(graph);
+			}
+
+			this.Invalidate();
+			this.UpdateContentWidth();
+			this.AdjustVerticalUnits(AdjustVerticalMode.Shrink);
 		}
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
@@ -207,22 +369,11 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			// Draw the graphs
 			{
-				foreach (ITimelineGraph graph in this.Model.Graphs)
+				float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
+				float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
+				foreach (TimelineViewGraph graph in this.graphList)
 				{
-					// Draw curve
-					e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-					this.DrawCurve(e.Graphics, rect, graph);
-					e.Graphics.SmoothingMode = SmoothingMode.Default;
-
-					// Draw boundaries
-					{
-						float beginX = this.ParentView.GetPosAtUnit(this.ContentBeginTime);
-						float endX = this.ParentView.GetPosAtUnit(this.ContentEndTime);
-						Pen boundaryPen = new Pen(Color.FromArgb(128, Color.Red));
-						boundaryPen.DashStyle = DashStyle.Dash;
-						e.Graphics.DrawLine(boundaryPen, beginX, rect.Top, beginX, rect.Bottom);
-						e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
-					}
+					graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, rect, beginUnitX, endUnitX));
 				}
 			}
 
@@ -396,149 +547,19 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
-		protected void DrawCurve(Graphics g, Rectangle rect, ITimelineGraph graph)
-		{
-			// Determine graph parameters
-			const float MinPixelStep = 0.5f;
-			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(MinPixelStep);
-			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
-			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
-
-			var w = new System.Diagnostics.Stopwatch();
-			w.Restart();
-
-			// Determine sample points
-			List<PointF> curvePoints = this.GetCurvePoints(rect, graph.GetValueAtX, MinPixelStep);
-			List<PointF> curvePoints2 = this.GetCurvePoints(rect, x => graph.GetMaxValueInRange(x - MinUnitStep * 20.0f, x + MinUnitStep * 20.0f), MinPixelStep * 5);
-			List<PointF> curvePoints3 = this.GetCurvePoints(rect, x => graph.GetMinValueInRange(x - MinUnitStep * 20.0f, x + MinUnitStep * 20.0f), MinPixelStep * 5);
-			
-			w.Stop();
-			Console.WriteLine("Calc: {0:F}", w.Elapsed.TotalMilliseconds);
-			w.Restart();
-
-			// Draw the graph
-			PointF[] envelopeVertices = new PointF[curvePoints2.Count + curvePoints3.Count];
-			for (int i = 0; i < curvePoints2.Count; i++)
-				envelopeVertices[i] = curvePoints2[i];
-			for (int i = 0; i < curvePoints3.Count; i++)
-				envelopeVertices[curvePoints2.Count + i] = curvePoints3[curvePoints3.Count - i - 1];
-			if (envelopeVertices.Length >= 3) g.FillPolygon(new SolidBrush(Color.FromArgb(48, Color.Red)), envelopeVertices);
-			if (curvePoints.Count >= 2) g.DrawLines(Pens.Red, curvePoints.ToArray());
-			if (curvePoints2.Count >= 2) g.DrawLines(new Pen(Color.FromArgb(128, Color.Red)), curvePoints2.ToArray());
-			if (curvePoints3.Count >= 2) g.DrawLines(new Pen(Color.FromArgb(128, Color.Red)), curvePoints3.ToArray());
-
-			w.Stop();
-			Console.WriteLine("Draw: {0:F}", w.Elapsed.TotalMilliseconds);
-		}
-
-		private List<PointF> GetCurvePoints(Rectangle rect, Func<float,float> func, float minPixelStep)
-		{
-			// Determine graph parameters
-			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
-			float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
-			float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
-
-			// Determine sample points
-			List<PointF> curvePoints = new List<PointF>();
-			{
-				// Gather explicit samples (in units, x)
-				List<float> explicitSamples = new List<float>();
-				explicitSamples.Add(this.ContentEndTime);
-				explicitSamples.Add(endUnitX);
-				// Add more explicit samples here, when necessary
-				explicitSamples.Sort();
-
-				// Gather dynamic samples based on graph function fluctuation
-				float errorThreshold = 0.2f * Math.Abs(this.verticalUnitTop - this.verticalUnitBottom) / rect.Height;
-				float curUnitX = beginUnitX;
-				float curUnitY;
-				float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
-				float curPixelY = rect.Y + rect.Height * 0.5f;
-				float lastPixelX = 0.0f;
-				float lastPixelY = 0.0f;
-				float lastSamplePixelX = 0.0f;
-				float lastSamplePixelY = 0.0f;
-				int nextExplicitIndex = 0;
-				bool explicitSample = true;
-				int skipCount = 0;
-				while (curUnitX <= endUnitX)
-				{
-					lastPixelY = curPixelY;
-					curUnitY = func(curUnitX);
-					curPixelY = rect.Y + this.GetPosAtUnit(curUnitY);
-
-					if (explicitSample)
-					{
-						curvePoints.Add(new PointF(curPixelX, curPixelY));
-						lastSamplePixelX = curPixelX;
-						lastSamplePixelY = curPixelY;
-						explicitSample = false;
-					}
-					else
-					{
-						float error = GetLinearInterpolationError(
-							this.ParentView.GetUnitAtPos(lastSamplePixelX), 
-							this.GetUnitAtPos(lastSamplePixelY - rect.Y), 
-							curUnitX, 
-							curUnitY, 
-							x => func(x));
-						if (error * skipCount >= errorThreshold)
-						{
-							skipCount = 0;
-							curvePoints.Add(new PointF(curPixelX, curPixelY));
-							lastSamplePixelX = curPixelX;
-							lastSamplePixelY = curPixelY;
-						}
-						else
-						{
-							skipCount++;
-						}
-					}
-
-					lastPixelX = curPixelX;
-					curPixelX += minPixelStep;
-					curUnitX = this.ParentView.GetUnitAtPos(curPixelX);
-
-					// Look out for explicit samples
-					if (nextExplicitIndex < explicitSamples.Count && curUnitX >= explicitSamples[nextExplicitIndex])
-					{
-						curUnitX = explicitSamples[nextExplicitIndex];
-						curPixelX = this.ParentView.GetPosAtUnit(curUnitX);
-						nextExplicitIndex++;
-						explicitSample = true;
-					}
-				}
-			}
-
-			return curvePoints;
-		}
 
 		private void model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)
 		{
 			this.Invalidate(e.BeginTime, e.EndTime);
 			this.UpdateContentWidth();
 		}
-		private void model_GraphCollectionChanged(object sender, EventArgs e)
+		private void model_GraphsAdded(object sender, TimelineGraphCollectionEventArgs e)
 		{
-			this.Invalidate();
-			this.UpdateContentWidth();
-			this.AdjustVerticalUnits(AdjustVerticalMode.Grow);
+			this.OnModelGraphsAdded(e);
 		}
-
-		private static float GetLinearInterpolationError(float beginX, float beginY, float endX, float endY, Func<float,float> func)
+		private void model_GraphsRemoved(object sender, TimelineGraphCollectionEventArgs e)
 		{
-			float stepSize = (endX - beginX) / 10.0f;
-			float curX = beginX + stepSize;
-			float error = 0.0f;
-			while (curX < endX)
-			{
-				float alpha = (curX - beginX) / (endX - beginX);
-				float interpolatedY = beginY + (endY - beginY) * alpha;
-				float realY = func(curX);
-				error += Math.Abs(interpolatedY - realY);
-				curX += stepSize;
-			}
-			return error / 10.0f;
+			this.OnModelGraphsRemoved(e);
 		}
 	}
 }

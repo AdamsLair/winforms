@@ -7,7 +7,7 @@ using AdamsLair.WinForms.TimelineControls;
 
 namespace AdamsLair.WinForms.TestApp
 {
-	public class TimelineFunctionGraph : ITimelineGraph
+	public class TimelineFunctionGraphModel : ITimelineGraphModel
 	{
 		public delegate float EnvelopeFunc(float begin, float end);
 		public delegate float ValueFunc(float x);
@@ -84,7 +84,7 @@ namespace AdamsLair.WinForms.TestApp
 		}
 
 		
-		public TimelineFunctionGraph(ValueFunc func, EnvelopeFunc minFunc, EnvelopeFunc maxFunc, float begin, float end)
+		public TimelineFunctionGraphModel(ValueFunc func, EnvelopeFunc minFunc, EnvelopeFunc maxFunc, float begin, float end)
 		{
 			this.func = func;
 			this.minFunc = minFunc;

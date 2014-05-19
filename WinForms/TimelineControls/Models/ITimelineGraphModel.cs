@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
-	public interface ITimelineGraph
+	public interface ITimelineGraphModel
 	{
 		float EndTime { get; }
 		float BeginTime { get; }

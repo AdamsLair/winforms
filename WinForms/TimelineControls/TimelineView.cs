@@ -69,7 +69,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					if (this.model.Tracks.Any())
 					{
-						this.OnModelTracksRemoved(new TimelineModelTracksEventArgs(this.model.Tracks));
+						this.OnModelTracksRemoved(new TimelineTrackModelCollectionEventArgs(this.model.Tracks));
 					}
 
 					this.model = value ?? new TimelineModel();
@@ -77,7 +77,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					this.OnModelUnitChanged(EventArgs.Empty);
 					if (this.model.Tracks.Any())
 					{
-						this.OnModelTracksAdded(new TimelineModelTracksEventArgs(this.model.Tracks));
+						this.OnModelTracksAdded(new TimelineTrackModelCollectionEventArgs(this.model.Tracks));
 					}
 
 					this.model.UnitChanged		+= this.model_UnitChanged;
@@ -404,7 +404,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.Invalidate();
 			this.UpdateContentWidth();
 		}
-		protected virtual void OnModelTracksRemoved(TimelineModelTracksEventArgs e)
+		protected virtual void OnModelTracksRemoved(TimelineTrackModelCollectionEventArgs e)
 		{
 			foreach (ITimelineTrackModel trackModel in e.Tracks)
 			{
@@ -420,7 +420,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.OnContentWidthChanged(EventArgs.Empty);
 			this.OnContentHeightChanged(EventArgs.Empty);
 		}
-		protected virtual void OnModelTracksAdded(TimelineModelTracksEventArgs e)
+		protected virtual void OnModelTracksAdded(TimelineTrackModelCollectionEventArgs e)
 		{
 			foreach (ITimelineTrackModel trackModel in e.Tracks)
 			{
@@ -439,7 +439,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				Type viewTrackType = null;
 				foreach (Type trackType in availableViewTrackTypes)
 				{
-					foreach (TimelineTrackAssignmentAttribute attrib in trackType.GetCustomAttributes(true).OfType<TimelineTrackAssignmentAttribute>())
+					foreach (TimelineModelViewAssignmentAttribute attrib in trackType.GetCustomAttributes(true).OfType<TimelineModelViewAssignmentAttribute>())
 					{
 						foreach (Type validModelType in attrib.ValidModelTypes)
 						{
@@ -525,8 +525,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			int y = 0;
 			foreach (TimelineViewTrack track in this.trackList)
 			{
-				if (y + track.Height < e.Graphics.ClipBounds.Top) continue;
-				if (y > e.Graphics.ClipBounds.Bottom) break;
+				if (y + this.AutoScrollPosition.Y + track.Height < e.Graphics.ClipBounds.Top)
+				{
+					y += track.Height + this.trackSpacing;
+					continue;
+				}
+				if (y + this.AutoScrollPosition.Y > e.Graphics.ClipBounds.Bottom) break;
 
 				// Content
 				{
@@ -793,11 +797,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.OnContentWidthChanged(EventArgs.Empty);
 		}
-		private void model_TracksRemoved(object sender, TimelineModelTracksEventArgs e)
+		private void model_TracksRemoved(object sender, TimelineTrackModelCollectionEventArgs e)
 		{
 			this.OnModelTracksRemoved(e);
 		}
-		private void model_TracksAdded(object sender, TimelineModelTracksEventArgs e)
+		private void model_TracksAdded(object sender, TimelineTrackModelCollectionEventArgs e)
 		{
 			this.OnModelTracksAdded(e);
 		}

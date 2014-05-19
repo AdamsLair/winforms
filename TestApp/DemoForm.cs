@@ -217,18 +217,19 @@ namespace AdamsLair.WinForms.TestApp
 			this.tiledView.ItemAppearance += this.tiledView_ItemAppearance;
 
 			this.timelineViewModel = new TimelineModel();
+			this.timelineView1.Model = this.timelineViewModel;
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track A" };
-				graphTrack.Add(new TimelineLinearGraph(new TimelineLinearGraph.Key[]
+				graphTrack.Add(new TimelineLinearGraphModel(new TimelineLinearGraphModel.Key[]
 				{
-					new TimelineLinearGraph.Key(0.0f, 1.0f),
-					new TimelineLinearGraph.Key(10.0f, 0.75f),
-					new TimelineLinearGraph.Key(15.0f, 0.5f),
-					new TimelineLinearGraph.Key(20.0f, 0.0f),
-					new TimelineLinearGraph.Key(25.0f, -0.5f),
-					new TimelineLinearGraph.Key(30.0f, -0.75f),
-					new TimelineLinearGraph.Key(40.0f, -1.0f),
-					new TimelineLinearGraph.Key(50.0f, 5.0f)
+					new TimelineLinearGraphModel.Key(0.0f, 1.0f),
+					new TimelineLinearGraphModel.Key(10.0f, 0.75f),
+					new TimelineLinearGraphModel.Key(15.0f, 0.5f),
+					new TimelineLinearGraphModel.Key(20.0f, 0.0f),
+					new TimelineLinearGraphModel.Key(25.0f, -0.5f),
+					new TimelineLinearGraphModel.Key(30.0f, -0.75f),
+					new TimelineLinearGraphModel.Key(40.0f, -1.0f),
+					new TimelineLinearGraphModel.Key(50.0f, 5.0f)
 				}));
 				this.timelineViewModel.Add(graphTrack);
 			}
@@ -236,7 +237,7 @@ namespace AdamsLair.WinForms.TestApp
 				Func<float,float> func = x => (float)Math.Sin(0.005f * x * x);
 
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track B" };
-				graphTrack.Add(new TimelineFunctionGraph(
+				graphTrack.Add(new TimelineFunctionGraphModel(
 					x => func(x), 
 					delegate (float a, float b) 
 					{
@@ -272,7 +273,7 @@ namespace AdamsLair.WinForms.TestApp
 				Func<float,float> func = x => (float)Math.Sin(0.005f * x * x) * (float)(0.5f + 0.5f * Math.Sin(0.1f * x));
 
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track C" };
-				graphTrack.Add(new TimelineFunctionGraph(
+				graphTrack.Add(new TimelineFunctionGraphModel(
 					x => func(x), 
 					delegate (float a, float b) 
 					{
@@ -306,11 +307,10 @@ namespace AdamsLair.WinForms.TestApp
 			}
 			{
 				TimelineGraphTrackModel graphTrack = new TimelineGraphTrackModel { TrackName = "Track D" };
-				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => 0.5f + (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 0.0f));
-				graphTrack.Add(new TimelineLinearGraph(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
+				graphTrack.Add(new TimelineLinearGraphModel(Enumerable.Range(0, 360).Select(i => 0.5f + (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 0.0f));
+				graphTrack.Add(new TimelineLinearGraphModel(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
-			this.timelineView1.Model = this.timelineViewModel;
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)
