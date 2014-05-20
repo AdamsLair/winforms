@@ -119,7 +119,15 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			return this.graphList.FirstOrDefault(t => t.Model == graphModel);
 		}
-
+		
+		public float ConvertUnitsToPixels(float units)
+		{
+			return units * (float)(this.Height - 1) / (this.verticalUnitTop - this.verticalUnitBottom);
+		}
+		public float ConvertPixelsToUnits(float pixels)
+		{
+			return pixels * (this.verticalUnitTop - this.verticalUnitBottom) / (float)(this.Height - 1);
+		}
 		public float GetUnitAtPos(float y)
 		{
 			return this.verticalUnitTop + ((float)y * (this.verticalUnitBottom - this.verticalUnitTop) / (float)(this.Height - 1));
