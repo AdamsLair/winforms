@@ -302,7 +302,7 @@ namespace AdamsLair.WinForms.TestApp
 						return result; 
 					},
 					0.0f, 
-					500.0f));
+					1500.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
 			{
