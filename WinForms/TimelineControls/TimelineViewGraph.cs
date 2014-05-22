@@ -207,13 +207,14 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					const int MedianSamples = 21;
 					const int MedianSamplesHalf = MedianSamples / 2;
+					const int BlendSamplesPerChunk = 4;
 					float highestOpacity = 0.0f;
-					ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length / MedianSamples, 2));
-					ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length / MedianSamples, 2));
+					ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / MedianSamples, 2));
+					ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / MedianSamples, 2));
 					for (int i = 0; i < envelopeBlend.Colors.Length; i++)
 					{
-						int firstIndex = Math.Min(Math.Max(i * MedianSamples - MedianSamplesHalf, 0), baseBlend.Length - 1);
-						int lastIndex = Math.Min(Math.Max(i * MedianSamples + MedianSamplesHalf, 0), baseBlend.Length - 1);
+						int firstIndex = Math.Min(Math.Max(i * MedianSamples / BlendSamplesPerChunk - MedianSamplesHalf, 0), baseBlend.Length - 1);
+						int lastIndex = Math.Min(Math.Max(i * MedianSamples / BlendSamplesPerChunk + MedianSamplesHalf, 0), baseBlend.Length - 1);
 						float sum = 0.0f;
 						for (int j = firstIndex; j <= lastIndex; j++)
 						{
