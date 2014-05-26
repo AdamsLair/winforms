@@ -39,7 +39,6 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	ITimelineModel				model				= new TimelineModel();
 		private	TimelineViewControlRenderer	renderer			= new TimelineViewControlRenderer();
 		private	List<TimelineViewTrack>		trackList			= new List<TimelineViewTrack>();
-		private	bool						test	= false;
 		private	int							defaultTrackHeight	= 150;
 		private	float						unitOffset			= 0.0f;
 		private	float						unitZoom			= 1.0f;
@@ -212,11 +211,11 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		public float ConvertUnitsToPixels(float units)
 		{
-			return units * (this.model.UnitBaseScale * DefaultPixelsPerUnit / this.unitZoom);
+			return units * (this.model.UnitBaseScale * DefaultPixelsPerUnit * this.unitZoom);
 		}
 		public float ConvertPixelsToUnits(float pixels)
 		{
-			return pixels * (this.unitZoom / (this.model.UnitBaseScale * DefaultPixelsPerUnit));
+			return pixels / (this.model.UnitBaseScale * DefaultPixelsPerUnit * this.unitZoom);
 		}
 		public float GetUnitAtPos(float x)
 		{
@@ -509,6 +508,18 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			base.OnClick(e);
 			this.Focus();
+		}
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			base.OnKeyDown(e);
+			if (e.KeyCode == Keys.Add)
+			{
+				this.UnitZoom *= 1.5f;
+			}
+			else if (e.KeyCode == Keys.Subtract)
+			{
+				this.UnitZoom /= 1.5f;
+			}
 		}
 		protected override void OnPaint(PaintEventArgs e)
 		{

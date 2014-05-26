@@ -211,6 +211,14 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.Invalidate();
 		}
 
+		protected Color GetDefaultGraphColor(int graphIndex)
+		{
+			const double GoldenRatio = 1.618033988749895d;
+			return ExtMethodsColor.ColorFromHSV(
+				(float)((graphIndex * GoldenRatio) % 1.0d), 
+				0.75f, 
+				(float)Math.Sqrt(1.0d - ((graphIndex * GoldenRatio) % 0.5d)));
+		}
 		protected override void CalculateContentWidth(out float beginTime, out float endTime)
 		{
 			base.CalculateContentWidth(out beginTime, out endTime);
@@ -295,6 +303,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Create TimelineViewTrack accordingly
 				graph = viewGraphType.CreateInstanceOf() as TimelineViewGraph;
 				graph.Model = graphModel;
+				graph.BaseColor = this.GetDefaultGraphColor(this.graphList.Count);
 
 				this.graphList.Add(graph);
 				graph.ParentTrack = this;
@@ -377,8 +386,8 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			// Draw the graphs
 			{
-				float beginUnitX = Math.Max(-this.ParentView.UnitScroll, this.ContentBeginTime);
-				float endUnitX = Math.Min(-this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
+				float beginUnitX = Math.Max(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll, this.ContentBeginTime);
+				float endUnitX = Math.Min(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
 				foreach (TimelineViewGraph graph in this.graphList)
 				{
 					graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, rect, beginUnitX, endUnitX));
