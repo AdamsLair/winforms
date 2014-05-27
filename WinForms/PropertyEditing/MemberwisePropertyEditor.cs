@@ -349,7 +349,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				if (this.buttonIsCreate)
 				{
-					this.SetValue(this.ParentGrid.CreateObjectInstance(this.EditedType));
+					int objectsToCreate = this.GetValue().Count();
+					object[] createdObjects = new object[objectsToCreate];
+					for (int i = 0; i < createdObjects.Length; i++)
+					{
+						createdObjects[i] = this.ParentGrid.CreateObjectInstance(this.EditedType);
+					}
+					this.SetValues(createdObjects);
 					this.Expanded = true;
 				}
 				else

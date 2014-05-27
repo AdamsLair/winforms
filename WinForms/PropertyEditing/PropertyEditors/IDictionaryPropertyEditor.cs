@@ -317,11 +317,24 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			if (this.buttonIsCreate)
 			{
-				IDictionary newIList = null;
-				newIList = (IDictionary)this.EditedType.CreateInstanceOf();
+				bool anyCreated = false;
 
-				this.SetValue(newIList);
-				this.Expanded = true;
+				int objectsToCreate = this.GetValue().Count();
+				IDictionary[] createdObjects = new IDictionary[objectsToCreate];
+				for (int i = 0; i < createdObjects.Length; i++)
+				{
+					createdObjects[i] = this.ParentGrid.CreateObjectInstance(this.EditedType) as IDictionary;
+					if (createdObjects[i] != null)
+					{
+						anyCreated = true;
+					}
+				}
+
+				if (anyCreated)
+				{
+					this.SetValues(createdObjects);
+					this.Expanded = true;
+				}
 			}
 			else
 			{

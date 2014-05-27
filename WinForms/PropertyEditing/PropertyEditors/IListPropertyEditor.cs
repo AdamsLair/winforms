@@ -292,21 +292,31 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			if (this.buttonIsCreate)
 			{
-				IList newCollection = null;
+				bool anyCreated = false;
 
-				newCollection = this.ParentGrid.CreateObjectInstance(this.EditedType) as IList;
-
-				if (newCollection == null)
+				int objectsToCreate = this.GetValue().Count();
+				IList[] createdObjects = new IList[objectsToCreate];
+				for (int i = 0; i < createdObjects.Length; i++)
 				{
-					Type elementType = GetIListElementType(this.EditedType);
-					Type listType = elementType != null ? elementType.MakeArrayType() : null;
-					if (listType != null && this.EditedType.IsAssignableFrom(listType))
-						newCollection = this.ParentGrid.CreateObjectInstance(listType) as IList;
+					createdObjects[i] = this.ParentGrid.CreateObjectInstance(this.EditedType) as IList;
+					if (createdObjects[i] == null)
+					{
+						Type elementType = GetIListElementType(this.EditedType);
+						Type listType = elementType != null ? elementType.MakeArrayType() : null;
+						if (listType != null && this.EditedType.IsAssignableFrom(listType))
+						{
+							createdObjects[i] = this.ParentGrid.CreateObjectInstance(listType) as IList;
+						}
+					}
+					if (createdObjects[i] != null)
+					{
+						anyCreated = true;
+					}
 				}
 
-				if (newCollection != null)
+				if (anyCreated)
 				{
-					this.SetValue(newCollection);
+					this.SetValues(createdObjects);
 					this.Expanded = true;
 				}
 			}

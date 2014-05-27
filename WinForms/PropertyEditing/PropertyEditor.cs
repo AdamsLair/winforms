@@ -464,7 +464,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			// Perform a safety check, whether the EditedType matches the received value
 			if (this.editedType != null && result != null)
-				result = result.Where(v => this.editedType.IsInstanceOfType(v));
+				result = result.Where(v => v == null || this.editedType.IsInstanceOfType(v));
 			
 			return result;
 		}
