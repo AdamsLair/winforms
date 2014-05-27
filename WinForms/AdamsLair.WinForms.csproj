@@ -152,7 +152,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Internal\ExtMethodsColor.cs" />
-    <Compile Include="Internal\ExtMethodsType.cs" />
+    <Compile Include="Internal\ReflectionHelper.cs" />
     <Compile Include="TimelineControls\TimelineViewTrack.cs" />
   </ItemGroup>
   <ItemGroup>

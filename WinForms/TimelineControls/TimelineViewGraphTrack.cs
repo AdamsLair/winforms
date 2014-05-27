@@ -35,7 +35,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 
 
-		private static List<Type> availableViewGraphTypes = null;
+		private static Type[] availableViewGraphTypes = null;
 
 		private	float					verticalUnitTop		= 1.0f;
 		private	float					verticalUnitBottom	= -1.0f;
@@ -164,7 +164,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			yield break;
 		}
-		public void AdjustVerticalUnits(AdjustVerticalMode adjustMode)
+		public void AdjustVerticalUnits(AdjustVerticalMode adjustMode, bool niceMultiple = true)
 		{
 			float targetTop;
 			float targetBottom;
@@ -184,8 +184,16 @@ namespace AdamsLair.WinForms.TimelineControls
 					minUnits = Math.Min(minUnits, graphModel.GetMinValueInRange(graphModel.BeginTime, graphModel.EndTime));
 					maxUnits = Math.Max(maxUnits, graphModel.GetMaxValueInRange(graphModel.BeginTime, graphModel.EndTime));
 				}
-				targetTop = TimelineView.GetNiceMultiple(maxUnits);
-				targetBottom = TimelineView.GetNiceMultiple(minUnits);
+				if (niceMultiple)
+				{
+					targetTop = TimelineView.GetNiceMultiple(maxUnits, TimelineView.NiceMultipleMode.Higher, TimelineView.NiceMultipleGranularity.High);
+					targetBottom = TimelineView.GetNiceMultiple(minUnits, TimelineView.NiceMultipleMode.Lower, TimelineView.NiceMultipleGranularity.High);
+				}
+				else
+				{
+					targetTop = maxUnits;
+					targetBottom = minUnits;
+				}
 			}
 
 			switch (adjustMode)
@@ -275,11 +283,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Determine Type of the TimelineViewTrack matching the TimelineTrackModel
 				if (availableViewGraphTypes == null)
 				{
-					availableViewGraphTypes = 
-						AppDomain.CurrentDomain.GetAssemblies().
-						SelectMany(a => a.GetExportedTypes()).
-						Where(t => !t.IsAbstract && !t.IsInterface && typeof(TimelineViewGraph).IsAssignableFrom(t)).
-						ToList();
+					availableViewGraphTypes = ReflectionHelper.FindConcreteTypes(typeof(TimelineViewGraph));
 				}
 				Type viewGraphType = null;
 				foreach (Type graphType in availableViewGraphTypes)

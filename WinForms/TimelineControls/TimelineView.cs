@@ -31,10 +31,22 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.DesiredSize = size;
 			}
 		}
+		public enum NiceMultipleMode
+		{
+			Nearest,
+			Higher,
+			Lower
+		}
+		public enum NiceMultipleGranularity
+		{
+			High,
+			Medium,
+			Low
+		}
 
 
 		private const float DefaultPixelsPerUnit = 5.0f;
-		private static List<Type> availableViewTrackTypes = null;
+		private static Type[] availableViewTrackTypes = null;
 
 		private	ITimelineModel				model				= new TimelineModel();
 		private	TimelineViewControlRenderer	renderer			= new TimelineViewControlRenderer();
@@ -429,11 +441,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Determine Type of the TimelineViewTrack matching the TimelineTrackModel
 				if (availableViewTrackTypes == null)
 				{
-					availableViewTrackTypes = 
-						AppDomain.CurrentDomain.GetAssemblies().
-						SelectMany(a => a.GetExportedTypes()).
-						Where(t => !t.IsAbstract && !t.IsInterface && typeof(TimelineViewTrack).IsAssignableFrom(t)).
-						ToList();
+					availableViewTrackTypes = ReflectionHelper.FindConcreteTypes(typeof(TimelineViewTrack));
 				}
 				Type viewTrackType = null;
 				foreach (Type trackType in availableViewTrackTypes)
@@ -524,8 +532,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
-			//var w = new System.Diagnostics.Stopwatch();
-			//w.Restart();
+			var w = new System.Diagnostics.Stopwatch();
+			w.Restart();
 
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorLightBackground), this.rectContentArea);
@@ -641,8 +649,8 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.Restore(state);
 			}
 
-			//w.Stop();
-			//Console.WriteLine("{0:F}", w.Elapsed.TotalMilliseconds);
+			w.Stop();
+			Console.WriteLine("{0:F}", w.Elapsed.TotalMilliseconds);
 		}
 		protected virtual void OnPaintTopRuler(TimelineViewPaintEventArgs e)
 		{
@@ -821,17 +829,76 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.OnModelUnitChanged(e);
 		}
 
-		public static float GetNiceMultiple(float rawMultiple)
+		public static float GetNiceMultiple(float rawMultiple, NiceMultipleMode mode = NiceMultipleMode.Nearest, NiceMultipleGranularity granularity = NiceMultipleGranularity.Medium)
 		{
+			float[] allowedFactors;
+			switch (granularity)
+			{
+				case NiceMultipleGranularity.Low:
+					allowedFactors = new float[] { 1.0f, 5.0f, 10.0f };
+					break;
+				default:
+				case NiceMultipleGranularity.Medium:
+					allowedFactors = new float[] { 1.0f, 2.5f, 5.0f, 10.0f };
+					break;
+				case NiceMultipleGranularity.High:
+					allowedFactors = new float[] { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f };
+					break;
+			}
+
 			float absMultiple = Math.Abs(rawMultiple);
 			float magnitude = (float)Math.Floor(Math.Log10(absMultiple));
 			float baseValue = (float)Math.Pow(10.0f, magnitude);
 			float factor = absMultiple / baseValue;
 
-			if (factor < 1.25f) factor = 1.0f;
-			else if (factor < 3.75f) factor = 2.5f;
-			else if (factor < 7.5f) factor = 5.0f;
-			else factor = 10.0f;
+			if (Math.Sign(rawMultiple) < 0.0f)
+			{
+				if (mode == NiceMultipleMode.Higher)
+					mode = NiceMultipleMode.Lower;
+				else if (mode == NiceMultipleMode.Lower)
+					mode = NiceMultipleMode.Higher;
+			}
+
+			switch (mode)
+			{
+				case NiceMultipleMode.Higher:
+				{
+					for (int i = 0; i < allowedFactors.Length; i++)
+					{
+						if (i == allowedFactors.Length - 1 || factor <= allowedFactors[i])
+						{
+							factor = allowedFactors[i];
+							break;
+						}
+					}
+					break;
+				}
+				case NiceMultipleMode.Lower:
+				{
+					for (int i = 0; i < allowedFactors.Length; i++)
+					{
+						if (i == allowedFactors.Length - 1 || factor < allowedFactors[i + 1])
+						{
+							factor = allowedFactors[i];
+							break;
+						}
+					}
+					break;
+				}
+				default:
+				case NiceMultipleMode.Nearest:
+				{
+					for (int i = 0; i < allowedFactors.Length; i++)
+					{
+						if (i == allowedFactors.Length - 1 || factor < (allowedFactors[i] + allowedFactors[i + 1]) * 0.5f)
+						{
+							factor = allowedFactors[i];
+							break;
+						}
+					}
+					break;
+				}
+			}
 
 			return baseValue * factor * Math.Sign(rawMultiple);
 		}

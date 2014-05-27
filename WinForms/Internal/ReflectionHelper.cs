@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AdamsLair.WinForms
 {
-	internal static class ExtMethodsType
+	internal static class ReflectionHelper
 	{
 		public static object CreateInstanceOf(this Type instanceType, bool noConstructor = false)
 		{
@@ -128,6 +128,15 @@ namespace AdamsLair.WinForms
 			}
 
 			return typeStr.Replace('+', '.').ToString();
+		}
+
+		public static Type[] FindConcreteTypes(Type abstractType)
+		{
+			return AppDomain.CurrentDomain.GetAssemblies().
+				Where(a => !a.IsDynamic).
+				SelectMany(a => a.GetExportedTypes()).
+				Where(t => !t.IsAbstract && !t.IsInterface && abstractType.IsAssignableFrom(t)).
+				ToArray();
 		}
 	}
 }

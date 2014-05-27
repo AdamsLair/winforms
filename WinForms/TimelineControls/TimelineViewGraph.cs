@@ -143,31 +143,34 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 			if (this.envelopeOpacity > 0.0f)
 			{
-				float envelopeRadius = this.ParentView.ConvertPixelsToUnits(5.0f);
+				const float EnvelopeBasePixelRadius = 5.0f;
+				float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
 				float minEnvelopeStepFactor;
 				switch (this.parentTrack.EnvelopePrecision)
 				{
 					case TimelineViewGraphTrack.PrecisionLevel.High:
-						minEnvelopeStepFactor = 1.0f;
+						minEnvelopeStepFactor = 0.1f;
 						break;
 					default:
 					case TimelineViewGraphTrack.PrecisionLevel.Medium:
-						minEnvelopeStepFactor = 4.0f;
+						minEnvelopeStepFactor = 0.5f;
 						break;
 					case TimelineViewGraphTrack.PrecisionLevel.Low:
-						minEnvelopeStepFactor = 8.0f;
+						minEnvelopeStepFactor = 1.0f;
 						break;
 				}
+				float envelopePixelStep = minEnvelopeStepFactor * EnvelopeBasePixelRadius;
+				float envelopeUnitStep = minEnvelopeStepFactor * envelopeUnitRadius;
 				curvePointsEnvMax = this.GetCurvePoints(
 					rect, 
-					x => this.model.GetMaxValueInRange(minEnvelopeStepFactor * (int)(x / minEnvelopeStepFactor) - envelopeRadius, minEnvelopeStepFactor * (int)(x / minEnvelopeStepFactor) + envelopeRadius), 
-					minPixelStep * minEnvelopeStepFactor, 
+					x => this.model.GetMaxValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
+					envelopePixelStep, 
 					e.BeginTime, 
 					e.EndTime);
 				curvePointsEnvMin = this.GetCurvePoints(
 					rect, 
-					x => this.model.GetMinValueInRange(minEnvelopeStepFactor * (int)(x / minEnvelopeStepFactor) - envelopeRadius, minEnvelopeStepFactor * (int)(x / minEnvelopeStepFactor) + envelopeRadius), 
-					minPixelStep * minEnvelopeStepFactor, 
+					x => this.model.GetMinValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
+					envelopePixelStep, 
 					e.BeginTime, 
 					e.EndTime);
 			}
@@ -205,16 +208,16 @@ namespace AdamsLair.WinForms.TimelineControls
 					envelopeGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
 					curveGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
 
-					const int MedianSamples = 21;
-					const int MedianSamplesHalf = MedianSamples / 2;
+					const int Samples = 21;
+					const int SamplesHalf = Samples / 2;
 					const int BlendSamplesPerChunk = 4;
 					float highestOpacity = 0.0f;
-					ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / MedianSamples, 2));
-					ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / MedianSamples, 2));
+					ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
+					ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
 					for (int i = 0; i < envelopeBlend.Colors.Length; i++)
 					{
-						int firstIndex = Math.Min(Math.Max(i * MedianSamples / BlendSamplesPerChunk - MedianSamplesHalf, 0), baseBlend.Length - 1);
-						int lastIndex = Math.Min(Math.Max(i * MedianSamples / BlendSamplesPerChunk + MedianSamplesHalf, 0), baseBlend.Length - 1);
+						int firstIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk - SamplesHalf, 0), baseBlend.Length - 1);
+						int lastIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk + SamplesHalf, 0), baseBlend.Length - 1);
 						float sum = 0.0f;
 						for (int j = firstIndex; j <= lastIndex; j++)
 						{
