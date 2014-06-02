@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>AdamsLair.WinForms</id>
+    <version>$version$</version>
+	<authors>Fedja Adam</authors>
+	<owners>Fedja Adam</owners>
+    <title>AdamsLair.WinForms</title>
+    <projectUrl>https://github.com/AdamsLair/winforms</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<summary>A collection of custom Controls for Windows.Forms</summary>
+    <description>A collection of custom Controls for Windows.Forms</description>
+	<tags>Windows.Forms WinForms Controls Timeline PropertyGrid ColorPicker</tags>
+  </metadata>
+  <files>
+    <file src="bin\Release\AdamsLair.WinForms.dll" target="lib" />
+    <file src="bin\Release\AdamsLair.WinForms.pdb" target="lib" />
+    <file src="bin\Release\AdamsLair.WinForms.xml" target="lib" />
+    <file src="bin\Release\PopupControl.dll" target="lib" />
+  </files>
+</package>
