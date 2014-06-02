@@ -16,6 +16,5 @@
     <file src="bin\Release\AdamsLair.WinForms.dll" target="lib" />
     <file src="bin\Release\AdamsLair.WinForms.pdb" target="lib" />
     <file src="bin\Release\AdamsLair.WinForms.xml" target="lib" />
-    <file src="bin\Release\PopupControl.dll" target="lib" />
   </files>
 </package>
