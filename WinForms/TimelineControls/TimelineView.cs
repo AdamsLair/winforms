@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Diagnostics;
 
 using AdamsLair.WinForms.Drawing;
 using AdamsLair.WinForms.NativeWinAPI;
@@ -57,14 +58,21 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	int							trackSpacing		= -1;
 		private SubAreaInfo					areaTopRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaBottomRuler		= new SubAreaInfo(30);
-		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(30);
-		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(30);
+		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(35);
+		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(35);
+		private	bool						adaptiveQuality		= true;
+
+		private	bool		paintLowQuality	= false;
+		private	TimeSpan	lastPaintHqTime	= TimeSpan.Zero;
+		private	Timer		paintHqTimer	= null;
 
 		private	Rectangle	rectTopRuler;
 		private	Rectangle	rectBottomRuler;
 		private	Rectangle	rectLeftSidebar;
 		private	Rectangle	rectRightSidebar;
 		private	Rectangle	rectContentArea;
+
+		public event EventHandler UnitZoomChanged = null;
 
 		
 		public ITimelineModel Model
@@ -115,6 +123,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		public float UnitScroll
 		{
 			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X); }
+			set { this.AutoScrollPosition = new Point(-(int)this.ConvertUnitsToPixels(value), -this.AutoScrollPosition.Y); }
 		}
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float VisibleUnitWidth
@@ -130,6 +139,8 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.unitZoom = Math.Max(value, 0.00000001f);
 				this.Invalidate();
 				this.UpdateContentWidth();
+				if (this.UnitZoomChanged != null)
+					this.UnitZoomChanged(this, EventArgs.Empty);
 			}
 		}
 		[DefaultValue(150)]
@@ -192,6 +203,14 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.areaRightSidebar.DesiredSize; }
 			set { this.areaRightSidebar.DesiredSize = value; this.UpdateGeometry(); }
 		}
+		/// <summary>
+		/// [GET / SET] If true, the TimelineView will automatically adjust its drawing quality while scrolling and resizing in order to achieve maximum performance.
+		/// </summary>
+		public bool AdaptiveDrawingQuality
+		{
+			get { return this.adaptiveQuality; }
+			set { this.adaptiveQuality = value; }
+		}
 		protected override CreateParams CreateParams
 		{
 			get
@@ -207,6 +226,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		public TimelineView()
 		{
 			this.AutoScroll = true;
+			this.TabStop = true;
 
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
 			this.SetStyle(ControlStyles.UserPaint, true);
@@ -214,6 +234,23 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.SetStyle(ControlStyles.Opaque, true);
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.Selectable, true);
+
+			this.paintHqTimer = new Timer();
+			this.paintHqTimer.Enabled = false;
+			this.paintHqTimer.Interval = 50;
+			this.paintHqTimer.Tick += this.paintHqTimer_Tick;
+		}
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+			if (disposing)
+			{
+				if (this.paintHqTimer != null)
+				{
+					this.paintHqTimer.Dispose();
+					this.paintHqTimer = null;
+				}
+			}
 		}
 		
 		public TimelineViewTrack GetTrackByModel(ITimelineTrackModel trackModel)
@@ -289,12 +326,12 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			return null;
 		}
-		public IEnumerable<TimelineViewRulerMark> GetVisibleRulerMarks()
+		public IEnumerable<TimelineViewRulerMark> GetVisibleRulerMarks(int clipLeftPixelCoord, int clipRightPixelCoord)
 		{
 			float rulerStep = GetNiceMultiple(this.ConvertPixelsToUnits(100.0f)) / 10.0f;
 			float unitScroll = this.UnitScroll;
-			float beginTime = this.GetUnitAtPos(this.rectTopRuler.Left) + this.UnitScroll;
-			float endTime = this.GetUnitAtPos(this.rectTopRuler.Right) + this.UnitScroll;
+			float beginTime = this.GetUnitAtPos(Math.Max(this.rectTopRuler.Left, clipLeftPixelCoord)) + this.UnitScroll;
+			float endTime = this.GetUnitAtPos(Math.Min(this.rectTopRuler.Right, clipRightPixelCoord)) + this.UnitScroll;
 
 			int lineIndex = 0;
 			foreach (float markTime in EnumerateRulerMarks(rulerStep, unitScroll, beginTime, endTime, 10))
@@ -315,6 +352,50 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			yield break;
+		}
+
+		public void AdjustZoomLevel(float amount)
+		{
+			// Prepare position adjustment values
+			Point targetPos = this.PointToClient(Cursor.Position);
+			if (!this.ClientRectangle.Contains(targetPos)) targetPos = new Point(this.ClientRectangle.X + this.ClientRectangle.Width / 2, this.ClientRectangle.Y + this.ClientRectangle.Height / 2);
+			float oldCursorUnits = this.GetUnitAtPos(targetPos.X);
+
+			// Apply Zoom
+			this.UnitZoom *= (float)Math.Pow(1.5f, amount);
+
+			// If the cursor is within the Timeline area, zoom to the cursor. Otherwise, zoom to the center.
+			float newCursorUnits = this.GetUnitAtPos(targetPos.X);
+			this.UnitScroll -= oldCursorUnits - newCursorUnits;
+		}
+
+		protected void InvalidateLowQuality()
+		{
+			this.Invalidate();
+			if (this.adaptiveQuality)
+			{
+				this.paintLowQuality = true;
+				this.paintHqTimer.Stop();
+				this.paintHqTimer.Start();
+			}
+		}
+		protected void InvalidateContent(float fromUnits, float toUnits)
+		{
+			Rectangle invalidateRect = new Rectangle(this.rectContentArea.X, this.ClientRectangle.Y, this.rectContentArea.Width, this.ClientRectangle.Height);
+
+			float fromPixels = Math.Max(this.GetPosAtUnit(fromUnits), invalidateRect.Left) - 1;
+			float toPixels = Math.Min(this.GetPosAtUnit(toUnits), invalidateRect.Right) + 2;
+
+			Rectangle targetRect = new Rectangle(
+				(int)fromPixels,
+				invalidateRect.Y,
+				(int)(toPixels - fromPixels),
+				invalidateRect.Height);
+			invalidateRect.Intersect(targetRect);
+			invalidateRect.Intersect(this.ClientRectangle);
+			if (invalidateRect.IsEmpty) return;
+
+			this.Invalidate(invalidateRect);
 		}
 
 		private void UpdateGeometry()
@@ -501,16 +582,24 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.UpdateContentWidth();
 		}
+
 		protected override void OnScroll(ScrollEventArgs se)
 		{
 			base.OnScroll(se);
-			this.Invalidate();
+			this.InvalidateLowQuality();
 		}
 		protected override void OnResize(EventArgs eventargs)
 		{
 			base.OnResize(eventargs);
 			this.UpdateGeometry();
 			this.UpdateContentHeight();
+			this.InvalidateLowQuality();
+		}
+
+		protected override bool IsInputKey(Keys keyData)
+		{
+			if (keyData == Keys.Left || keyData == Keys.Right || keyData == Keys.Up || keyData == Keys.Down) return true;
+			return base.IsInputKey(keyData);
 		}
 		protected override void OnClick(EventArgs e)
 		{
@@ -522,19 +611,45 @@ namespace AdamsLair.WinForms.TimelineControls
 			base.OnKeyDown(e);
 			if (e.KeyCode == Keys.Add)
 			{
-				this.UnitZoom *= 1.5f;
+				this.AdjustZoomLevel(1.0f);
 			}
 			else if (e.KeyCode == Keys.Subtract)
 			{
-				this.UnitZoom /= 1.5f;
+				this.AdjustZoomLevel(-1.0f);
 			}
 		}
+		protected override void OnMouseWheel(MouseEventArgs e)
+		{
+			if (this.VerticalScroll.Visible && this.VerticalScroll.Enabled)
+			{
+				base.OnMouseWheel(e);
+			}
+			else
+			{
+				this.AdjustZoomLevel(e.Delta / 120.0f);
+			}
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
-			var w = new System.Diagnostics.Stopwatch();
-			w.Restart();
 
+			// Apply dynamic quality level
+			QualityLevel qualityHint = QualityLevel.High;
+			if (this.paintLowQuality)
+			{
+				// If the last high quality paint didn't take too long, always paint in high quality
+				if (this.lastPaintHqTime.TotalMilliseconds < 20.0d)
+					qualityHint = QualityLevel.High;
+				else
+					qualityHint = QualityLevel.Low;
+			}
+
+			// Measure how long it takes
+			Stopwatch paintWatch = new Stopwatch();
+			paintWatch.Restart();
+
+			// Paint the background
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorLightBackground), this.rectContentArea);
 
@@ -544,12 +659,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			int y = 0;
 			foreach (TimelineViewTrack track in this.trackList)
 			{
-				if (y + this.AutoScrollPosition.Y + track.Height < e.Graphics.ClipBounds.Top)
+				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y + track.Height <= e.Graphics.ClipBounds.Top + 1)
 				{
 					y += track.Height + this.trackSpacing;
 					continue;
 				}
-				if (y + this.AutoScrollPosition.Y > e.Graphics.ClipBounds.Bottom) break;
+				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y >= e.Graphics.ClipBounds.Bottom - 1) break;
 
 				// Content
 				{
@@ -563,7 +678,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
 					if (!e.Graphics.ClipBounds.IsEmpty)
 					{
-						track.OnPaint(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+						track.OnPaint(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
 					}
 					e.Graphics.Restore(state);
 				}
@@ -580,7 +695,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
 					if (!e.Graphics.ClipBounds.IsEmpty)
 					{
-						track.OnPaintLeftSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+						track.OnPaintLeftSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
 					}
 					e.Graphics.Restore(state);
 				}
@@ -597,7 +712,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
 					if (!e.Graphics.ClipBounds.IsEmpty)
 					{
-						track.OnPaintRightSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, targetRect));
+						track.OnPaintRightSidebar(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
 					}
 					e.Graphics.Restore(state);
 				}
@@ -649,8 +764,10 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.Restore(state);
 			}
 
-			w.Stop();
-			Console.WriteLine("{0:F}", w.Elapsed.TotalMilliseconds);
+			paintWatch.Stop();
+			if (qualityHint == QualityLevel.High) this.lastPaintHqTime = paintWatch.Elapsed;
+
+			Console.WriteLine("{1}\t{0:F}\t{2}", paintWatch.Elapsed.TotalMilliseconds, qualityHint, e.ClipRectangle);
 		}
 		protected virtual void OnPaintTopRuler(TimelineViewPaintEventArgs e)
 		{
@@ -750,7 +867,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				Pen medLinePen = new Pen(new SolidBrush(this.renderer.ColorRulerMarkRegular));
 				Pen minLinePen = new Pen(new SolidBrush(this.renderer.ColorRulerMarkMinor));
 
-				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks())
+				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks((int)g.ClipBounds.Left, (int)g.ClipBounds.Right))
 				{
 					bool drawMark = (mark.PixelValue - rectUnitMarkings.Left >= 1.0f) && (rectUnitMarkings.Right - mark.PixelValue >= 1.0f);
 
@@ -827,6 +944,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		private void model_UnitChanged(object sender, EventArgs e)
 		{
 			this.OnModelUnitChanged(e);
+		}
+		private void paintHqTimer_Tick(object sender, EventArgs e)
+		{
+			if (Control.MouseButtons != MouseButtons.None) return;
+			this.paintLowQuality = false;
+			this.Invalidate();
+			this.paintHqTimer.Enabled = false;
 		}
 
 		public static float GetNiceMultiple(float rawMultiple, NiceMultipleMode mode = NiceMultipleMode.Nearest, NiceMultipleGranularity granularity = NiceMultipleGranularity.Medium)
@@ -914,17 +1038,17 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 
-			float stepSizeBig = stepSize * stepCountMultiple;
-			float scrollStepOffset = stepSizeBig * (float)Math.Floor(-unitScroll / stepSizeBig);
-			float rangeBegin = stepSizeBig * (float)Math.Floor(beginUnits / stepSizeBig) + scrollStepOffset;
-			float rangeEnd = stepSizeBig * ((float)Math.Ceiling(endUnits / stepSizeBig) + 1) + scrollStepOffset;
-			float unitValue = rangeBegin;
+			double stepSizeBig = stepSize * stepCountMultiple;
+			double scrollStepOffset = stepSizeBig * Math.Floor(-unitScroll / stepSizeBig);
+			double rangeBegin = stepSizeBig * Math.Floor(beginUnits / stepSizeBig) + scrollStepOffset;
+			double rangeEnd = stepSizeBig * (Math.Ceiling(endUnits / stepSizeBig) + 1) + scrollStepOffset;
+			double unitValue = rangeBegin;
 
 			int stepCount = 0;
 			while (unitValue * stepSign < rangeEnd * stepSign)
 			{
-				unitValue = (float)Math.Round(rangeBegin + stepCount * stepSize, roundDecimals);
-				yield return unitValue;
+				unitValue = Math.Round(rangeBegin + stepCount * (double)stepSize, roundDecimals);
+				yield return (float)unitValue;
 				stepCount++;
 			}
 			yield break;

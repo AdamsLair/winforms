@@ -18,21 +18,6 @@ namespace AdamsLair.WinForms.TimelineControls
 			Grow,
 			Shrink
 		}
-		public enum DrawingQuality
-		{
-			High,
-			Low,
-
-			Default = High
-		}
-		public enum PrecisionLevel
-		{
-			High,
-			Medium,
-			Low,
-
-			Default = Medium
-		}
 
 
 		private static Type[] availableViewGraphTypes = null;
@@ -40,9 +25,9 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	float					verticalUnitTop		= 1.0f;
 		private	float					verticalUnitBottom	= -1.0f;
 		private	List<TimelineViewGraph>	graphList			= new List<TimelineViewGraph>();
-		private	DrawingQuality			curveQuality		= DrawingQuality.Default;
-		private	PrecisionLevel			curvePrecision		= PrecisionLevel.Default;
-		private	PrecisionLevel			envelopePrecision	= PrecisionLevel.Default;
+		private	QualityLevel			curveQuality		= QualityLevel.High;
+		private	QualityLevel			curvePrecision		= QualityLevel.Medium;
+		private	QualityLevel			envelopePrecision	= QualityLevel.Medium;
 
 
 		public new ITimelineGraphTrackModel Model
@@ -77,7 +62,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
-		public DrawingQuality CurveQuality
+		public QualityLevel CurveQuality
 		{
 			get { return this.curveQuality; }
 			set
@@ -89,7 +74,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
-		public PrecisionLevel CurvePrecision
+		public QualityLevel CurvePrecision
 		{
 			get { return this.curvePrecision; }
 			set
@@ -101,7 +86,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 		}
-		public PrecisionLevel EnvelopePrecision
+		public QualityLevel EnvelopePrecision
 		{
 			get { return this.envelopePrecision; }
 			set
@@ -346,8 +331,11 @@ namespace AdamsLair.WinForms.TimelineControls
 				Pen minLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkMinor.ScaleAlpha(0.25f)));
 
 				// Horizontal ruler marks
-				foreach (TimelineViewRulerMark mark in this.ParentView.GetVisibleRulerMarks())
+				foreach (TimelineViewRulerMark mark in this.ParentView.GetVisibleRulerMarks((int)e.Graphics.ClipBounds.Left, (int)e.Graphics.ClipBounds.Right))
 				{
+					if (mark.PixelValue < e.Graphics.ClipBounds.Left) continue;
+					if (mark.PixelValue > e.Graphics.ClipBounds.Right) break;
+
 					Pen markPen;
 					switch (mark.Weight)
 					{
@@ -369,6 +357,9 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Vertical ruler marks
 				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks())
 				{
+					if (mark.PixelValue < e.Graphics.ClipBounds.Top) continue;
+					if (mark.PixelValue > e.Graphics.ClipBounds.Bottom) break;
+
 					Pen markPen;
 					switch (mark.Weight)
 					{
@@ -394,7 +385,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				float endUnitX = Math.Min(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
 				foreach (TimelineViewGraph graph in this.graphList)
 				{
-					graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, rect, beginUnitX, endUnitX));
+					graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, e.QualityHint, rect, beginUnitX, endUnitX));
 				}
 			}
 
@@ -502,9 +493,9 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Static Top and Bottom marks
 				SizeF textSize;
 				textSize = g.MeasureString(verticalTopText, r.FontSmall);
-				g.DrawString(verticalTopText, r.FontSmall, new SolidBrush(r.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Top);
+				g.DrawString(verticalTopText, r.FontSmall, new SolidBrush(r.ColorText), left ? rectUnitMarkings.Right - textSize.Width : rectUnitMarkings.Left, rectUnitMarkings.Top);
 				textSize = g.MeasureString(verticalBottomText, r.FontSmall);
-				g.DrawString(verticalBottomText, r.FontSmall, new SolidBrush(r.ColorText), rectUnitMarkings.Right - textSize.Width, rectUnitMarkings.Bottom - textSize.Height - 1);
+				g.DrawString(verticalBottomText, r.FontSmall, new SolidBrush(r.ColorText), left ? rectUnitMarkings.Right - textSize.Width : rectUnitMarkings.Left, rectUnitMarkings.Bottom - textSize.Height - 1);
 
 				// Dynamic Inbetween marks
 				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks())

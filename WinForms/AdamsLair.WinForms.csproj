@@ -14,7 +14,7 @@
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-	<RestorePackages>true</RestorePackages>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -59,6 +59,7 @@
     <Compile Include="ColorControls\ColorSlider.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Drawing\QualityLevel.cs" />
     <Compile Include="Drawing\ExpandNodeState.cs" />
     <Compile Include="Drawing\CheckBoxState.cs" />
     <Compile Include="Drawing\ButtonState.cs" />

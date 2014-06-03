@@ -10,10 +10,12 @@ namespace AdamsLair.WinForms.TimelineControls
 {
 	public class TimelineViewTrackPaintEventArgs : TimelineViewTrackEventArgs
 	{
-		private Graphics	graphics	= null;
-		private	Rectangle	targetRect	= Rectangle.Empty;
-		private	float		beginTime	= 0.0f;
-		private	float		endTime		= 0.0f;
+		private Graphics		graphics	= null;
+		private	Rectangle		targetRect	= Rectangle.Empty;
+		private	float			beginTime	= 0.0f;
+		private	float			endTime		= 0.0f;
+		private	QualityLevel	qualityHint	= QualityLevel.High;
+
 
 		public Graphics Graphics
 		{
@@ -22,6 +24,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		public TimelineViewControlRenderer Renderer
 		{
 			get { return this.View.Renderer; }
+		}
+		public QualityLevel QualityHint
+		{
+			get { return this.qualityHint; }
 		}
 		public Rectangle TargetRect
 		{
@@ -36,13 +42,20 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.endTime; }
 		}
 
-		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, Rectangle targetRect) : this(track, graphics, targetRect, track.ContentBeginTime, track.ContentEndTime) {}
-		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, Rectangle targetRect, float beginTime, float endTime) : base(track)
+
+		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, QualityLevel qualityHint, Rectangle targetRect) : this(track, graphics, qualityHint, targetRect, track.ContentBeginTime, track.ContentEndTime) {}
+		public TimelineViewTrackPaintEventArgs(TimelineViewTrack track, Graphics graphics, QualityLevel qualityHint, Rectangle targetRect, float beginTime, float endTime) : base(track)
 		{
 			this.graphics = graphics;
 			this.targetRect = targetRect;
+			this.qualityHint = qualityHint;
 			this.beginTime = beginTime;
 			this.endTime = endTime;
+		}
+
+		public QualityLevel GetAdjustedQuality(QualityLevel baseLevel)
+		{
+			return (QualityLevel)Math.Min((int)baseLevel, (int)this.qualityHint);
 		}
 	}
 }

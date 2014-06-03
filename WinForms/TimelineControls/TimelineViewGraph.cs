@@ -5,6 +5,8 @@ using System.Text;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
+using AdamsLair.WinForms.Drawing;
+
 namespace AdamsLair.WinForms.TimelineControls
 {
 	[TimelineModelViewAssignment(typeof(ITimelineGraphModel))]
@@ -97,13 +99,14 @@ namespace AdamsLair.WinForms.TimelineControls
 			Rectangle rect = e.TargetRect;
 
 			// Draw curve
-			switch (this.parentTrack.CurveQuality)
+			switch (e.GetAdjustedQuality(this.parentTrack.CurveQuality))
 			{
-				default:
-				case TimelineViewGraphTrack.DrawingQuality.High:
+				case QualityLevel.High:
 					e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 					break;
-				case TimelineViewGraphTrack.DrawingQuality.Low:
+				default:
+				case QualityLevel.Medium:
+				case QualityLevel.Low:
 					e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
 					break;
 			}
@@ -117,16 +120,16 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			// Determine graph parameters
 			float minPixelStep;
-			switch (this.parentTrack.CurvePrecision)
+			switch (e.GetAdjustedQuality(this.parentTrack.CurvePrecision))
 			{
-				case TimelineViewGraphTrack.PrecisionLevel.High:
+				case QualityLevel.High:
 					minPixelStep = 0.25f;
 					break;
 				default:
-				case TimelineViewGraphTrack.PrecisionLevel.Medium:
+				case QualityLevel.Medium:
 					minPixelStep = 0.5f;
 					break;
-				case TimelineViewGraphTrack.PrecisionLevel.Low:
+				case QualityLevel.Low:
 					minPixelStep = 1.0f;
 					break;
 			}
@@ -139,36 +142,38 @@ namespace AdamsLair.WinForms.TimelineControls
 			List<PointF> curvePointsEnvMin = null;
 			if (this.curveOpacity > 0.0f)
 			{
-				curvePoints = this.GetCurvePoints(rect, this.model.GetValueAtX, minPixelStep, e.BeginTime, e.EndTime);
+				curvePoints = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, e.BeginTime, e.EndTime);
 			}
 			if (this.envelopeOpacity > 0.0f)
 			{
 				const float EnvelopeBasePixelRadius = 5.0f;
 				float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
 				float minEnvelopeStepFactor;
-				switch (this.parentTrack.EnvelopePrecision)
+				switch (e.GetAdjustedQuality(this.parentTrack.EnvelopePrecision))
 				{
-					case TimelineViewGraphTrack.PrecisionLevel.High:
+					case QualityLevel.High:
 						minEnvelopeStepFactor = 0.1f;
 						break;
 					default:
-					case TimelineViewGraphTrack.PrecisionLevel.Medium:
+					case QualityLevel.Medium:
 						minEnvelopeStepFactor = 0.5f;
 						break;
-					case TimelineViewGraphTrack.PrecisionLevel.Low:
+					case QualityLevel.Low:
 						minEnvelopeStepFactor = 1.0f;
 						break;
 				}
 				float envelopePixelStep = minEnvelopeStepFactor * EnvelopeBasePixelRadius;
 				float envelopeUnitStep = minEnvelopeStepFactor * envelopeUnitRadius;
 				curvePointsEnvMax = this.GetCurvePoints(
-					rect, 
+					rect,
+ 					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
 					x => this.model.GetMaxValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
 					envelopePixelStep, 
 					e.BeginTime, 
 					e.EndTime);
 				curvePointsEnvMin = this.GetCurvePoints(
 					rect, 
+ 					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
 					x => this.model.GetMinValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
 					envelopePixelStep, 
 					e.BeginTime, 
@@ -283,7 +288,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 		}
 
-		protected List<PointF> GetCurvePoints(Rectangle trackArea, Func<float,float> curveFunc, float minPixelStep, float beginUnitX, float endUnitX)
+		protected List<PointF> GetCurvePoints(Rectangle trackArea, QualityLevel sampleQuality, Func<float,float> curveFunc, float minPixelStep, float beginUnitX, float endUnitX)
 		{
 			// Determine graph parameters
 			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
@@ -304,16 +309,16 @@ namespace AdamsLair.WinForms.TimelineControls
 
 				// Gather dynamic samples based on graph function fluctuation
 				float errorThreshold = Math.Abs(this.parentTrack.VerticalUnitTop - this.parentTrack.VerticalUnitBottom) / trackArea.Height;
-				switch (this.parentTrack.CurvePrecision)
+				switch (sampleQuality)
 				{
-					case TimelineViewGraphTrack.PrecisionLevel.High:
+					case QualityLevel.High:
 						errorThreshold *= 1.0f;
 						break;
 					default:
-					case TimelineViewGraphTrack.PrecisionLevel.Medium:
+					case QualityLevel.Medium:
 						errorThreshold *= 2.5f;
 						break;
-					case TimelineViewGraphTrack.PrecisionLevel.Low:
+					case QualityLevel.Low:
 						errorThreshold *= 5.0f;
 						break;
 				}
