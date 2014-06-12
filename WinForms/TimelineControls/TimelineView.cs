@@ -55,12 +55,17 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	int							defaultTrackHeight	= 150;
 		private	float						unitOffset			= 0.0f;
 		private	float						unitZoom			= 1.0f;
+		private	bool						fitZoom				= true;
 		private	int							trackSpacing		= -1;
 		private SubAreaInfo					areaTopRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaBottomRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(35);
 		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(35);
 		private	bool						adaptiveQuality		= true;
+		private	bool						showMouseoverTime	= true;
+
+		private	bool		mouseoverContent	= false;
+		private	float		mouseoverUnits		= 0.0f;
 
 		private	bool		paintLowQuality	= false;
 		private	TimeSpan	lastPaintHqTime	= TimeSpan.Zero;
@@ -136,11 +141,16 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.unitZoom; }
 			set
 			{
-				this.unitZoom = Math.Max(value, 0.00000001f);
-				this.Invalidate();
-				this.UpdateContentWidth();
-				if (this.UnitZoomChanged != null)
-					this.UnitZoomChanged(this, EventArgs.Empty);
+				value = Math.Max(value, 0.00000001f);
+				if (this.unitZoom != value)
+				{
+					this.unitZoom = value;
+					this.UpdateContentWidth();
+					if (this.UnitZoomChanged != null)
+						this.UnitZoomChanged(this, EventArgs.Empty);
+					this.Invalidate();
+					this.fitZoom = false;
+				}
 			}
 		}
 		[DefaultValue(150)]
@@ -368,6 +378,28 @@ namespace AdamsLair.WinForms.TimelineControls
 			float newCursorUnits = this.GetUnitAtPos(targetPos.X);
 			this.UnitScroll -= oldCursorUnits - newCursorUnits;
 		}
+		public void ZoomToFit()
+		{
+			if (!this.model.Tracks.Any()) return;
+
+			float minTime = float.MaxValue;
+			float maxTime = float.MinValue;
+
+			foreach (ITimelineTrackModel track in this.model.Tracks)
+			{
+				minTime = Math.Min(minTime, track.BeginTime);
+				maxTime = Math.Max(maxTime, track.EndTime);
+			}
+
+			float duration = maxTime - minTime;
+			float availableSpace = this.rectContentArea.Width - 1;
+			float targetZoom = availableSpace / (duration * DefaultPixelsPerUnit * this.model.UnitBaseScale);
+
+			this.UnitZoom = targetZoom;
+			this.UnitScroll = minTime;
+
+			this.fitZoom = true;
+		}
 
 		protected void InvalidateLowQuality()
 		{
@@ -485,8 +517,19 @@ namespace AdamsLair.WinForms.TimelineControls
 				contentEndTime = this.trackList.Max(t => t.ContentEndTime);
 			}
 
-			int contentWidth = 1 + (int)this.ConvertUnitsToPixels(contentEndTime - this.unitOffset) + this.areaLeftSidebar.Size + this.areaRightSidebar.Size;
-			Size autoScrollSize = new Size(contentWidth, this.AutoScrollMinSize.Height);
+			Size autoScrollSize;
+			if (this.fitZoom)
+			{
+				autoScrollSize = new Size(
+					0, 
+					this.AutoScrollMinSize.Height);
+			}
+			else
+			{
+				autoScrollSize = new Size(
+					1 + (int)this.ConvertUnitsToPixels(contentEndTime - this.unitOffset) + this.areaLeftSidebar.Size + this.areaRightSidebar.Size, 
+					this.AutoScrollMinSize.Height);
+			}
 			if (autoScrollSize != this.AutoScrollMinSize)
 				this.AutoScrollMinSize = autoScrollSize;
 		}
@@ -586,7 +629,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected override void OnScroll(ScrollEventArgs se)
 		{
 			base.OnScroll(se);
+			this.UpdateContentWidth();
 			this.InvalidateLowQuality();
+			if (se.ScrollOrientation == ScrollOrientation.HorizontalScroll)
+			{
+				this.fitZoom = false;
+			}
 		}
 		protected override void OnResize(EventArgs eventargs)
 		{
@@ -594,6 +642,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.UpdateGeometry();
 			this.UpdateContentHeight();
 			this.InvalidateLowQuality();
+			if (this.fitZoom) this.ZoomToFit();
 		}
 
 		protected override bool IsInputKey(Keys keyData)
@@ -617,6 +666,56 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				this.AdjustZoomLevel(-1.0f);
 			}
+			else if (e.KeyCode == Keys.Left)
+			{
+				this.UnitScroll += this.ConvertPixelsToUnits(this.rectContentArea.Width) / 50.0f;
+				this.InvalidateLowQuality();
+			}
+			else if (e.KeyCode == Keys.Right)
+			{
+				this.UnitScroll -= this.ConvertPixelsToUnits(this.rectContentArea.Width) / 50.0f;
+				this.InvalidateLowQuality();
+			}
+			else if (e.KeyCode == Keys.Up)
+			{
+				this.AutoScrollPosition = new Point(-this.AutoScrollPosition.X, -this.AutoScrollPosition.Y - this.ClientSize.Height / 50);
+				this.InvalidateLowQuality();
+			}
+			else if (e.KeyCode == Keys.Down)
+			{
+				this.AutoScrollPosition = new Point(-this.AutoScrollPosition.X, -this.AutoScrollPosition.Y + this.ClientSize.Height / 50);
+				this.InvalidateLowQuality();
+			}
+			else if (e.KeyCode == Keys.F)
+			{
+				this.ZoomToFit();
+			}
+		}
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			base.OnMouseMove(e);
+			bool oldHoverContent = this.mouseoverContent;
+			float oldUnits = this.mouseoverUnits;
+			float unitsPerPixel = this.ConvertPixelsToUnits(1.0f);
+
+			this.mouseoverContent = this.rectContentArea.Contains(e.Location);
+			if (this.mouseoverContent)
+			{
+				this.mouseoverUnits = this.GetUnitAtPos(e.X);
+			}
+
+			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			{
+				float unitSpeed = Math.Abs(this.mouseoverUnits - oldUnits);
+				this.InvalidateContent(
+					Math.Min(oldUnits, this.mouseoverUnits) - unitsPerPixel - unitSpeed, 
+					Math.Max(oldUnits, this.mouseoverUnits) + unitsPerPixel + unitSpeed);
+			}
+		}
+		protected override void OnMouseLeave(EventArgs e)
+		{
+			base.OnMouseLeave(e);
+			this.mouseoverContent = false;
 		}
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
@@ -718,6 +817,15 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 
 				y += track.Height + this.trackSpacing;
+			}
+
+			// Draw the mouseover time indicator
+			if (this.mouseoverContent)
+			{
+				float mouseoverPixels = this.GetPosAtUnit(this.mouseoverUnits);
+				Pen mouseoverTimePen = new Pen(Color.FromArgb(128, this.Renderer.ColorText));
+				mouseoverTimePen.DashStyle = DashStyle.Dot;
+				e.Graphics.DrawLine(mouseoverTimePen, mouseoverPixels, this.rectContentArea.Top, mouseoverPixels, this.rectContentArea.Bottom);
 			}
 
 			// Draw the content area drop shadow

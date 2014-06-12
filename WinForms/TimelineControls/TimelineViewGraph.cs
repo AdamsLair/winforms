@@ -118,6 +118,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		protected virtual void OnPaintCurve(TimelineViewTrackPaintEventArgs e)
 		{
+			// Ignore e.BeginTime and e.EndTime for sampling, as we're heavily dependent on rounding errors, etc. while undersampling. Instead, always sample the whole curve.
+			float beginUnitX = Math.Max(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll, this.model.BeginTime);
+			float endUnitX = Math.Min(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.model.EndTime);
+
 			// Determine graph parameters
 			float minPixelStep;
 			switch (e.GetAdjustedQuality(this.parentTrack.CurvePrecision))
@@ -142,7 +146,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			List<PointF> curvePointsEnvMin = null;
 			if (this.curveOpacity > 0.0f)
 			{
-				curvePoints = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, e.BeginTime, e.EndTime);
+				curvePoints = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, beginUnitX, endUnitX);
 			}
 			if (this.envelopeOpacity > 0.0f)
 			{
@@ -169,15 +173,15 @@ namespace AdamsLair.WinForms.TimelineControls
  					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
 					x => this.model.GetMaxValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
 					envelopePixelStep, 
-					e.BeginTime, 
-					e.EndTime);
+					beginUnitX, 
+					endUnitX);
 				curvePointsEnvMin = this.GetCurvePoints(
 					rect, 
  					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
 					x => this.model.GetMinValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
 					envelopePixelStep, 
-					e.BeginTime, 
-					e.EndTime);
+					beginUnitX, 
+					endUnitX);
 			}
 
 			// Draw the envelope area
@@ -276,8 +280,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected virtual void OnPaintOverlay(TimelineViewTrackPaintEventArgs e)
 		{
 			Rectangle rect = e.TargetRect;
-			float beginX = this.ParentView.GetPosAtUnit(e.BeginTime);
-			float endX = this.ParentView.GetPosAtUnit(e.EndTime);
+			float beginX = this.ParentView.GetPosAtUnit(this.model.BeginTime);
+			float endX = this.ParentView.GetPosAtUnit(this.model.EndTime);
 
 			// Draw boundaries
 			{

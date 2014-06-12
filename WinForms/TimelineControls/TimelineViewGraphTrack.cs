@@ -383,9 +383,16 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				float beginUnitX = Math.Max(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll, this.ContentBeginTime);
 				float endUnitX = Math.Min(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
-				foreach (TimelineViewGraph graph in this.graphList)
+
+				beginUnitX = Math.Max(beginUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Left - 1));
+				endUnitX = Math.Min(endUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Right));
+
+				if (beginUnitX <= endUnitX)
 				{
-					graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, e.QualityHint, rect, beginUnitX, endUnitX));
+					foreach (TimelineViewGraph graph in this.graphList)
+					{
+						graph.OnPaint(new TimelineViewTrackPaintEventArgs(this, e.Graphics, e.QualityHint, rect, beginUnitX, endUnitX));
+					}
 				}
 			}
 
