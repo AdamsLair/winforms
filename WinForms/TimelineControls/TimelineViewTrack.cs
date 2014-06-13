@@ -26,7 +26,22 @@ namespace AdamsLair.WinForms.TimelineControls
 		public TimelineView ParentView
 		{
 			get { return this.parentView; }
-			internal set { this.parentView = value; }
+			internal set
+			{
+				if (this.parentView != null)
+				{
+					this.parentView.UnitZoomChanged -= this.parentView_UnitZoomChanged;
+					this.parentView.Scroll -= this.parentView_Scroll;
+					this.parentView.UnitChanged -= this.parentView_UnitChanged;
+				}
+				this.parentView = value;
+				if (this.parentView != null)
+				{
+					this.parentView.UnitZoomChanged += this.parentView_UnitZoomChanged;
+					this.parentView.Scroll += this.parentView_Scroll;
+					this.parentView.UnitChanged += this.parentView_UnitChanged;
+				}
+			}
 		}
 		public ITimelineTrackModel Model
 		{
@@ -163,7 +178,22 @@ namespace AdamsLair.WinForms.TimelineControls
 			if (this.ContentWidthChanged != null)
 				this.ContentWidthChanged(this, EventArgs.Empty);
 		}
-
+		protected virtual void OnViewUnitChanged() {}
+		protected virtual void OnViewScrolled() {}
+		protected virtual void OnViewScaleChanged() {}
+		
+		private void parentView_UnitChanged(object sender, EventArgs e)
+		{
+			this.OnViewUnitChanged();
+		}
+		private void parentView_Scroll(object sender, System.Windows.Forms.ScrollEventArgs e)
+		{
+			this.OnViewScrolled();
+		}
+		private void parentView_UnitZoomChanged(object sender, EventArgs e)
+		{
+			this.OnViewScaleChanged();
+		}
 		private void model_TrackNameChanged(object sender, EventArgs e)
 		{
 			this.Invalidate();

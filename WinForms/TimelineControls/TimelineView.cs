@@ -62,7 +62,6 @@ namespace AdamsLair.WinForms.TimelineControls
 		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(35);
 		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(35);
 		private	bool						adaptiveQuality		= true;
-		private	bool						showMouseoverTime	= true;
 
 		private	bool		mouseoverContent	= false;
 		private	float		mouseoverUnits		= 0.0f;
@@ -78,6 +77,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	Rectangle	rectContentArea;
 
 		public event EventHandler UnitZoomChanged = null;
+		public event EventHandler UnitChanged = null;
 
 		
 		public ITimelineModel Model
@@ -98,7 +98,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					this.model = value ?? new TimelineModel();
 					
-					this.OnModelUnitChanged(EventArgs.Empty);
+					this.OnUnitChanged(EventArgs.Empty);
 					if (this.model.Tracks.Any())
 					{
 						this.OnModelTracksAdded(new TimelineTrackModelCollectionEventArgs(this.model.Tracks));
@@ -141,16 +141,8 @@ namespace AdamsLair.WinForms.TimelineControls
 			get { return this.unitZoom; }
 			set
 			{
-				value = Math.Max(value, 0.00000001f);
-				if (this.unitZoom != value)
-				{
-					this.unitZoom = value;
-					this.UpdateContentWidth();
-					if (this.UnitZoomChanged != null)
-						this.UnitZoomChanged(this, EventArgs.Empty);
-					this.Invalidate();
-					this.fitZoom = false;
-				}
+				this.fitZoom = false;
+				this.SetUnitZoomInternal(value);
 			}
 		}
 		[DefaultValue(150)]
@@ -259,6 +251,14 @@ namespace AdamsLair.WinForms.TimelineControls
 				{
 					this.paintHqTimer.Dispose();
 					this.paintHqTimer = null;
+				}
+				if (this.trackList != null)
+				{
+					foreach (TimelineViewTrack track in this.trackList)
+					{
+						track.ParentView = null;
+					}
+					this.trackList.Clear();
 				}
 			}
 		}
@@ -372,7 +372,8 @@ namespace AdamsLair.WinForms.TimelineControls
 			float oldCursorUnits = this.GetUnitAtPos(targetPos.X);
 
 			// Apply Zoom
-			this.UnitZoom *= (float)Math.Pow(1.5f, amount);
+			this.fitZoom = false;
+			this.SetUnitZoomInternal(this.unitZoom * (float)Math.Pow(1.5f, amount));
 
 			// If the cursor is within the Timeline area, zoom to the cursor. Otherwise, zoom to the center.
 			float newCursorUnits = this.GetUnitAtPos(targetPos.X);
@@ -395,10 +396,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			float availableSpace = this.rectContentArea.Width - 1;
 			float targetZoom = availableSpace / (duration * DefaultPixelsPerUnit * this.model.UnitBaseScale);
 
-			this.UnitZoom = targetZoom;
-			this.UnitScroll = minTime;
-
 			this.fitZoom = true;
+			this.SetUnitZoomInternal(targetZoom);
+			this.UnitScroll = minTime;
 		}
 
 		protected void InvalidateLowQuality()
@@ -430,6 +430,19 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.Invalidate(invalidateRect);
 		}
 
+		private void SetUnitZoomInternal(float newZoom)
+		{
+			newZoom = Math.Max(newZoom, 0.00000001f);
+			if (this.unitZoom == newZoom) return;
+
+			this.unitZoom = newZoom;
+			this.UpdateContentWidth();
+
+			if (this.UnitZoomChanged != null)
+				this.UnitZoomChanged(this, EventArgs.Empty);
+
+			this.Invalidate();
+		}
 		private void UpdateGeometry()
 		{
 			Rectangle lastRectTopRuler		= this.rectTopRuler;
@@ -534,10 +547,13 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.AutoScrollMinSize = autoScrollSize;
 		}
 
-		protected virtual void OnModelUnitChanged(EventArgs e)
+		protected virtual void OnUnitChanged(EventArgs e)
 		{
 			this.Invalidate();
 			this.UpdateContentWidth();
+
+			if (this.UnitChanged != null)
+				this.UnitChanged(this, e);
 		}
 		protected virtual void OnModelTracksRemoved(TimelineTrackModelCollectionEventArgs e)
 		{
@@ -1051,7 +1067,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		private void model_UnitChanged(object sender, EventArgs e)
 		{
-			this.OnModelUnitChanged(e);
+			this.OnUnitChanged(e);
 		}
 		private void paintHqTimer_Tick(object sender, EventArgs e)
 		{

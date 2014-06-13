@@ -29,6 +29,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	QualityLevel			curvePrecision		= QualityLevel.Medium;
 		private	QualityLevel			envelopePrecision	= QualityLevel.Medium;
 
+		private List<Rectangle>		drawBufferBigRuler	= new List<Rectangle>();
+		private List<Rectangle>		drawBufferMedRuler	= new List<Rectangle>();
+		private List<Rectangle>		drawBufferMinRuler	= new List<Rectangle>();
+
 
 		public new ITimelineGraphTrackModel Model
 		{
@@ -318,17 +322,44 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.UpdateContentWidth();
 			this.AdjustVerticalUnits(AdjustVerticalMode.Shrink);
 		}
+		protected override void OnViewScaleChanged()
+		{
+			base.OnViewScaleChanged();
+			foreach (TimelineViewGraph graph in this.graphList)
+			{
+				graph.OnViewScaleChanged();
+			}
+		}
+		protected override void OnViewScrolled()
+		{
+			base.OnViewScrolled();
+			foreach (TimelineViewGraph graph in this.graphList)
+			{
+				graph.OnViewScrolled();
+			}
+		}
+		protected override void OnViewUnitChanged()
+		{
+			base.OnViewUnitChanged();
+			foreach (TimelineViewGraph graph in this.graphList)
+			{
+				graph.OnViewUnitChanged();
+			}
+		}
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaint(e);
 
 			Rectangle rect = e.TargetRect;
-
+			
 			// Draw extended ruler markings in the background
 			{
-				Pen bigLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkMajor.ScaleAlpha(0.25f)));
-				Pen medLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkRegular.ScaleAlpha(0.25f)));
-				Pen minLinePen = new Pen(new SolidBrush(e.Renderer.ColorRulerMarkMinor.ScaleAlpha(0.25f)));
+				Brush bigLineBrush = new SolidBrush(e.Renderer.ColorRulerMarkMajor.ScaleAlpha(0.25f));
+				Brush medLineBrush = new SolidBrush(e.Renderer.ColorRulerMarkRegular.ScaleAlpha(0.25f));
+				Brush minLineBrush = new SolidBrush(e.Renderer.ColorRulerMarkMinor.ScaleAlpha(0.25f));
+				this.drawBufferBigRuler.Clear();
+				this.drawBufferMedRuler.Clear();
+				this.drawBufferMinRuler.Clear();
 
 				// Horizontal ruler marks
 				foreach (TimelineViewRulerMark mark in this.ParentView.GetVisibleRulerMarks((int)e.Graphics.ClipBounds.Left, (int)e.Graphics.ClipBounds.Right))
@@ -336,22 +367,21 @@ namespace AdamsLair.WinForms.TimelineControls
 					if (mark.PixelValue < e.Graphics.ClipBounds.Left) continue;
 					if (mark.PixelValue > e.Graphics.ClipBounds.Right) break;
 
-					Pen markPen;
+					Rectangle lineRect = new Rectangle((int)mark.PixelValue, (int)rect.Y, 1, (int)rect.Height);
+
 					switch (mark.Weight)
 					{
 						case TimelineViewRulerMarkWeight.Major:
-							markPen = bigLinePen;
+							this.drawBufferBigRuler.Add(lineRect);
 							break;
 						default:
 						case TimelineViewRulerMarkWeight.Regular:
-							markPen = medLinePen;
+							this.drawBufferMedRuler.Add(lineRect);
 							break;
 						case TimelineViewRulerMarkWeight.Minor:
-							markPen = minLinePen;
+							this.drawBufferMinRuler.Add(lineRect);
 							break;
 					}
-
-					e.Graphics.DrawLine(markPen, (int)mark.PixelValue, (int)rect.Top, (int)mark.PixelValue, (int)rect.Bottom);
 				}
 
 				// Vertical ruler marks
@@ -360,23 +390,26 @@ namespace AdamsLair.WinForms.TimelineControls
 					if (mark.PixelValue < e.Graphics.ClipBounds.Top) continue;
 					if (mark.PixelValue > e.Graphics.ClipBounds.Bottom) break;
 
-					Pen markPen;
+					Rectangle lineRect = new Rectangle((int)rect.X, (int)mark.PixelValue, (int)rect.Width, 1);
+					
 					switch (mark.Weight)
 					{
 						case TimelineViewRulerMarkWeight.Major:
-							markPen = bigLinePen;
+							this.drawBufferBigRuler.Add(lineRect);
 							break;
 						default:
 						case TimelineViewRulerMarkWeight.Regular:
-							markPen = medLinePen;
+							this.drawBufferMedRuler.Add(lineRect);
 							break;
 						case TimelineViewRulerMarkWeight.Minor:
-							markPen = minLinePen;
+							this.drawBufferMinRuler.Add(lineRect);
 							break;
 					}
-
-					e.Graphics.DrawLine(markPen, (int)rect.Left, (int)mark.PixelValue, (int)rect.Right, (int)mark.PixelValue);
 				}
+
+				if (this.drawBufferBigRuler.Count > 0) e.Graphics.FillRectangles(bigLineBrush, this.drawBufferBigRuler.ToArray());
+				if (this.drawBufferMedRuler.Count > 0) e.Graphics.FillRectangles(medLineBrush, this.drawBufferMedRuler.ToArray());
+				if (this.drawBufferMinRuler.Count > 0) e.Graphics.FillRectangles(minLineBrush, this.drawBufferMinRuler.ToArray());
 			}
 
 			// Draw the graphs

@@ -18,6 +18,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	float					curveOpacity	= 1.0f;
 		private	float					envelopeOpacity	= 0.35f;
 
+		private	bool	skipEnvelope	= false;
+
 
 		public TimelineViewGraphTrack ParentTrack
 		{
@@ -92,6 +94,15 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		protected virtual void OnModelChanged(TimelineGraphChangedEventArgs e)
 		{
+			if (e.OldGraph != null)
+			{
+				e.OldGraph.GraphChanged -= this.Model_GraphChanged;
+			}
+			this.skipEnvelope = false;
+			if (e.Graph != null)
+			{
+				e.Graph.GraphChanged += this.Model_GraphChanged;
+			}
 			return;
 		}
 		protected internal virtual void OnPaint(TimelineViewTrackPaintEventArgs e)
@@ -110,7 +121,12 @@ namespace AdamsLair.WinForms.TimelineControls
 					e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
 					break;
 			}
-			this.OnPaintCurve(e);
+			float pixelWidth = this.ParentView.ConvertUnitsToPixels(this.model.EndTime - this.model.BeginTime);
+			if (pixelWidth < 5) e.Graphics.SmoothingMode = SmoothingMode.HighSpeed;
+			if (pixelWidth > 2)
+			{
+				this.OnPaintCurve(e);
+			}
 			e.Graphics.SmoothingMode = SmoothingMode.Default;
 
 			// Draw overlay
@@ -140,6 +156,9 @@ namespace AdamsLair.WinForms.TimelineControls
 			float minUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
 			Rectangle rect = e.TargetRect;
 
+			// Begin a little sooner, so interpolation / error checking can gather some data
+			beginUnitX -= minUnitStep * 5.0f;
+
 			// Determine sample points
 			List<PointF> curvePoints = null;
 			List<PointF> curvePointsEnvMax = null;
@@ -148,7 +167,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				curvePoints = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, beginUnitX, endUnitX);
 			}
-			if (this.envelopeOpacity > 0.0f)
+			if (this.envelopeOpacity > 0.0f && !this.skipEnvelope)
 			{
 				const float EnvelopeBasePixelRadius = 5.0f;
 				float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
@@ -171,17 +190,20 @@ namespace AdamsLair.WinForms.TimelineControls
 				curvePointsEnvMax = this.GetCurvePoints(
 					rect,
  					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
-					x => this.model.GetMaxValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
+					x => this.model.GetMaxValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
 					envelopePixelStep, 
-					beginUnitX, 
-					endUnitX);
+					envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
+					envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
 				curvePointsEnvMin = this.GetCurvePoints(
 					rect, 
  					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
-					x => this.model.GetMinValueInRange(envelopeUnitStep * (int)(x / envelopeUnitStep) - envelopeUnitRadius, envelopeUnitStep * (int)(x / envelopeUnitStep) + envelopeUnitRadius), 
-					envelopePixelStep, 
-					beginUnitX, 
-					endUnitX);
+					x => this.model.GetMinValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
+					envelopePixelStep,
+					envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
+					envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
+
+				if (curvePointsEnvMax == null || curvePointsEnvMin == null || curvePointsEnvMax.Count + curvePointsEnvMin.Count < 3)
+					this.skipEnvelope = true;
 			}
 
 			// Draw the envelope area
@@ -240,10 +262,11 @@ namespace AdamsLair.WinForms.TimelineControls
 						curveBlend.Positions[i] = baseBlend[firstIndex + (lastIndex - firstIndex) / 2].Key;
 					}
 
-					if (highestOpacity <= 0.01f)
+					if (highestOpacity <= 0.05f)
 					{
 						envelopeGradient = null;
 						curveGradient = null;
+						this.skipEnvelope = true;
 					}
 					else
 					{
@@ -291,6 +314,15 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
 			}
 		}
+		protected internal virtual void OnViewScrolled()
+		{
+			this.skipEnvelope = false;
+		}
+		protected internal virtual void OnViewScaleChanged()
+		{
+			this.skipEnvelope = false;
+		}
+		protected internal virtual void OnViewUnitChanged() {}
 
 		protected List<PointF> GetCurvePoints(Rectangle trackArea, QualityLevel sampleQuality, Func<float,float> curveFunc, float minPixelStep, float beginUnitX, float endUnitX)
 		{
@@ -312,7 +344,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				explicitSamples.Sort();
 
 				// Gather dynamic samples based on graph function fluctuation
-				float errorThreshold = Math.Abs(this.parentTrack.VerticalUnitTop - this.parentTrack.VerticalUnitBottom) / trackArea.Height;
+				float errorThreshold = 2.5f * Math.Abs(this.parentTrack.VerticalUnitTop - this.parentTrack.VerticalUnitBottom) / trackArea.Height;
 				switch (sampleQuality)
 				{
 					case QualityLevel.High:
@@ -320,20 +352,20 @@ namespace AdamsLair.WinForms.TimelineControls
 						break;
 					default:
 					case QualityLevel.Medium:
-						errorThreshold *= 2.5f;
+						errorThreshold *= 2.0f;
 						break;
 					case QualityLevel.Low:
-						errorThreshold *= 5.0f;
+						errorThreshold *= 4.0f;
 						break;
 				}
-				float curUnitX = beginUnitX;
+				float curUnitX = MinUnitStep * (int)(beginUnitX / MinUnitStep) - MinUnitStep;
 				float curUnitY;
 				float curPixelX = this.ParentView.GetPosAtUnit(beginUnitX);
 				float curPixelY = trackArea.Y + this.parentTrack.GetPosAtUnit(curveFunc(beginUnitX - MinUnitStep));
 				float lastPixelX;
 				float lastPixelY;
-				float lastSamplePixelX = 0.0f;
-				float lastSamplePixelY = 0.0f;
+				float lastSampleUnitX = 0.0f;
+				float lastSampleUnitY = 0.0f;
 				int nextExplicitIndex = 0;
 				bool explicitSample = true;
 				int skipCount = 0;
@@ -346,24 +378,28 @@ namespace AdamsLair.WinForms.TimelineControls
 					if (explicitSample)
 					{
 						curvePoints.Add(new PointF(curPixelX, curPixelY));
-						lastSamplePixelX = curPixelX;
-						lastSamplePixelY = curPixelY;
+						lastSampleUnitX = curUnitX;
+						lastSampleUnitY = curUnitY;
 						explicitSample = false;
 					}
 					else
 					{
-						float error = GetLinearInterpolationError(
-							this.ParentView.GetUnitAtPos(lastSamplePixelX), 
-							this.parentTrack.GetUnitAtPos(lastSamplePixelY - trackArea.Y), 
-							curUnitX, 
-							curUnitY, 
-							curveFunc);
+						float error = 0.0f;
+						if (skipCount > 0)
+						{
+							error = GetLinearInterpolationError(
+								lastSampleUnitX, 
+								lastSampleUnitY, 
+								curUnitX, 
+								curUnitY, 
+								curveFunc);
+						}
 						if (error * skipCount >= errorThreshold)
 						{
 							skipCount = 0;
 							curvePoints.Add(new PointF(curPixelX, curPixelY));
-							lastSamplePixelX = curPixelX;
-							lastSamplePixelY = curPixelY;
+							lastSampleUnitX = curUnitX;
+							lastSampleUnitY = curUnitY;
 						}
 						else
 						{
@@ -403,6 +439,11 @@ namespace AdamsLair.WinForms.TimelineControls
 				curX += stepSize;
 			}
 			return (float)(error / Samples);
+		}
+
+		private void Model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)
+		{
+			this.skipEnvelope = false;
 		}
 	}
 }
