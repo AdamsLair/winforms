@@ -63,12 +63,21 @@ namespace AdamsLair.WinForms.TimelineControls
 		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(35);
 		private	bool						adaptiveQuality		= true;
 
-		private	bool		mouseoverContent	= false;
-		private	float		mouseoverUnits		= 0.0f;
+		private	bool				mouseoverContent	= false;
+		private	float				mouseoverUnits		= 0.0f;
+		private	TimelineViewTrack	mouseoverTrack		= null;
+		private	bool				mouseScrolling		= false;
+		private	Point				mouseActionOrigin	= Point.Empty;
+		private	Timer				mouseActionTimer	= null;
+		private	PointF				mouseScrollAcc		= PointF.Empty;
 
 		private	bool		paintLowQuality	= false;
 		private	TimeSpan	lastPaintHqTime	= TimeSpan.Zero;
 		private	Timer		paintHqTimer	= null;
+
+		private List<Rectangle>	drawBufferBigRuler	= new List<Rectangle>();
+		private List<Rectangle>	drawBufferMedRuler	= new List<Rectangle>();
+		private List<Rectangle>	drawBufferMinRuler	= new List<Rectangle>();
 
 		private	Rectangle	rectTopRuler;
 		private	Rectangle	rectBottomRuler;
@@ -78,6 +87,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		public event EventHandler UnitZoomChanged = null;
 		public event EventHandler UnitChanged = null;
+		public event EventHandler ViewScrolled = null;
 
 		
 		public ITimelineModel Model
@@ -128,7 +138,11 @@ namespace AdamsLair.WinForms.TimelineControls
 		public float UnitScroll
 		{
 			get { return this.ConvertPixelsToUnits(this.AutoScrollPosition.X); }
-			set { this.AutoScrollPosition = new Point(-(int)this.ConvertUnitsToPixels(value), -this.AutoScrollPosition.Y); }
+			set
+			{
+				this.AutoScrollPosition = new Point(-(int)this.ConvertUnitsToPixels(value), -this.AutoScrollPosition.Y);
+				this.OnViewScrolled(EventArgs.Empty);
+			}
 		}
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float VisibleUnitWidth
@@ -223,6 +237,18 @@ namespace AdamsLair.WinForms.TimelineControls
 				return p;
 			}
 		}
+		public bool MouseoverContent
+		{
+			get { return this.mouseoverContent; }
+		}
+		public float MouseoverUnits
+		{
+			get { return this.mouseoverUnits; }
+		}
+		public TimelineViewTrack MouseoverTrack
+		{
+			get { return this.mouseoverTrack; }
+		}
 
 
 		public TimelineView()
@@ -241,6 +267,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.paintHqTimer.Enabled = false;
 			this.paintHqTimer.Interval = 50;
 			this.paintHqTimer.Tick += this.paintHqTimer_Tick;
+
+			this.mouseActionTimer = new Timer();
+			this.mouseActionTimer.Enabled = false;
+			this.mouseActionTimer.Interval = 16;
+			this.mouseActionTimer.Tick += this.mouseActionTimer_Tick;
 		}
 		protected override void Dispose(bool disposing)
 		{
@@ -441,7 +472,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			if (this.UnitZoomChanged != null)
 				this.UnitZoomChanged(this, EventArgs.Empty);
 
-			this.Invalidate();
+			this.InvalidateLowQuality();
 		}
 		private void UpdateGeometry()
 		{
@@ -547,6 +578,35 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.AutoScrollMinSize = autoScrollSize;
 		}
 
+		protected void UpdateMouseoverState()
+		{
+			float unitsPerPixel = this.ConvertPixelsToUnits(1.0f);
+			Point mousePos = this.PointToClient(Cursor.Position);
+			
+			bool oldHoverContent = this.mouseoverContent;
+			float oldUnits = this.mouseoverUnits;
+
+			this.mouseoverContent = !this.mouseScrolling && this.rectContentArea.Contains(mousePos);
+			if (this.mouseoverContent)
+			{
+				this.mouseoverUnits = this.GetUnitAtPos(mousePos.X);
+				this.mouseoverTrack = this.GetTrackAtPos(mousePos.X, mousePos.Y);
+			}
+			else
+			{
+				this.mouseoverUnits = 0.0f;
+				this.mouseoverTrack = null;
+			}
+
+			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			{
+				float unitSpeed = Math.Abs(this.mouseoverUnits - oldUnits);
+				this.InvalidateContent(
+					Math.Min(oldUnits, this.mouseoverUnits) - unitsPerPixel - unitSpeed, 
+					Math.Max(oldUnits, this.mouseoverUnits) + unitsPerPixel + unitSpeed);
+			}
+		}
+
 		protected virtual void OnUnitChanged(EventArgs e)
 		{
 			this.Invalidate();
@@ -642,6 +702,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.UpdateContentWidth();
 		}
 
+		protected virtual void OnViewScrolled(EventArgs e)
+		{
+			if (this.ViewScrolled != null)
+				this.ViewScrolled(this, e);
+		}
 		protected override void OnScroll(ScrollEventArgs se)
 		{
 			base.OnScroll(se);
@@ -651,6 +716,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				this.fitZoom = false;
 			}
+			this.OnViewScrolled(EventArgs.Empty);
 		}
 		protected override void OnResize(EventArgs eventargs)
 		{
@@ -686,58 +752,84 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				this.UnitScroll += this.ConvertPixelsToUnits(this.rectContentArea.Width) / 50.0f;
 				this.InvalidateLowQuality();
+				this.OnViewScrolled(EventArgs.Empty);
 			}
 			else if (e.KeyCode == Keys.Right)
 			{
 				this.UnitScroll -= this.ConvertPixelsToUnits(this.rectContentArea.Width) / 50.0f;
 				this.InvalidateLowQuality();
+				this.OnViewScrolled(EventArgs.Empty);
 			}
 			else if (e.KeyCode == Keys.Up)
 			{
 				this.AutoScrollPosition = new Point(-this.AutoScrollPosition.X, -this.AutoScrollPosition.Y - this.ClientSize.Height / 50);
 				this.InvalidateLowQuality();
+				this.OnViewScrolled(EventArgs.Empty);
 			}
 			else if (e.KeyCode == Keys.Down)
 			{
 				this.AutoScrollPosition = new Point(-this.AutoScrollPosition.X, -this.AutoScrollPosition.Y + this.ClientSize.Height / 50);
 				this.InvalidateLowQuality();
+				this.OnViewScrolled(EventArgs.Empty);
 			}
 			else if (e.KeyCode == Keys.F)
 			{
 				this.ZoomToFit();
 			}
 		}
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
+			base.OnMouseDown(e);
+			if (e.Button == MouseButtons.Middle)
+			{
+				if (!this.mouseScrolling)
+				{
+					this.mouseScrolling = true;
+					this.mouseActionOrigin = e.Location;
+					this.mouseActionTimer.Enabled = true;
+					this.UpdateMouseoverState();
+				}
+			}
+		}
+		protected override void OnMouseUp(MouseEventArgs e)
+		{
+			base.OnMouseUp(e);
+			if (e.Button == MouseButtons.Middle)
+			{
+				if (this.mouseScrolling)
+				{
+					this.mouseScrolling = false;
+					this.mouseActionTimer.Enabled = false;
+
+					this.Invalidate();
+					this.UpdateMouseoverState();
+				}
+			}
+		}
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			base.OnMouseMove(e);
-			bool oldHoverContent = this.mouseoverContent;
-			float oldUnits = this.mouseoverUnits;
-			float unitsPerPixel = this.ConvertPixelsToUnits(1.0f);
 
-			this.mouseoverContent = this.rectContentArea.Contains(e.Location);
-			if (this.mouseoverContent)
+			if (this.mouseScrolling)
 			{
-				this.mouseoverUnits = this.GetUnitAtPos(e.X);
+				this.InvalidateLowQuality();
 			}
-
-			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			else
 			{
-				float unitSpeed = Math.Abs(this.mouseoverUnits - oldUnits);
-				this.InvalidateContent(
-					Math.Min(oldUnits, this.mouseoverUnits) - unitsPerPixel - unitSpeed, 
-					Math.Max(oldUnits, this.mouseoverUnits) + unitsPerPixel + unitSpeed);
+				this.UpdateMouseoverState();
 			}
 		}
 		protected override void OnMouseLeave(EventArgs e)
 		{
 			base.OnMouseLeave(e);
-			this.mouseoverContent = false;
+			this.UpdateMouseoverState();
 		}
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			if (this.VerticalScroll.Visible && this.VerticalScroll.Enabled)
 			{
 				base.OnMouseWheel(e);
+				this.OnViewScrolled(EventArgs.Empty);
 			}
 			else
 			{
@@ -768,10 +860,48 @@ namespace AdamsLair.WinForms.TimelineControls
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorLightBackground), this.rectContentArea);
 
+			// Draw extended ruler markings in the background
+			{
+				Brush bigLineBrush = new SolidBrush(this.renderer.ColorRulerMarkMajor.ScaleAlpha(0.25f));
+				Brush medLineBrush = new SolidBrush(this.renderer.ColorRulerMarkRegular.ScaleAlpha(0.25f));
+				Brush minLineBrush = new SolidBrush(this.renderer.ColorRulerMarkMinor.ScaleAlpha(0.25f));
+				this.drawBufferBigRuler.Clear();
+				this.drawBufferMedRuler.Clear();
+				this.drawBufferMinRuler.Clear();
+
+				// Horizontal ruler marks
+				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks((int)e.Graphics.ClipBounds.Left, (int)e.Graphics.ClipBounds.Right))
+				{
+					if (mark.PixelValue < e.Graphics.ClipBounds.Left) continue;
+					if (mark.PixelValue > e.Graphics.ClipBounds.Right) break;
+
+					Rectangle lineRect = new Rectangle((int)mark.PixelValue, (int)this.rectContentArea.Y, 1, (int)this.rectContentArea.Height);
+
+					switch (mark.Weight)
+					{
+						case TimelineViewRulerMarkWeight.Major:
+							this.drawBufferBigRuler.Add(lineRect);
+							break;
+						default:
+						case TimelineViewRulerMarkWeight.Regular:
+							this.drawBufferMedRuler.Add(lineRect);
+							break;
+						case TimelineViewRulerMarkWeight.Minor:
+							this.drawBufferMinRuler.Add(lineRect);
+							break;
+					}
+				}
+
+				if (this.drawBufferBigRuler.Count > 0) e.Graphics.FillRectangles(bigLineBrush, this.drawBufferBigRuler.ToArray());
+				if (this.drawBufferMedRuler.Count > 0) e.Graphics.FillRectangles(medLineBrush, this.drawBufferMedRuler.ToArray());
+				if (this.drawBufferMinRuler.Count > 0) e.Graphics.FillRectangles(minLineBrush, this.drawBufferMinRuler.ToArray());
+			}
+
 			GraphicsState state;
+			int y;
 
 			// Draw all the tracks
-			int y = 0;
+			y = 0;
 			foreach (TimelineViewTrack track in this.trackList)
 			{
 				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y + track.Height <= e.Graphics.ClipBounds.Top + 1)
@@ -784,9 +914,9 @@ namespace AdamsLair.WinForms.TimelineControls
 				// Content
 				{
 					Rectangle targetRect = new Rectangle(
-						this.rectContentArea.X,
+						this.rectContentArea.X + 1,
 						this.rectContentArea.Y + y + this.AutoScrollPosition.Y,
-						this.rectContentArea.Width,
+						this.rectContentArea.Width - 2,
 						track.Height);
 					state = e.Graphics.Save();
 					e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
@@ -844,6 +974,38 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.DrawLine(mouseoverTimePen, mouseoverPixels, this.rectContentArea.Top, mouseoverPixels, this.rectContentArea.Bottom);
 			}
 
+			// Draw all the track overlays and borders
+			y = 0;
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y + track.Height <= e.Graphics.ClipBounds.Top + 1)
+				{
+					y += track.Height + this.trackSpacing;
+					continue;
+				}
+				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y >= e.Graphics.ClipBounds.Bottom - 1) break;
+				
+				Rectangle targetRect = new Rectangle(
+					this.rectContentArea.X + 1,
+					this.rectContentArea.Y + y + this.AutoScrollPosition.Y,
+					this.rectContentArea.Width - 2,
+					track.Height);
+
+				// Overlay
+				{
+					state = e.Graphics.Save();
+					e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
+					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
+					if (!e.Graphics.ClipBounds.IsEmpty)
+					{
+						track.OnPaintOverlay(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
+					}
+					e.Graphics.Restore(state);
+				}
+
+				y += track.Height + this.trackSpacing;
+			}
+
 			// Draw the content area drop shadow
 			if (!this.rectContentArea.IsEmpty)
 			{
@@ -886,6 +1048,15 @@ namespace AdamsLair.WinForms.TimelineControls
 					this.OnPaintBottomRuler(new TimelineViewPaintEventArgs(this, e.Graphics, this.rectBottomRuler));
 				}
 				e.Graphics.Restore(state);
+			}
+
+			// Draw mouse action indicators
+			if (this.mouseScrolling)
+			{
+				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+				e.Graphics.FillEllipse(new SolidBrush(this.renderer.ColorText.ScaleAlpha(0.5f)), this.mouseActionOrigin.X - 3, this.mouseActionOrigin.Y - 3, 6, 6);
+				e.Graphics.DrawLine(new Pen(this.renderer.ColorText.ScaleAlpha(0.5f)), this.mouseActionOrigin, this.PointToClient(Cursor.Position));
+				e.Graphics.SmoothingMode = SmoothingMode.Default;
 			}
 
 			paintWatch.Stop();
@@ -1075,6 +1246,28 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.paintLowQuality = false;
 			this.Invalidate();
 			this.paintHqTimer.Enabled = false;
+		}
+		private void mouseActionTimer_Tick(object sender, EventArgs e)
+		{
+			Point mousePos = this.PointToClient(Cursor.Position);
+			const float ScrollSpeed = 0.5f;
+			this.mouseScrollAcc.X += (mousePos.X - this.mouseActionOrigin.X) * ScrollSpeed;
+			this.mouseScrollAcc.Y += (mousePos.Y - this.mouseActionOrigin.Y) * ScrollSpeed;
+
+			if (!this.HorizontalScroll.Visible || !this.HorizontalScroll.Enabled) this.mouseScrollAcc.X = 0.0f;
+			if (!this.VerticalScroll.Visible || !this.VerticalScroll.Enabled) this.mouseScrollAcc.Y = 0.0f;
+
+			Point quantizedMovement = new Point((int)this.mouseScrollAcc.X, (int)this.mouseScrollAcc.Y);
+			if (quantizedMovement != Point.Empty)
+			{
+				this.AutoScrollPosition = new Point(
+					-this.AutoScrollPosition.X + quantizedMovement.X,
+					-this.AutoScrollPosition.Y + quantizedMovement.Y);
+				this.mouseScrollAcc.X -= quantizedMovement.X;
+				this.mouseScrollAcc.Y -= quantizedMovement.Y;
+
+				this.OnViewScrolled(EventArgs.Empty);
+			}
 		}
 
 		public static float GetNiceMultiple(float rawMultiple, NiceMultipleMode mode = NiceMultipleMode.Nearest, NiceMultipleGranularity granularity = NiceMultipleGranularity.Medium)

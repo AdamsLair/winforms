@@ -18,7 +18,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	float					curveOpacity	= 1.0f;
 		private	float					envelopeOpacity	= 0.35f;
 
-		private	bool	skipEnvelope	= false;
+		private	bool				skipEnvelope			= false;
+		private	bool				curveCacheDirty			= true;
+		private	PointF[]			cacheCurveVertices		= null;
+		private	PointF[]			cacheEnvelopeVertices	= null;
+		private	LinearGradientBrush	cacheCurveGradient		= null;
+		private	LinearGradientBrush	cacheEnvelopeGradient	= null;
 
 
 		public TimelineViewGraphTrack ParentTrack
@@ -63,6 +68,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				if (this.curveOpacity != value)
 				{
 					this.curveOpacity = Math.Max(Math.Min(value, 1.0f), 0.0f);
+					this.curveCacheDirty = true;
 					this.Invalidate();
 				}
 			}
@@ -75,6 +81,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				if (this.envelopeOpacity != value)
 				{
 					this.envelopeOpacity = Math.Max(Math.Min(value, 1.0f), 0.0f);
+					this.curveCacheDirty = true;
 					this.Invalidate();
 				}
 			}
@@ -99,6 +106,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.OldGraph.GraphChanged -= this.Model_GraphChanged;
 			}
 			this.skipEnvelope = false;
+			this.curveCacheDirty = true;
 			if (e.Graph != null)
 			{
 				e.Graph.GraphChanged += this.Model_GraphChanged;
@@ -130,7 +138,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			e.Graphics.SmoothingMode = SmoothingMode.Default;
 
 			// Draw overlay
-			this.OnPaintOverlay(e);
+			this.OnPaintBoundaries(e);
 		}
 		protected virtual void OnPaintCurve(TimelineViewTrackPaintEventArgs e)
 		{
@@ -153,154 +161,171 @@ namespace AdamsLair.WinForms.TimelineControls
 					minPixelStep = 1.0f;
 					break;
 			}
+			float visibleMax = this.model.GetMaxValueInRange(beginUnitX, endUnitX);
+			float visibleMin = this.model.GetMinValueInRange(beginUnitX, endUnitX);
+			float visiblePixelHeight = this.ParentTrack.ConvertUnitsToPixels(Math.Abs(visibleMax - visibleMin));
+			if (visiblePixelHeight < 10.0f)			minPixelStep *= 8.0f;
+			else if (visiblePixelHeight < 20.0f)	minPixelStep *= 4.0f;
+			else if (visiblePixelHeight < 40.0f)	minPixelStep *= 2.0f;
+			else if (visiblePixelHeight < 70.0f)	minPixelStep *= 1.5f;
+			minPixelStep = Math.Min(minPixelStep, 4);
 			float minUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
 			Rectangle rect = e.TargetRect;
-
-			// Begin a little sooner, so interpolation / error checking can gather some data
-			beginUnitX -= minUnitStep * 5.0f;
-
-			// Determine sample points
-			List<PointF> curvePoints = null;
-			List<PointF> curvePointsEnvMax = null;
-			List<PointF> curvePointsEnvMin = null;
-			if (this.curveOpacity > 0.0f)
+			
+			if (this.curveCacheDirty)
 			{
-				curvePoints = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, beginUnitX, endUnitX);
-			}
-			if (this.envelopeOpacity > 0.0f && !this.skipEnvelope)
-			{
-				const float EnvelopeBasePixelRadius = 5.0f;
-				float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
-				float minEnvelopeStepFactor;
-				switch (e.GetAdjustedQuality(this.parentTrack.EnvelopePrecision))
-				{
-					case QualityLevel.High:
-						minEnvelopeStepFactor = 0.1f;
-						break;
-					default:
-					case QualityLevel.Medium:
-						minEnvelopeStepFactor = 0.5f;
-						break;
-					case QualityLevel.Low:
-						minEnvelopeStepFactor = 1.0f;
-						break;
-				}
-				float envelopePixelStep = minEnvelopeStepFactor * EnvelopeBasePixelRadius;
-				float envelopeUnitStep = minEnvelopeStepFactor * envelopeUnitRadius;
-				curvePointsEnvMax = this.GetCurvePoints(
-					rect,
- 					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
-					x => this.model.GetMaxValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
-					envelopePixelStep, 
-					envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
-					envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
-				curvePointsEnvMin = this.GetCurvePoints(
-					rect, 
- 					e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
-					x => this.model.GetMinValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
-					envelopePixelStep,
-					envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
-					envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
+				// Begin a little sooner, so interpolation / error checking can gather some data
+				beginUnitX -= minUnitStep * 5.0f;
 
-				if (curvePointsEnvMax == null || curvePointsEnvMin == null || curvePointsEnvMax.Count + curvePointsEnvMin.Count < 3)
-					this.skipEnvelope = true;
-			}
-
-			// Draw the envelope area
-			LinearGradientBrush curveGradient = null;
-			LinearGradientBrush envelopeGradient = null;
-			if (curvePointsEnvMax != null && curvePointsEnvMin != null && curvePointsEnvMax.Count + curvePointsEnvMin.Count >= 3)
-			{
-				PointF[] envelopeVertices = new PointF[curvePointsEnvMax.Count + curvePointsEnvMin.Count];
-				for (int i = 0; i < curvePointsEnvMax.Count; i++)
+				// Determine sample points
+				PointF[] curvePointsEnvMax = null;
+				PointF[] curvePointsEnvMin = null;
+				if (this.curveOpacity > 0.0f)
 				{
-					envelopeVertices[i] = curvePointsEnvMax[i];
+					this.cacheCurveVertices = this.GetCurvePoints(rect, e.GetAdjustedQuality(this.parentTrack.CurvePrecision), this.model.GetValueAtX, minPixelStep, beginUnitX, endUnitX);
 				}
-				for (int i = 0; i < curvePointsEnvMin.Count; i++)
+				if (this.envelopeOpacity > 0.0f && !this.skipEnvelope)
 				{
-					envelopeVertices[curvePointsEnvMax.Count + i] = curvePointsEnvMin[curvePointsEnvMin.Count - i - 1];
-				}
-
-				if (curvePoints != null)
-				{
-					float varianceUnitRadius = this.ParentView.ConvertPixelsToUnits(0.5f);
-					KeyValuePair<float,float>[] baseBlend = new KeyValuePair<float,float>[Math.Max(curvePoints.Count, 2)];
-					for (int i = 0; i < baseBlend.Length; i++)
+					const float EnvelopeBasePixelRadius = 5.0f;
+					float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
+					float minEnvelopeStepFactor;
+					switch (e.GetAdjustedQuality(this.parentTrack.EnvelopePrecision))
 					{
-						float relativeX = (float)(curvePoints[(int)((float)i * (curvePoints.Count - 1) / (float)(baseBlend.Length - 1))].X - rect.X) / (float)rect.Width;
-						float unitX = this.ParentView.GetUnitAtPos(rect.X + relativeX * rect.Width);
-						float variance = this.parentTrack.ConvertUnitsToPixels(
-							this.model.GetMaxValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius) - 
-							this.model.GetMinValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius)) / 80.0f;
-						float localOpacity = Math.Max(Math.Min(variance * variance, 1.0f), 0.0f);
-						baseBlend[i] = new KeyValuePair<float,float>(relativeX, localOpacity);
+						case QualityLevel.High:
+							minEnvelopeStepFactor = 0.1f;
+							break;
+						default:
+						case QualityLevel.Medium:
+							minEnvelopeStepFactor = 0.5f;
+							break;
+						case QualityLevel.Low:
+							minEnvelopeStepFactor = 1.0f;
+							break;
 					}
+					float envelopePixelStep = minEnvelopeStepFactor * EnvelopeBasePixelRadius;
+					float envelopeUnitStep = minEnvelopeStepFactor * envelopeUnitRadius;
+					curvePointsEnvMax = this.GetCurvePoints(
+						rect,
+ 						e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
+						x => this.model.GetMaxValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
+						envelopePixelStep, 
+						envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
+						envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
+					curvePointsEnvMin = this.GetCurvePoints(
+						rect, 
+ 						e.GetAdjustedQuality(this.parentTrack.CurvePrecision),
+						x => this.model.GetMinValueInRange(x - envelopeUnitRadius, x + envelopeUnitRadius), 
+						envelopePixelStep,
+						envelopeUnitStep * (int)(beginUnitX / envelopeUnitStep), 
+						envelopeUnitStep * ((int)(endUnitX / envelopeUnitStep) + 1));
 
-					envelopeGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
-					curveGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
-
-					const int Samples = 21;
-					const int SamplesHalf = Samples / 2;
-					const int BlendSamplesPerChunk = 4;
-					float highestOpacity = 0.0f;
-					ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
-					ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
-					for (int i = 0; i < envelopeBlend.Colors.Length; i++)
-					{
-						int firstIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk - SamplesHalf, 0), baseBlend.Length - 1);
-						int lastIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk + SamplesHalf, 0), baseBlend.Length - 1);
-						float sum = 0.0f;
-						for (int j = firstIndex; j <= lastIndex; j++)
-						{
-							sum += baseBlend[j].Value;
-						}
-						float localOpacity = sum / (float)(1 + lastIndex - firstIndex);
-						highestOpacity = Math.Max(highestOpacity, localOpacity);
-						envelopeBlend.Colors[i] = Color.FromArgb((int)(localOpacity * this.envelopeOpacity * 255.0f), this.baseColor);
-						envelopeBlend.Positions[i] = baseBlend[firstIndex + (lastIndex - firstIndex) / 2].Key;
-						curveBlend.Colors[i] = Color.FromArgb((int)((1.0f - localOpacity) * (1.0f - localOpacity) * this.curveOpacity * 255.0f), this.baseColor);
-						curveBlend.Positions[i] = baseBlend[firstIndex + (lastIndex - firstIndex) / 2].Key;
-					}
-
-					if (highestOpacity <= 0.05f)
-					{
-						envelopeGradient = null;
-						curveGradient = null;
+					if (curvePointsEnvMax == null || curvePointsEnvMin == null || curvePointsEnvMax.Length + curvePointsEnvMin.Length < 3)
 						this.skipEnvelope = true;
-					}
-					else
-					{
-						envelopeBlend.Positions[0] = 0.0f;
-						envelopeBlend.Positions[envelopeBlend.Positions.Length - 1] = 1.0f;
-						envelopeGradient.InterpolationColors = envelopeBlend;
-						curveBlend.Positions[0] = 0.0f;
-						curveBlend.Positions[curveBlend.Positions.Length - 1] = 1.0f;
-						curveGradient.InterpolationColors = curveBlend;
-					}
 				}
 
-				if (envelopeGradient != null)
+				if (curvePointsEnvMax != null && curvePointsEnvMin != null && curvePointsEnvMax.Length + curvePointsEnvMin.Length >= 3)
 				{
-					e.Graphics.FillPolygon(envelopeGradient, envelopeVertices);
+					// Calculate the visible envelope polygon
+					this.cacheEnvelopeVertices = new PointF[curvePointsEnvMax.Length + curvePointsEnvMin.Length];
+					for (int i = 0; i < curvePointsEnvMax.Length; i++)
+					{
+						this.cacheEnvelopeVertices[i] = curvePointsEnvMax[i];
+					}
+					for (int i = 0; i < curvePointsEnvMin.Length; i++)
+					{
+						this.cacheEnvelopeVertices[curvePointsEnvMax.Length + i] = curvePointsEnvMin[curvePointsEnvMin.Length - i - 1];
+					}
+
+					// Calculate the envelope and curve gradients
+					if (this.cacheCurveVertices != null)
+					{
+						float varianceUnitRadius = this.ParentView.ConvertPixelsToUnits(0.5f);
+						KeyValuePair<float,float>[] baseBlend = new KeyValuePair<float,float>[Math.Max(this.cacheCurveVertices.Length, 2)];
+						for (int i = 0; i < baseBlend.Length; i++)
+						{
+							float relativeX = (float)(this.cacheCurveVertices[(int)((float)i * (this.cacheCurveVertices.Length - 1) / (float)(baseBlend.Length - 1))].X - rect.X) / (float)rect.Width;
+							float unitX = this.ParentView.GetUnitAtPos(rect.X + relativeX * rect.Width);
+							float variance = this.parentTrack.ConvertUnitsToPixels(
+								this.model.GetMaxValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius) - 
+								this.model.GetMinValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius)) / 80.0f;
+							float localOpacity = Math.Max(Math.Min(variance * variance, 1.0f), 0.0f);
+							baseBlend[i] = new KeyValuePair<float,float>(relativeX, localOpacity);
+						}
+
+						this.cacheEnvelopeGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
+						this.cacheCurveGradient = new LinearGradientBrush(rect, Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal);
+
+						const int Samples = 21;
+						const int SamplesHalf = Samples / 2;
+						const int BlendSamplesPerChunk = 4;
+						float highestOpacity = 0.0f;
+						ColorBlend envelopeBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
+						ColorBlend curveBlend = new ColorBlend(Math.Max(baseBlend.Length * BlendSamplesPerChunk / Samples, 2));
+						for (int i = 0; i < envelopeBlend.Colors.Length; i++)
+						{
+							int firstIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk - SamplesHalf, 0), baseBlend.Length - 1);
+							int lastIndex = Math.Min(Math.Max(i * Samples / BlendSamplesPerChunk + SamplesHalf, 0), baseBlend.Length - 1);
+							float sum = 0.0f;
+							for (int j = firstIndex; j <= lastIndex; j++)
+							{
+								sum += baseBlend[j].Value;
+							}
+							float localOpacity = sum / (float)(1 + lastIndex - firstIndex);
+							highestOpacity = Math.Max(highestOpacity, localOpacity);
+							envelopeBlend.Colors[i] = Color.FromArgb((int)(localOpacity * this.envelopeOpacity * 255.0f), this.baseColor);
+							envelopeBlend.Positions[i] = baseBlend[firstIndex + (lastIndex - firstIndex) / 2].Key;
+							curveBlend.Colors[i] = Color.FromArgb((int)((1.0f - localOpacity) * (1.0f - localOpacity) * this.curveOpacity * 255.0f), this.baseColor);
+							curveBlend.Positions[i] = baseBlend[firstIndex + (lastIndex - firstIndex) / 2].Key;
+						}
+
+						if (highestOpacity <= 0.05f)
+						{
+							this.cacheEnvelopeGradient = null;
+							this.cacheCurveGradient = null;
+							this.skipEnvelope = true;
+						}
+						else
+						{
+							envelopeBlend.Positions[0] = 0.0f;
+							envelopeBlend.Positions[envelopeBlend.Positions.Length - 1] = 1.0f;
+							this.cacheEnvelopeGradient.InterpolationColors = envelopeBlend;
+							curveBlend.Positions[0] = 0.0f;
+							curveBlend.Positions[curveBlend.Positions.Length - 1] = 1.0f;
+							this.cacheCurveGradient.InterpolationColors = curveBlend;
+						}
+					}
 				}
+			}
+			
+			// Draw the envelope area
+			if (this.cacheEnvelopeGradient != null && this.cacheEnvelopeVertices != null && this.cacheEnvelopeVertices.Length >= 3)
+			{
+				e.Graphics.FillPolygon(this.cacheEnvelopeGradient, this.cacheEnvelopeVertices);
 			}
 
 			// Draw the graph
-			if (curvePoints != null && curvePoints.Count >= 2)
+			if (this.cacheCurveVertices != null && this.cacheCurveVertices.Length >= 2)
 			{
 				Pen linePen;
-				if (curveGradient != null)
+				if (this.cacheCurveGradient != null)
 				{
-					linePen = new Pen(curveGradient);
+					linePen = new Pen(this.cacheCurveGradient);
 				}
 				else
 				{
 					linePen = new Pen(Color.FromArgb((int)(this.curveOpacity * 255.0f), this.baseColor));
 				}
-				e.Graphics.DrawLines(linePen, curvePoints.ToArray());
+				e.Graphics.DrawLines(linePen, this.cacheCurveVertices);
+			}
+
+			// Keep in mind that our cache is no valid again
+			if (e.GetAdjustedQuality(this.parentTrack.CurvePrecision) == this.parentTrack.CurvePrecision && 
+				e.GetAdjustedQuality(this.parentTrack.EnvelopePrecision) == this.parentTrack.EnvelopePrecision)
+			{
+				this.curveCacheDirty = false;
 			}
 		}
-		protected virtual void OnPaintOverlay(TimelineViewTrackPaintEventArgs e)
+		protected virtual void OnPaintBoundaries(TimelineViewTrackPaintEventArgs e)
 		{
 			Rectangle rect = e.TargetRect;
 			float beginX = this.ParentView.GetPosAtUnit(this.model.BeginTime);
@@ -314,17 +339,13 @@ namespace AdamsLair.WinForms.TimelineControls
 				e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
 			}
 		}
-		protected internal virtual void OnViewScrolled()
+		protected internal virtual void OnViewportChanged()
 		{
 			this.skipEnvelope = false;
+			this.curveCacheDirty = true;
 		}
-		protected internal virtual void OnViewScaleChanged()
-		{
-			this.skipEnvelope = false;
-		}
-		protected internal virtual void OnViewUnitChanged() {}
 
-		protected List<PointF> GetCurvePoints(Rectangle trackArea, QualityLevel sampleQuality, Func<float,float> curveFunc, float minPixelStep, float beginUnitX, float endUnitX)
+		protected PointF[] GetCurvePoints(Rectangle trackArea, QualityLevel sampleQuality, Func<float,float> curveFunc, float minPixelStep, float beginUnitX, float endUnitX)
 		{
 			// Determine graph parameters
 			float MinUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
@@ -422,7 +443,7 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 
-			return curvePoints;
+			return curvePoints != null ? curvePoints.ToArray() : null;
 		}
 		protected static float GetLinearInterpolationError(float beginX, float beginY, float endX, float endY, Func<float,float> func)
 		{

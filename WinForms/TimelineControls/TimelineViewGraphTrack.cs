@@ -4,6 +4,7 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Text;
+using System.Windows.Forms;
 
 using AdamsLair.WinForms.Drawing;
 
@@ -322,28 +323,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.UpdateContentWidth();
 			this.AdjustVerticalUnits(AdjustVerticalMode.Shrink);
 		}
-		protected override void OnViewScaleChanged()
+		protected override void OnViewportChanged()
 		{
-			base.OnViewScaleChanged();
+			base.OnViewportChanged();
 			foreach (TimelineViewGraph graph in this.graphList)
 			{
-				graph.OnViewScaleChanged();
-			}
-		}
-		protected override void OnViewScrolled()
-		{
-			base.OnViewScrolled();
-			foreach (TimelineViewGraph graph in this.graphList)
-			{
-				graph.OnViewScrolled();
-			}
-		}
-		protected override void OnViewUnitChanged()
-		{
-			base.OnViewUnitChanged();
-			foreach (TimelineViewGraph graph in this.graphList)
-			{
-				graph.OnViewUnitChanged();
+				graph.OnViewportChanged();
 			}
 		}
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
@@ -360,29 +345,6 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.drawBufferBigRuler.Clear();
 				this.drawBufferMedRuler.Clear();
 				this.drawBufferMinRuler.Clear();
-
-				// Horizontal ruler marks
-				foreach (TimelineViewRulerMark mark in this.ParentView.GetVisibleRulerMarks((int)e.Graphics.ClipBounds.Left, (int)e.Graphics.ClipBounds.Right))
-				{
-					if (mark.PixelValue < e.Graphics.ClipBounds.Left) continue;
-					if (mark.PixelValue > e.Graphics.ClipBounds.Right) break;
-
-					Rectangle lineRect = new Rectangle((int)mark.PixelValue, (int)rect.Y, 1, (int)rect.Height);
-
-					switch (mark.Weight)
-					{
-						case TimelineViewRulerMarkWeight.Major:
-							this.drawBufferBigRuler.Add(lineRect);
-							break;
-						default:
-						case TimelineViewRulerMarkWeight.Regular:
-							this.drawBufferMedRuler.Add(lineRect);
-							break;
-						case TimelineViewRulerMarkWeight.Minor:
-							this.drawBufferMinRuler.Add(lineRect);
-							break;
-					}
-				}
 
 				// Vertical ruler marks
 				foreach (TimelineViewRulerMark mark in this.GetVisibleRulerMarks())
@@ -442,6 +404,25 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			base.OnPaintRightSidebar(e);
 			this.DrawRuler(e.Graphics, e.Renderer, e.TargetRect, false);
+		}
+		protected internal override void OnPaintOverlay(TimelineViewTrackPaintEventArgs e)
+		{
+			base.OnPaintOverlay(e);
+
+			// Display mouseover data / effects
+			Point cursorPos = this.ParentView.PointToClient(Cursor.Position);
+			if (this.ParentView.MouseoverTrack == this)
+			{
+				PointF cursorUnits = new PointF(
+					this.ParentView.GetUnitAtPos(cursorPos.X),
+					this.GetUnitAtPos(cursorPos.Y));
+				//Console.WriteLine("{0}, {1}", cursorPos, cursorUnits);
+
+				// Select the graph that is located nearest to the cursor
+				foreach (TimelineViewGraph graph in this.graphList)
+				{
+				}
+			}
 		}
 		protected void DrawRuler(Graphics g, TimelineViewControlRenderer r, Rectangle rect, bool left)
 		{
