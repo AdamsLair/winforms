@@ -330,35 +330,31 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.rectRightSidebar.Right - this.rectLeftSidebar.Left,
 				track.Height);
 
-			rect.X += this.ClientRectangle.X;
-			rect.Y += this.ClientRectangle.Y;
-
 			if (scrolled) rect.Y += this.AutoScrollPosition.Y;
 
 			return rect;
 		}
 		public TimelineViewTrack GetTrackAtPos(int x, int y, bool scrolled = true, bool allowNearest = false)
 		{
-			if (scrolled) y -= this.AutoScrollPosition.Y;
-
-			x -= this.ClientRectangle.X;
-			y -= this.ClientRectangle.Y;
+			y -= this.rectContentArea.Y;
 
 			if (allowNearest)
 			{
 				if (x < 0) x = 0;
 				if (y < 0) y = 0;
 				if (x >= this.ClientSize.Width) x = this.ClientSize.Width - 1;
-				if (y >= this.ClientSize.Height) y = this.ClientSize.Height - 1;
+				if (y >= this.rectContentArea.Height) y = this.rectContentArea.Height - 1;
 			}
 			else
 			{
 				if (x < 0) return null;
 				if (y < 0) return null;
 				if (x >= this.ClientSize.Width) return null;
-				if (y >= this.ClientSize.Height) return null;
+				if (y >= this.rectContentArea.Height) return null;
 			}
 			
+			if (scrolled) y -= this.AutoScrollPosition.Y;
+
 			foreach (TimelineViewTrack t in this.trackList)
 			{
 				y -= t.Height + this.trackSpacing;
@@ -399,7 +395,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			// Prepare position adjustment values
 			Point targetPos = this.PointToClient(Cursor.Position);
-			if (!this.ClientRectangle.Contains(targetPos)) targetPos = new Point(this.ClientRectangle.X + this.ClientRectangle.Width / 2, this.ClientRectangle.Y + this.ClientRectangle.Height / 2);
+			if (!this.ClientRectangle.Contains(targetPos)) targetPos = new Point(this.ClientRectangle.Width / 2, this.ClientRectangle.Height / 2);
 			float oldCursorUnits = this.GetUnitAtPos(targetPos.X);
 
 			// Apply Zoom
@@ -444,7 +440,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		protected void InvalidateContent(float fromUnits, float toUnits)
 		{
-			Rectangle invalidateRect = new Rectangle(this.rectContentArea.X, this.ClientRectangle.Y, this.rectContentArea.Width, this.ClientRectangle.Height);
+			Rectangle invalidateRect = new Rectangle(this.rectContentArea.X, 0, this.rectContentArea.Width, this.ClientRectangle.Height);
 
 			float fromPixels = Math.Max(this.GetPosAtUnit(fromUnits), invalidateRect.Left) - 1;
 			float toPixels = Math.Min(this.GetPosAtUnit(toUnits), invalidateRect.Right) + 2;
@@ -483,28 +479,28 @@ namespace AdamsLair.WinForms.TimelineControls
 			Rectangle lastRectContentArea	= this.rectContentArea;
 
 			this.rectTopRuler = new Rectangle(
-				this.ClientRectangle.X + this.areaLeftSidebar.Size,
-				this.ClientRectangle.Y + 0,
+				this.areaLeftSidebar.Size,
+				0,
 				this.ClientRectangle.Width - this.areaLeftSidebar.Size - this.areaRightSidebar.Size,
 				this.areaTopRuler.Size);
 			this.rectBottomRuler = new Rectangle(
-				this.ClientRectangle.X + this.areaLeftSidebar.Size,
-				this.ClientRectangle.Y + this.ClientRectangle.Height - this.areaBottomRuler.Size,
+				this.areaLeftSidebar.Size,
+				this.ClientRectangle.Height - this.areaBottomRuler.Size,
 				this.ClientRectangle.Width - this.areaLeftSidebar.Size - this.areaRightSidebar.Size,
 				this.areaBottomRuler.Size);
 			this.rectLeftSidebar = new Rectangle(
-				this.ClientRectangle.X,
-				this.ClientRectangle.Y + this.areaTopRuler.Size - 1,
+				0,
+				this.areaTopRuler.Size - 1,
 				this.areaLeftSidebar.Size + 1,
 				this.ClientRectangle.Height - this.areaTopRuler.Size - this.areaBottomRuler.Size + 2);
 			this.rectRightSidebar = new Rectangle(
-				this.ClientRectangle.X + this.ClientRectangle.Width - this.areaRightSidebar.Size - 1,
-				this.ClientRectangle.Y + this.areaTopRuler.Size - 1,
+				this.ClientRectangle.Width - this.areaRightSidebar.Size - 1,
+				this.areaTopRuler.Size - 1,
 				this.areaRightSidebar.Size + 1,
 				this.ClientRectangle.Height - this.areaTopRuler.Size - this.areaBottomRuler.Size + 2);
 			this.rectContentArea = new Rectangle(
-				this.ClientRectangle.X + this.areaLeftSidebar.Size,
-				this.ClientRectangle.Y + this.areaTopRuler.Size - 1,
+				this.areaLeftSidebar.Size,
+				this.areaTopRuler.Size - 1,
 				this.ClientRectangle.Width - this.areaLeftSidebar.Size - this.areaRightSidebar.Size,
 				this.ClientRectangle.Height - this.areaTopRuler.Size - this.areaBottomRuler.Size + 2);
 
@@ -583,9 +579,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			float unitsPerPixel = this.ConvertPixelsToUnits(1.0f);
 			Point mousePos = this.PointToClient(Cursor.Position);
 			
+			// Mind the old mouseover state
+			TimelineViewTrack oldHoverTrack = this.mouseoverTrack;
 			bool oldHoverContent = this.mouseoverContent;
 			float oldUnits = this.mouseoverUnits;
 
+			// Determine new mouseover state
 			this.mouseoverContent = !this.mouseScrolling && this.rectContentArea.Contains(mousePos);
 			if (this.mouseoverContent)
 			{
@@ -598,12 +597,31 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.mouseoverTrack = null;
 			}
 
+			// Do a selective repaint due to the moved mouseover line
 			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
 			{
 				float unitSpeed = Math.Abs(this.mouseoverUnits - oldUnits);
 				this.InvalidateContent(
 					Math.Min(oldUnits, this.mouseoverUnits) - unitsPerPixel - unitSpeed, 
 					Math.Max(oldUnits, this.mouseoverUnits) + unitsPerPixel + unitSpeed);
+			}
+
+			// Fire mouse location events for tracks
+			if (oldHoverTrack != this.mouseoverTrack)
+			{
+				if (oldHoverTrack != null)
+				{
+					oldHoverTrack.OnMouseLeave(EventArgs.Empty);
+				}
+				if (this.mouseoverTrack != null)
+				{
+					this.mouseoverTrack.OnMouseEnter(EventArgs.Empty);
+				}
+			}
+			if (this.mouseoverTrack != null)
+			{
+				Rectangle trackRect = this.GetTrackRectangle(this.mouseoverTrack);
+				this.mouseoverTrack.OnMouseMove(new MouseEventArgs(Control.MouseButtons, 0, mousePos.X - trackRect.X, mousePos.Y - trackRect.Y, 0));
 			}
 		}
 
@@ -805,6 +823,11 @@ namespace AdamsLair.WinForms.TimelineControls
 					this.UpdateMouseoverState();
 				}
 			}
+		}
+		protected override void OnMouseEnter(EventArgs e)
+		{
+			base.OnMouseEnter(e);
+			this.UpdateMouseoverState();
 		}
 		protected override void OnMouseMove(MouseEventArgs e)
 		{

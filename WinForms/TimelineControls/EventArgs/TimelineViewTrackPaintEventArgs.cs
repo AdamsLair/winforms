@@ -29,14 +29,27 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.qualityHint; }
 		}
+		/// <summary>
+		/// [GET] The rectangular area that is occupied by the track that is currently painted. It won't be
+		/// altered due to clipping and partial repaints, and can be safely relied upon for determining
+		/// drawing geometry.
+		/// </summary>
 		public Rectangle TargetRect
 		{
 			get { return this.targetRect; }
 		}
+		/// <summary>
+		/// [GET] The begin of the currently painted timespan. This value may be altered due to clipping and
+		/// partial repaints, and does not reflect the tracks or track contents actual begin.
+		/// </summary>
 		public float BeginTime
 		{
 			get { return this.beginTime; }
 		}
+		/// <summary>
+		/// [GET] The end of the currently painted timespan. This value may be altered due to clipping and
+		/// partial repaints, and does not reflect the tracks or track contents actual end.
+		/// </summary>
 		public float EndTime
 		{
 			get { return this.endTime; }

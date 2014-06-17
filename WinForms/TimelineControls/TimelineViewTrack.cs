@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace AdamsLair.WinForms.TimelineControls
 {
@@ -167,6 +168,9 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal virtual void OnPaintLeftSidebar(TimelineViewTrackPaintEventArgs e) {}
 		protected internal virtual void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e) {}
 		protected internal virtual void OnPaintOverlay(TimelineViewTrackPaintEventArgs e) {}
+		protected internal virtual void OnMouseEnter(EventArgs e) {}
+		protected internal virtual void OnMouseLeave(EventArgs e) {}
+		protected internal virtual void OnMouseMove(MouseEventArgs e) {}
 		protected virtual void OnHeightSettingsChanged()
 		{
 			if (this.HeightSettingsChanged != null)

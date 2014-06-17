@@ -30,6 +30,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	QualityLevel			curvePrecision		= QualityLevel.Medium;
 		private	QualityLevel			envelopePrecision	= QualityLevel.Medium;
 
+		private	TimelineViewGraph	mouseoverGraph		= null;
+
 		private List<Rectangle>		drawBufferBigRuler	= new List<Rectangle>();
 		private List<Rectangle>		drawBufferMedRuler	= new List<Rectangle>();
 		private List<Rectangle>		drawBufferMinRuler	= new List<Rectangle>();
@@ -209,6 +211,58 @@ namespace AdamsLair.WinForms.TimelineControls
 			this.Invalidate();
 		}
 
+		protected void UpdateMouseoverState()
+		{
+			Rectangle trackRect = this.ParentView.GetTrackRectangle(this);
+			Point cursorPos = this.ParentView.PointToClient(Cursor.Position);
+			PointF unitsPerPixel = new PointF(
+				this.ParentView.ConvertPixelsToUnits(1.0f), 
+				this.ConvertPixelsToUnits(1.0f));
+			PointF cursorUnits = new PointF(
+				this.ParentView.GetUnitAtPos(cursorPos.X),
+				this.GetUnitAtPos(cursorPos.Y - trackRect.Y));
+
+			// Mind the old mouseover state
+			TimelineViewGraph oldMouseoverGraph = this.mouseoverGraph;
+
+			// Select the graph that is located nearest to the cursor
+			this.mouseoverGraph = null;
+			float minDistance = float.MaxValue;
+			foreach (TimelineViewGraph graph in this.graphList)
+			{
+				if (graph.Model.BeginTime > cursorUnits.X) continue;
+				if (graph.Model.EndTime < cursorUnits.X) continue;
+
+				float maxValue = graph.Model.GetMaxValueInRange(cursorUnits.X - unitsPerPixel.X * 2.5f, cursorUnits.X + unitsPerPixel.X * 2.5f);
+				float minValue = graph.Model.GetMinValueInRange(cursorUnits.X - unitsPerPixel.X * 2.5f, cursorUnits.X + unitsPerPixel.X * 2.5f);
+				float midValue = (maxValue + minValue) * 0.5f;
+				float valueSpan = maxValue - minValue;
+				valueSpan = Math.Max(valueSpan, unitsPerPixel.Y * 10);
+				minValue = midValue - valueSpan * 0.5f;
+				maxValue = midValue + valueSpan * 0.5f;
+				if (cursorUnits.Y < minValue || cursorUnits.Y > maxValue) continue;
+
+				float distance = Math.Abs(cursorUnits.Y - midValue);
+				if (distance < minDistance)
+				{
+					this.mouseoverGraph = graph;
+					minDistance = distance;
+				}
+			}
+
+			// Invalidate the track on state changes
+			if (oldMouseoverGraph != this.mouseoverGraph)
+			{
+				float begin = Math.Min(
+					this.mouseoverGraph != null ? this.mouseoverGraph.Model.BeginTime : float.MaxValue, 
+					oldMouseoverGraph != null ? oldMouseoverGraph.Model.BeginTime : float.MaxValue);
+				float end = Math.Max(
+					this.mouseoverGraph != null ? this.mouseoverGraph.Model.EndTime : float.MinValue, 
+					oldMouseoverGraph != null ? oldMouseoverGraph.Model.EndTime : float.MinValue);
+				this.Invalidate(begin, end);
+			}
+		}
+
 		protected Color GetDefaultGraphColor(int graphIndex)
 		{
 			const double GoldenRatio = 1.618033988749895d;
@@ -331,6 +385,23 @@ namespace AdamsLair.WinForms.TimelineControls
 				graph.OnViewportChanged();
 			}
 		}
+
+		protected internal override void OnMouseMove(MouseEventArgs e)
+		{
+			base.OnMouseMove(e);
+			this.UpdateMouseoverState();
+		}
+		protected internal override void OnMouseEnter(EventArgs e)
+		{
+			base.OnMouseEnter(e);
+			this.UpdateMouseoverState();
+		}
+		protected internal override void OnMouseLeave(EventArgs e)
+		{
+			base.OnMouseLeave(e);
+			this.UpdateMouseoverState();
+		}
+		
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaint(e);
@@ -410,18 +481,13 @@ namespace AdamsLair.WinForms.TimelineControls
 			base.OnPaintOverlay(e);
 
 			// Display mouseover data / effects
-			Point cursorPos = this.ParentView.PointToClient(Cursor.Position);
-			if (this.ParentView.MouseoverTrack == this)
+			if (this.mouseoverGraph != null)
 			{
-				PointF cursorUnits = new PointF(
-					this.ParentView.GetUnitAtPos(cursorPos.X),
-					this.GetUnitAtPos(cursorPos.Y));
-				//Console.WriteLine("{0}, {1}", cursorPos, cursorUnits);
-
-				// Select the graph that is located nearest to the cursor
-				foreach (TimelineViewGraph graph in this.graphList)
-				{
-				}
+				float value = this.mouseoverGraph.Model.GetValueAtX(this.ParentView.MouseoverUnits);
+				PointF pixels = new PointF(
+					this.ParentView.GetPosAtUnit(this.ParentView.MouseoverUnits),
+					e.TargetRect.Y + this.GetPosAtUnit(value));
+				//e.Graphics.FillEllipse(Brushes.Red, pixels.X - 2, pixels.Y - 2, 4, 4);
 			}
 		}
 		protected void DrawRuler(Graphics g, TimelineViewControlRenderer r, Rectangle rect, bool left)
