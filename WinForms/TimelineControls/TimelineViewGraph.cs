@@ -12,6 +12,8 @@ namespace AdamsLair.WinForms.TimelineControls
 	[TimelineModelViewAssignment(typeof(ITimelineGraphModel))]
 	public class TimelineViewGraph
 	{
+		public const float EnvelopeBasePixelRadius = 5.0f;
+
 		private	TimelineViewGraphTrack	parentTrack		= null;
 		private	ITimelineGraphModel		model			= null;
 		private	Color					baseColor		= Color.Red;
@@ -97,6 +99,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			if (this.parentTrack == null) return;
 			this.parentTrack.Invalidate(fromUnits, toUnits);
+		}
+
+		public float GetEnvelopeVisibility(float unitYRange)
+		{
+			float variance = this.parentTrack.ConvertUnitsToPixels(unitYRange) / 80.0f;
+			return Math.Max(Math.Min(variance * variance, 1.0f), 0.0f);
 		}
 
 		protected virtual void OnModelChanged(TimelineGraphChangedEventArgs e)
@@ -186,7 +194,6 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 				if (this.envelopeOpacity > 0.0f && !this.skipEnvelope)
 				{
-					const float EnvelopeBasePixelRadius = 5.0f;
 					float envelopeUnitRadius = this.ParentView.ConvertPixelsToUnits(EnvelopeBasePixelRadius);
 					float minEnvelopeStepFactor;
 					switch (e.GetAdjustedQuality(this.parentTrack.EnvelopePrecision))
@@ -245,10 +252,9 @@ namespace AdamsLair.WinForms.TimelineControls
 						{
 							float relativeX = (float)(this.cacheCurveVertices[(int)((float)i * (this.cacheCurveVertices.Length - 1) / (float)(baseBlend.Length - 1))].X - rect.X) / (float)rect.Width;
 							float unitX = this.ParentView.GetUnitAtPos(rect.X + relativeX * rect.Width);
-							float variance = this.parentTrack.ConvertUnitsToPixels(
+							float localOpacity = this.GetEnvelopeVisibility(
 								this.model.GetMaxValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius) - 
-								this.model.GetMinValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius)) / 80.0f;
-							float localOpacity = Math.Max(Math.Min(variance * variance, 1.0f), 0.0f);
+								this.model.GetMinValueInRange(unitX - varianceUnitRadius, unitX + varianceUnitRadius));
 							baseBlend[i] = new KeyValuePair<float,float>(relativeX, localOpacity);
 						}
 
@@ -360,12 +366,12 @@ namespace AdamsLair.WinForms.TimelineControls
 				explicitSamples.Add(this.model.EndTime);
 				explicitSamples.Add(endUnitX);
 				// Add more explicit samples here, when necessary
-				explicitSamples.RemoveAll(s => s < beginUnitX);
-				explicitSamples.RemoveAll(s => s > endUnitX);
+				explicitSamples.RemoveAll(s => s < beginUnitX || s < this.model.BeginTime);
+				explicitSamples.RemoveAll(s => s > endUnitX || s > this.model.EndTime);
 				explicitSamples.Sort();
 
 				// Gather dynamic samples based on graph function fluctuation
-				float errorThreshold = 2.5f * Math.Abs(this.parentTrack.VerticalUnitTop - this.parentTrack.VerticalUnitBottom) / trackArea.Height;
+				float errorThreshold = 1.0f * Math.Abs(this.parentTrack.VerticalUnitTop - this.parentTrack.VerticalUnitBottom) / trackArea.Height;
 				switch (sampleQuality)
 				{
 					case QualityLevel.High:
@@ -398,7 +404,10 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					if (explicitSample)
 					{
-						curvePoints.Add(new PointF(curPixelX, curPixelY));
+						if (curUnitX >= this.model.BeginTime && curUnitX <= this.model.EndTime)
+						{
+							curvePoints.Add(new PointF(curPixelX, curPixelY));
+						}
 						lastSampleUnitX = curUnitX;
 						lastSampleUnitY = curUnitY;
 						explicitSample = false;
@@ -418,7 +427,10 @@ namespace AdamsLair.WinForms.TimelineControls
 						if (error * skipCount >= errorThreshold)
 						{
 							skipCount = 0;
-							curvePoints.Add(new PointF(curPixelX, curPixelY));
+							if (curUnitX >= this.model.BeginTime && curUnitX <= this.model.EndTime)
+							{
+								curvePoints.Add(new PointF(curPixelX, curPixelY));
+							}
 							lastSampleUnitX = curUnitX;
 							lastSampleUnitY = curUnitY;
 						}

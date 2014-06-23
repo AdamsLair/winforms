@@ -19,9 +19,25 @@ namespace AdamsLair.WinForms.TimelineControls
 			Grow,
 			Shrink
 		}
+		private struct GraphAreaInfo
+		{
+			public	float	BeginTime;
+			public	float	EndTime;
+			public	float	MinValue;
+			public	float	MaxValue;
+			public	float	AverageValue;
+			public	float	EnvelopeVisibility;
+		}
+		private struct GraphValueTextInfo
+		{
+			public	string		Text;
+			public	Rectangle	TargetRect;
+			public	Rectangle	ActualRect;
+		}
 
 
 		private static Type[] availableViewGraphTypes = null;
+		private const int MaxGraphValueTextWidth = 100;
 
 		private	float					verticalUnitTop		= 1.0f;
 		private	float					verticalUnitBottom	= -1.0f;
@@ -30,7 +46,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	QualityLevel			curvePrecision		= QualityLevel.Medium;
 		private	QualityLevel			envelopePrecision	= QualityLevel.Medium;
 
-		private	TimelineViewGraph	mouseoverGraph		= null;
+		private	TimelineViewGraph							mouseoverGraph		= null;
+		private	Dictionary<TimelineViewGraph,GraphAreaInfo>	graphDisplayedInfo	= new Dictionary<TimelineViewGraph,GraphAreaInfo>();
 
 		private List<Rectangle>		drawBufferBigRuler	= new List<Rectangle>();
 		private List<Rectangle>		drawBufferMedRuler	= new List<Rectangle>();
@@ -249,17 +266,53 @@ namespace AdamsLair.WinForms.TimelineControls
 					minDistance = distance;
 				}
 			}
+		}
+		protected void UpdateDisplayedGraphInfo()
+		{
+			this.graphDisplayedInfo.Clear();
+			if (!this.ParentView.MouseoverContent) return;
 
-			// Invalidate the track on state changes
-			if (oldMouseoverGraph != this.mouseoverGraph)
+			float unitPixelRadius = this.ParentView.ConvertPixelsToUnits(1.0f);
+			float unitEnvelopeRadius = unitPixelRadius * TimelineViewGraph.EnvelopeBasePixelRadius;
+			float mouseoverTime = this.ParentView.MouseoverUnits;
+			float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
+
+			// Update graph mouseover visualizations
+			foreach (TimelineViewGraph graph in this.graphList)
 			{
-				float begin = Math.Min(
-					this.mouseoverGraph != null ? this.mouseoverGraph.Model.BeginTime : float.MaxValue, 
-					oldMouseoverGraph != null ? oldMouseoverGraph.Model.BeginTime : float.MaxValue);
-				float end = Math.Max(
-					this.mouseoverGraph != null ? this.mouseoverGraph.Model.EndTime : float.MinValue, 
-					oldMouseoverGraph != null ? oldMouseoverGraph.Model.EndTime : float.MinValue);
-				this.Invalidate(begin, end);
+				if (graph.Model.BeginTime > mouseoverTime) continue;
+				if (graph.Model.EndTime < mouseoverTime) continue;
+
+				GraphAreaInfo info;
+
+				// Determine mouseover data
+				info.BeginTime = mouseoverTime;
+				info.EndTime = mouseoverTime;
+				info.MinValue = graph.Model.GetMinValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
+				info.MaxValue = graph.Model.GetMaxValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
+				info.EnvelopeVisibility = Math.Min(1.0f, 10.0f * graph.GetEnvelopeVisibility(
+					graph.Model.GetMaxValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f) - 
+					graph.Model.GetMinValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f)));
+				if (info.EnvelopeVisibility > 0.05f)
+				{
+					info.AverageValue = 0.0f;
+					const int SampleCount = 10;
+					float smallUnitEnvelopeRadius = unitEnvelopeRadius / (float)SampleCount;
+					for (int i = 0; i < SampleCount; i++)
+					{
+						float sampleTime = mouseoverTime - unitEnvelopeRadius + ((float)i / (float)(SampleCount - 1)) * 2.0f * unitEnvelopeRadius;
+						float localMin = graph.Model.GetMinValueInRange(sampleTime - smallUnitEnvelopeRadius, sampleTime + smallUnitEnvelopeRadius);
+						float localMax = graph.Model.GetMaxValueInRange(sampleTime - smallUnitEnvelopeRadius, sampleTime + smallUnitEnvelopeRadius);
+						info.AverageValue += (localMin + localMax) * 0.5f;
+					}
+					info.AverageValue /= (float)SampleCount;
+				}
+				else
+				{
+					info.AverageValue = graph.Model.GetValueAtX(mouseoverTime);
+				}
+
+				this.graphDisplayedInfo[graph] = info;
 			}
 		}
 
@@ -401,6 +454,21 @@ namespace AdamsLair.WinForms.TimelineControls
 			base.OnMouseLeave(e);
 			this.UpdateMouseoverState();
 		}
+		protected internal override void OnCursorMove(TimelineViewCursorEventArgs e)
+		{
+			base.OnCursorMove(e);
+
+			// Update displayed graph information, such as value ranges at cursor position, etc.
+			this.UpdateDisplayedGraphInfo();
+
+			// Due to general mouseover display, invalidate cursor-local areas
+			if (e.CursorUnitSpeed != 0.0f)
+			{
+				float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
+				this.Invalidate(e.CursorUnits - unitsPerPixel * 6, e.CursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
+				this.Invalidate(e.LastCursorUnits - unitsPerPixel * 6, e.LastCursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
+			}
+		}
 		
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
@@ -450,8 +518,8 @@ namespace AdamsLair.WinForms.TimelineControls
 				float beginUnitX = Math.Max(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll, this.ContentBeginTime);
 				float endUnitX = Math.Min(this.ParentView.UnitOriginOffset - this.ParentView.UnitScroll + this.ParentView.VisibleUnitWidth, this.ContentEndTime);
 
-				beginUnitX = Math.Max(beginUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Left - 1));
-				endUnitX = Math.Min(endUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Right));
+				beginUnitX = Math.Max(Math.Max(beginUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Left - 1)), e.BeginTime);
+				endUnitX = Math.Min(Math.Min(endUnitX, this.ParentView.GetUnitAtPos(e.Graphics.ClipBounds.Right)), e.EndTime);
 
 				if (beginUnitX <= endUnitX)
 				{
@@ -474,20 +542,115 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal override void OnPaintRightSidebar(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaintRightSidebar(e);
-			this.DrawRuler(e.Graphics, e.Renderer, e.TargetRect, false);
+			this.DrawLegend(e.Graphics, e.Renderer, e.TargetRect);
 		}
 		protected internal override void OnPaintOverlay(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaintOverlay(e);
 
 			// Display mouseover data / effects
-			if (this.mouseoverGraph != null)
+			if (this.ParentView.MouseoverContent)
 			{
-				float value = this.mouseoverGraph.Model.GetValueAtX(this.ParentView.MouseoverUnits);
-				PointF pixels = new PointF(
-					this.ParentView.GetPosAtUnit(this.ParentView.MouseoverUnits),
-					e.TargetRect.Y + this.GetPosAtUnit(value));
-				//e.Graphics.FillEllipse(Brushes.Red, pixels.X - 2, pixels.Y - 2, 4, 4);
+				float unitEnvelopeRadius = this.ParentView.ConvertPixelsToUnits(TimelineViewGraph.EnvelopeBasePixelRadius);
+				float mouseoverTime = this.ParentView.MouseoverUnits;
+				float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
+
+				// Accumulate graph value text information
+				Font textFont = e.Renderer.FontSmall;
+				StringFormat textFormat = new StringFormat();
+				textFormat.FormatFlags |= StringFormatFlags.NoWrap;
+				textFormat.Trimming = StringTrimming.EllipsisCharacter;
+				Rectangle totalTextRect = Rectangle.Empty;
+				Dictionary<TimelineViewGraph,GraphValueTextInfo> textInfoDict = new Dictionary<TimelineViewGraph,GraphValueTextInfo>();
+				{
+					int textYAdv = 0;
+					foreach (TimelineViewGraph graph in this.graphList)
+					{
+						GraphAreaInfo info;
+						if (!this.graphDisplayedInfo.TryGetValue(graph, out info)) continue;
+
+						GraphValueTextInfo textInfo;
+						if (info.EnvelopeVisibility < 0.25f)
+							textInfo.Text = string.Format("{0}", Math.Round(info.AverageValue, 2));
+						else
+							textInfo.Text = string.Format("[{0}, {1}]", Math.Round(info.MinValue, 2), Math.Round(info.MaxValue, 2));
+						textInfo.TargetRect = new Rectangle((int)mouseoverPixels + 2, e.TargetRect.Y + textYAdv + 1, MaxGraphValueTextWidth - 2, e.TargetRect.Height - textYAdv);
+						SizeF textSize = e.Graphics.MeasureString(textInfo.Text, textFont, textInfo.TargetRect.Size, textFormat);
+						textInfo.ActualRect = new Rectangle(textInfo.TargetRect.X, textInfo.TargetRect.Y, (int)textSize.Width, (int)textSize.Height);
+
+						if (totalTextRect.IsEmpty)
+						{
+							totalTextRect = textInfo.ActualRect;
+						}
+						else
+						{
+							totalTextRect.X = Math.Min(totalTextRect.X, textInfo.ActualRect.X);
+							totalTextRect.Y = Math.Min(totalTextRect.Y, textInfo.ActualRect.Y);
+							totalTextRect.Width = Math.Max(totalTextRect.Width, textInfo.ActualRect.Right - totalTextRect.Left);
+							totalTextRect.Height = Math.Max(totalTextRect.Height, textInfo.ActualRect.Bottom - totalTextRect.Top);
+						}
+
+						textInfoDict[graph] = textInfo;
+						textYAdv += (int)textSize.Height;
+					}
+				}
+
+				// Draw the texts background rect
+				if (!totalTextRect.IsEmpty)
+				{
+					e.Graphics.FillRectangle(
+						new SolidBrush(e.Renderer.ColorLightBackground.ScaleAlpha(0.5f)), 
+						totalTextRect.X,
+						totalTextRect.Y,
+						totalTextRect.Width + 2,
+						totalTextRect.Height + 2);
+				}
+
+				// Draw graph mouseover visualizations
+				foreach (TimelineViewGraph graph in this.graphList)
+				{
+					GraphAreaInfo info;
+					if (!this.graphDisplayedInfo.TryGetValue(graph, out info)) continue;
+
+					// Determine mouseover data
+					float averagePixels = e.TargetRect.Y + this.GetPosAtUnit(info.AverageValue);
+					float minEnvelopePixels = Math.Min(e.TargetRect.Y + this.GetPosAtUnit(info.MinValue), e.TargetRect.Bottom - 2);
+					float maxEnvelopePixels = Math.Max(e.TargetRect.Y + this.GetPosAtUnit(info.MaxValue), e.TargetRect.Top + 1);
+					
+					Color valueBaseColor = graph.BaseColor.ScaleBrightness(0.75f);
+
+					// Draw value range
+					if (info.EnvelopeVisibility > 0.05f)
+					{
+						SolidBrush brush = new SolidBrush(valueBaseColor.ScaleAlpha(info.EnvelopeVisibility));
+						e.Graphics.FillRectangle(brush, mouseoverPixels - 3, minEnvelopePixels, 7, 1);
+						e.Graphics.FillRectangle(brush, mouseoverPixels - 3, maxEnvelopePixels, 7, 1);
+						e.Graphics.FillRectangle(brush, mouseoverPixels, maxEnvelopePixels, 1, minEnvelopePixels - maxEnvelopePixels);
+					}
+
+					// Draw average / exact value knob
+					if (info.EnvelopeVisibility < 0.95f)
+					{
+						e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+						e.Graphics.FillEllipse(
+							new SolidBrush(valueBaseColor.ScaleAlpha(1.0f - info.EnvelopeVisibility)), 
+							mouseoverPixels - 2.5f, 
+							averagePixels - 2.5f, 
+							5, 
+							5);
+						e.Graphics.SmoothingMode = SmoothingMode.Default;
+					}
+				}
+
+				// Draw value information texts
+				foreach (TimelineViewGraph graph in this.graphList)
+				{
+					GraphValueTextInfo textInfo;
+					if (!textInfoDict.TryGetValue(graph, out textInfo)) continue;
+
+					Color valueBaseColor = graph.BaseColor.ScaleBrightness(0.75f);
+					e.Graphics.DrawString(textInfo.Text, textFont, new SolidBrush(valueBaseColor), textInfo.TargetRect, textFormat);
+				}
 			}
 		}
 		protected void DrawRuler(Graphics g, TimelineViewControlRenderer r, Rectangle rect, bool left)
@@ -645,6 +808,25 @@ namespace AdamsLair.WinForms.TimelineControls
 					}
 				}
 			}
+		}
+		protected void DrawLegend(Graphics g, TimelineViewControlRenderer r, Rectangle rect)
+		{
+			// Draw background
+			Rectangle borderRect;
+			if (this.ParentView.BorderStyle != System.Windows.Forms.BorderStyle.None)
+			{
+				borderRect = new Rectangle(
+					rect.X,
+					rect.Y,
+					rect.Width + 1,
+					rect.Height);
+			}
+			else
+			{
+				borderRect = rect;
+			}
+			g.FillRectangle(new SolidBrush(r.ColorVeryLightBackground), rect);
+			r.DrawBorder(g, borderRect, Drawing.BorderStyle.Simple, BorderState.Normal);
 		}
 
 		private void model_GraphChanged(object sender, TimelineGraphRangeEventArgs e)

@@ -76,6 +76,7 @@
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TimelineControls\EventArgs\TimelineViewCursorEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineGraphModelChangedEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineGraphCollectionEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineTrackModelEventArgs.cs" />

@@ -60,7 +60,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		private SubAreaInfo					areaTopRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaBottomRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(35);
-		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(35);
+		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(100);
 		private	bool						adaptiveQuality		= true;
 
 		private	bool				mouseoverContent	= false;
@@ -71,9 +71,9 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	Timer				mouseActionTimer	= null;
 		private	PointF				mouseScrollAcc		= PointF.Empty;
 
-		private	bool		paintLowQuality	= false;
-		private	TimeSpan	lastPaintHqTime	= TimeSpan.Zero;
-		private	Timer		paintHqTimer	= null;
+		private	bool		paintLowQuality		= false;
+		private	TimeSpan	lastPaintHqTime		= TimeSpan.Zero;
+		private	Timer		paintHqTimer		= null;
 
 		private List<Rectangle>	drawBufferBigRuler	= new List<Rectangle>();
 		private List<Rectangle>	drawBufferMedRuler	= new List<Rectangle>();
@@ -597,13 +597,16 @@ namespace AdamsLair.WinForms.TimelineControls
 				this.mouseoverTrack = null;
 			}
 
+			float oldUnitsDrawing = oldHoverContent ? oldUnits : this.mouseoverUnits;
+			float unitsDrawing = this.mouseoverContent ? this.mouseoverUnits : oldUnits;
+
 			// Do a selective repaint due to the moved mouseover line
 			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
 			{
-				float unitSpeed = Math.Abs(this.mouseoverUnits - oldUnits);
+				float unitSpeed = Math.Abs(unitsDrawing - oldUnitsDrawing);
 				this.InvalidateContent(
-					Math.Min(oldUnits, this.mouseoverUnits) - unitsPerPixel - unitSpeed, 
-					Math.Max(oldUnits, this.mouseoverUnits) + unitsPerPixel + unitSpeed);
+					Math.Min(oldUnitsDrawing, unitsDrawing) - unitsPerPixel - unitSpeed, 
+					Math.Max(oldUnitsDrawing, unitsDrawing) + unitsPerPixel + unitSpeed);
 			}
 
 			// Fire mouse location events for tracks
@@ -622,6 +625,13 @@ namespace AdamsLair.WinForms.TimelineControls
 			{
 				Rectangle trackRect = this.GetTrackRectangle(this.mouseoverTrack);
 				this.mouseoverTrack.OnMouseMove(new MouseEventArgs(Control.MouseButtons, 0, mousePos.X - trackRect.X, mousePos.Y - trackRect.Y, 0));
+			}
+			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			{
+				foreach (TimelineViewTrack track in this.trackList)
+				{
+					track.OnCursorMove(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
+				}
 			}
 		}
 
@@ -882,9 +892,14 @@ namespace AdamsLair.WinForms.TimelineControls
 			// Paint the background
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorBackground), this.ClientRectangle);
 			e.Graphics.FillRectangle(new SolidBrush(this.renderer.ColorLightBackground), this.rectContentArea);
+			
+			GraphicsState state;
 
 			// Draw extended ruler markings in the background
 			{
+				state = e.Graphics.Save();
+				e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
+
 				Brush bigLineBrush = new SolidBrush(this.renderer.ColorRulerMarkMajor.ScaleAlpha(0.25f));
 				Brush medLineBrush = new SolidBrush(this.renderer.ColorRulerMarkRegular.ScaleAlpha(0.25f));
 				Brush minLineBrush = new SolidBrush(this.renderer.ColorRulerMarkMinor.ScaleAlpha(0.25f));
@@ -918,9 +933,10 @@ namespace AdamsLair.WinForms.TimelineControls
 				if (this.drawBufferBigRuler.Count > 0) e.Graphics.FillRectangles(bigLineBrush, this.drawBufferBigRuler.ToArray());
 				if (this.drawBufferMedRuler.Count > 0) e.Graphics.FillRectangles(medLineBrush, this.drawBufferMedRuler.ToArray());
 				if (this.drawBufferMinRuler.Count > 0) e.Graphics.FillRectangles(minLineBrush, this.drawBufferMinRuler.ToArray());
+
+				e.Graphics.Restore(state);
 			}
 
-			GraphicsState state;
 			int y;
 
 			// Draw all the tracks
@@ -998,35 +1014,37 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			// Draw all the track overlays and borders
-			y = 0;
-			foreach (TimelineViewTrack track in this.trackList)
 			{
-				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y + track.Height <= e.Graphics.ClipBounds.Top + 1)
+				y = 0;
+				foreach (TimelineViewTrack track in this.trackList)
 				{
-					y += track.Height + this.trackSpacing;
-					continue;
-				}
-				if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y >= e.Graphics.ClipBounds.Bottom - 1) break;
-				
-				Rectangle targetRect = new Rectangle(
-					this.rectContentArea.X + 1,
-					this.rectContentArea.Y + y + this.AutoScrollPosition.Y,
-					this.rectContentArea.Width - 2,
-					track.Height);
-
-				// Overlay
-				{
-					state = e.Graphics.Save();
-					e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
-					e.Graphics.SetClip(targetRect, CombineMode.Intersect);
-					if (!e.Graphics.ClipBounds.IsEmpty)
+					if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y + track.Height <= e.Graphics.ClipBounds.Top + 1)
 					{
-						track.OnPaintOverlay(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
+						y += track.Height + this.trackSpacing;
+						continue;
 					}
-					e.Graphics.Restore(state);
-				}
+					if (this.rectContentArea.Y + y + this.AutoScrollPosition.Y >= e.Graphics.ClipBounds.Bottom - 1) break;
+				
+					Rectangle targetRect = new Rectangle(
+						this.rectContentArea.X + 1,
+						this.rectContentArea.Y + y + this.AutoScrollPosition.Y,
+						this.rectContentArea.Width - 2,
+						track.Height);
 
-				y += track.Height + this.trackSpacing;
+					// Overlay
+					{
+						state = e.Graphics.Save();
+						e.Graphics.SetClip(this.rectContentArea, CombineMode.Intersect);
+						e.Graphics.SetClip(targetRect, CombineMode.Intersect);
+						if (!e.Graphics.ClipBounds.IsEmpty)
+						{
+							track.OnPaintOverlay(new TimelineViewTrackPaintEventArgs(track, e.Graphics, qualityHint, targetRect));
+						}
+						e.Graphics.Restore(state);
+					}
+
+					y += track.Height + this.trackSpacing;
+				}
 			}
 
 			// Draw the content area drop shadow

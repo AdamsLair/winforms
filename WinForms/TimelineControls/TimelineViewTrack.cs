@@ -132,6 +132,48 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			this.parentView.Invalidate(rectOnParent);
 		}
+		public void InvalidateLeftSidebar()
+		{
+			if (this.parentView == null) return;
+
+			Rectangle trackRect = this.parentView.GetTrackRectangle(this);
+			Rectangle rectOnParent;
+			Rectangle targetRect;
+
+			rectOnParent = trackRect;
+			targetRect = new Rectangle(
+				rectOnParent.X,
+				rectOnParent.Y,
+				this.parentView.LeftSidebarSize,
+				rectOnParent.Height);
+			rectOnParent.Intersect(targetRect);
+			rectOnParent.Intersect(this.parentView.ClientRectangle);
+			if (!rectOnParent.IsEmpty)
+			{
+				this.parentView.Invalidate(rectOnParent);
+			}
+		}
+		public void InvalidateRightSidebar()
+		{
+			if (this.parentView == null) return;
+
+			Rectangle trackRect = this.parentView.GetTrackRectangle(this);
+			Rectangle rectOnParent;
+			Rectangle targetRect;
+
+			rectOnParent = trackRect;
+			targetRect = new Rectangle(
+				rectOnParent.Right - this.parentView.RightSidebarSize,
+				rectOnParent.Y,
+				this.parentView.RightSidebarSize,
+				rectOnParent.Height);
+			rectOnParent.Intersect(targetRect);
+			rectOnParent.Intersect(this.parentView.ClientRectangle);
+			if (!rectOnParent.IsEmpty)
+			{
+				this.parentView.Invalidate(rectOnParent);
+			}
+		}
 
 		protected internal void UpdateContentWidth()
 		{
@@ -171,6 +213,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal virtual void OnMouseEnter(EventArgs e) {}
 		protected internal virtual void OnMouseLeave(EventArgs e) {}
 		protected internal virtual void OnMouseMove(MouseEventArgs e) {}
+		protected internal virtual void OnCursorMove(TimelineViewCursorEventArgs e) { }
 		protected virtual void OnHeightSettingsChanged()
 		{
 			if (this.HeightSettingsChanged != null)
