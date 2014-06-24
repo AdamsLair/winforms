@@ -115,6 +115,12 @@ namespace AdamsLair.WinForms.TimelineControls
 		public void Invalidate(float fromUnits, float toUnits)
 		{
 			if (this.parentView == null) return;
+			if (fromUnits > toUnits)
+			{
+				float temp = fromUnits;
+				fromUnits = toUnits;
+				toUnits = temp;
+			}
 
 			Rectangle rectOnParent = this.parentView.GetTrackRectangle(this);
 

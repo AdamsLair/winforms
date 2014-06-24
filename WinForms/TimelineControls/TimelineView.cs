@@ -44,6 +44,12 @@ namespace AdamsLair.WinForms.TimelineControls
 			Medium,
 			Low
 		}
+		public enum MouseAction
+		{
+			None,
+			Scroll,
+			Select
+		}
 
 
 		private const float DefaultPixelsPerUnit = 5.0f;
@@ -59,14 +65,17 @@ namespace AdamsLair.WinForms.TimelineControls
 		private	int							trackSpacing		= -1;
 		private SubAreaInfo					areaTopRuler		= new SubAreaInfo(30);
 		private SubAreaInfo					areaBottomRuler		= new SubAreaInfo(30);
-		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(35);
+		private SubAreaInfo					areaLeftSidebar		= new SubAreaInfo(50);
 		private SubAreaInfo					areaRightSidebar	= new SubAreaInfo(100);
 		private	bool						adaptiveQuality		= true;
 
+		private	float				selectionTimeA	= 0.0f;
+		private	float				selectionTimeB	= 0.0f;
+
 		private	bool				mouseoverContent	= false;
-		private	float				mouseoverUnits		= 0.0f;
+		private	float				mouseoverTime		= 0.0f;
 		private	TimelineViewTrack	mouseoverTrack		= null;
-		private	bool				mouseScrolling		= false;
+		private	MouseAction			mouseAction			= MouseAction.None;
 		private	Point				mouseActionOrigin	= Point.Empty;
 		private	Timer				mouseActionTimer	= null;
 		private	PointF				mouseScrollAcc		= PointF.Empty;
@@ -241,13 +250,49 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			get { return this.mouseoverContent; }
 		}
-		public float MouseoverUnits
+		public float MouseoverTime
 		{
-			get { return this.mouseoverUnits; }
+			get { return this.mouseoverTime; }
 		}
 		public TimelineViewTrack MouseoverTrack
 		{
 			get { return this.mouseoverTrack; }
+		}
+		public MouseAction ActiveMouseAction
+		{
+			get { return this.mouseAction; }
+		}
+		public float SelectionBeginTime
+		{
+			get { return Math.Min(this.selectionTimeA, this.selectionTimeB); }
+			set
+			{
+				float lastBegin = this.SelectionBeginTime;
+				float lastEnd = this.SelectionEndTime;
+
+				if (this.selectionTimeA < this.selectionTimeB)
+					this.selectionTimeA = value;
+				else
+					this.selectionTimeB = value;
+
+				this.RaiseSelectionChanged(lastBegin, lastEnd);
+			}
+		}
+		public float SelectionEndTime
+		{
+			get { return Math.Max(this.selectionTimeA, this.selectionTimeB); }
+			set
+			{
+				float lastBegin = this.SelectionBeginTime;
+				float lastEnd = this.SelectionEndTime;
+
+				if (this.selectionTimeA >= this.selectionTimeB)
+					this.selectionTimeA = value;
+				else
+					this.selectionTimeB = value;
+
+				this.RaiseSelectionChanged(lastBegin, lastEnd);
+			}
 		}
 
 
@@ -440,6 +485,13 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		protected void InvalidateContent(float fromUnits, float toUnits)
 		{
+			if (fromUnits > toUnits)
+			{
+				float temp = fromUnits;
+				fromUnits = toUnits;
+				toUnits = temp;
+			}
+
 			Rectangle invalidateRect = new Rectangle(this.rectContentArea.X, 0, this.rectContentArea.Width, this.ClientRectangle.Height);
 
 			float fromPixels = Math.Max(this.GetPosAtUnit(fromUnits), invalidateRect.Left) - 1;
@@ -459,7 +511,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 		private void SetUnitZoomInternal(float newZoom)
 		{
-			newZoom = Math.Max(newZoom, 0.00000001f);
+			newZoom = Math.Min(Math.Max(newZoom, 0.0001f), 10000.0f);
 			if (this.unitZoom == newZoom) return;
 
 			this.unitZoom = newZoom;
@@ -582,26 +634,29 @@ namespace AdamsLair.WinForms.TimelineControls
 			// Mind the old mouseover state
 			TimelineViewTrack oldHoverTrack = this.mouseoverTrack;
 			bool oldHoverContent = this.mouseoverContent;
-			float oldUnits = this.mouseoverUnits;
+			float oldUnits = this.mouseoverTime;
 
 			// Determine new mouseover state
-			this.mouseoverContent = !this.mouseScrolling && this.rectContentArea.Contains(mousePos);
+			this.mouseoverContent = (this.mouseAction != MouseAction.Scroll) && this.rectContentArea.Contains(mousePos);
 			if (this.mouseoverContent)
 			{
-				this.mouseoverUnits = this.GetUnitAtPos(mousePos.X);
-				this.mouseoverTrack = this.GetTrackAtPos(mousePos.X, mousePos.Y);
+				this.mouseoverTime = this.GetUnitAtPos(mousePos.X);
+				if (this.mouseAction == MouseAction.None)
+					this.mouseoverTrack = this.GetTrackAtPos(mousePos.X, mousePos.Y);
+				else
+					this.mouseoverTrack = null;
 			}
 			else
 			{
-				this.mouseoverUnits = 0.0f;
+				this.mouseoverTime = 0.0f;
 				this.mouseoverTrack = null;
 			}
 
-			float oldUnitsDrawing = oldHoverContent ? oldUnits : this.mouseoverUnits;
-			float unitsDrawing = this.mouseoverContent ? this.mouseoverUnits : oldUnits;
+			float oldUnitsDrawing = oldHoverContent ? oldUnits : this.mouseoverTime;
+			float unitsDrawing = this.mouseoverContent ? this.mouseoverTime : oldUnits;
 
 			// Do a selective repaint due to the moved mouseover line
-			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverTime)
 			{
 				float unitSpeed = Math.Abs(unitsDrawing - oldUnitsDrawing);
 				this.InvalidateContent(
@@ -626,12 +681,9 @@ namespace AdamsLair.WinForms.TimelineControls
 				Rectangle trackRect = this.GetTrackRectangle(this.mouseoverTrack);
 				this.mouseoverTrack.OnMouseMove(new MouseEventArgs(Control.MouseButtons, 0, mousePos.X - trackRect.X, mousePos.Y - trackRect.Y, 0));
 			}
-			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverUnits)
+			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverTime)
 			{
-				foreach (TimelineViewTrack track in this.trackList)
-				{
-					track.OnCursorMove(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
-				}
+				this.OnCursorMove(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
 			}
 		}
 
@@ -808,29 +860,56 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
 			base.OnMouseDown(e);
-			if (e.Button == MouseButtons.Middle)
+			if (this.mouseAction == MouseAction.None)
 			{
-				if (!this.mouseScrolling)
+				if (e.Button == MouseButtons.Middle)
 				{
-					this.mouseScrolling = true;
+					this.mouseAction = MouseAction.Scroll;
 					this.mouseActionOrigin = e.Location;
 					this.mouseActionTimer.Enabled = true;
 					this.UpdateMouseoverState();
+				}
+				else if (e.Button == MouseButtons.Left)
+				{
+					this.mouseAction = MouseAction.Select;
+					this.mouseActionOrigin = e.Location;
+					this.UpdateMouseoverState();
+					
+					float lastBegin = this.SelectionBeginTime;
+					float lastEnd = this.SelectionEndTime;
+					this.selectionTimeA = this.mouseoverTime;
+					this.selectionTimeB = this.mouseoverTime;
+					if (lastBegin != lastEnd) this.selectionTimeB += this.ConvertPixelsToUnits(0.1f);
+					this.RaiseSelectionChanged(lastBegin, lastEnd);
 				}
 			}
 		}
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
-			if (e.Button == MouseButtons.Middle)
+			if (this.mouseAction != MouseAction.None)
 			{
-				if (this.mouseScrolling)
+				if (e.Button == MouseButtons.Middle)
 				{
-					this.mouseScrolling = false;
+					this.mouseAction = MouseAction.None;
 					this.mouseActionTimer.Enabled = false;
+					this.UpdateMouseoverState();
 
 					this.Invalidate();
+				}
+				else if (e.Button == MouseButtons.Left)
+				{
+					this.mouseAction = MouseAction.None;
 					this.UpdateMouseoverState();
+
+					if (this.ConvertUnitsToPixels(Math.Abs(this.selectionTimeA - this.selectionTimeB)) <= 1)
+					{
+						float lastBegin = this.SelectionBeginTime;
+						float lastEnd = this.SelectionEndTime;
+						this.selectionTimeA = 0.0f;
+						this.selectionTimeB = 0.0f;
+						this.RaiseSelectionChanged(lastBegin, lastEnd);
+					}
 				}
 			}
 		}
@@ -843,13 +922,20 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			base.OnMouseMove(e);
 
-			if (this.mouseScrolling)
+			if (this.mouseAction == MouseAction.Scroll)
 			{
 				this.InvalidateLowQuality();
 			}
 			else
 			{
 				this.UpdateMouseoverState();
+				if (this.mouseAction == MouseAction.Select)
+				{
+					float lastBegin = this.SelectionBeginTime;
+					float lastEnd = this.SelectionEndTime;
+					this.selectionTimeB = this.mouseoverTime;
+					this.RaiseSelectionChanged(lastBegin, lastEnd);
+				}
 			}
 		}
 		protected override void OnMouseLeave(EventArgs e)
@@ -867,6 +953,31 @@ namespace AdamsLair.WinForms.TimelineControls
 			else
 			{
 				this.AdjustZoomLevel(e.Delta / 120.0f);
+			}
+		}
+		protected virtual void OnCursorMove(TimelineViewCursorEventArgs e)
+		{
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				track.OnCursorMove(e);
+			}
+		}
+		protected virtual void OnSelectionChanged(TimelineViewSelectionEventArgs e)
+		{
+			if (e.IsEmpty != e.WasEmpty)
+			{
+				this.Invalidate(this.rectContentArea);
+			}
+			else
+			{
+				if (e.BeginTime != e.LastBeginTime)
+				{
+					this.InvalidateContent(e.BeginTime, e.LastBeginTime);
+				}
+				if (e.EndTime != e.LastEndTime)
+				{
+					this.InvalidateContent(e.EndTime, e.LastEndTime);
+				}
 			}
 		}
 
@@ -1004,10 +1115,33 @@ namespace AdamsLair.WinForms.TimelineControls
 				y += track.Height + this.trackSpacing;
 			}
 
+			// Draw the selection indicator
+			if (this.selectionTimeA != this.selectionTimeB)
+			{
+				float selectionPixelsBegin = this.GetPosAtUnit(this.SelectionBeginTime);
+				float selectionPixelsEnd = this.GetPosAtUnit(this.SelectionEndTime);
+				Pen pen = new Pen(Color.FromArgb(128, this.Renderer.ColorText));
+				SolidBrush brush = new SolidBrush(Color.FromArgb(32, this.Renderer.ColorText));
+				e.Graphics.FillRectangle(
+					brush,
+					this.rectContentArea.Left,
+					this.rectContentArea.Top,
+					selectionPixelsBegin - this.rectContentArea.Left,
+					this.rectContentArea.Height);
+				e.Graphics.FillRectangle(
+					brush,
+					selectionPixelsEnd,
+					this.rectContentArea.Top,
+					this.rectContentArea.Right - selectionPixelsEnd,
+					this.rectContentArea.Height);
+				e.Graphics.DrawLine(pen, selectionPixelsBegin, this.rectContentArea.Top, selectionPixelsBegin, this.rectContentArea.Bottom);
+				e.Graphics.DrawLine(pen, selectionPixelsEnd, this.rectContentArea.Top, selectionPixelsEnd, this.rectContentArea.Bottom);
+			}
+
 			// Draw the mouseover time indicator
 			if (this.mouseoverContent)
 			{
-				float mouseoverPixels = this.GetPosAtUnit(this.mouseoverUnits);
+				float mouseoverPixels = this.GetPosAtUnit(this.mouseoverTime);
 				Pen mouseoverTimePen = new Pen(Color.FromArgb(128, this.Renderer.ColorText));
 				mouseoverTimePen.DashStyle = DashStyle.Dot;
 				e.Graphics.DrawLine(mouseoverTimePen, mouseoverPixels, this.rectContentArea.Top, mouseoverPixels, this.rectContentArea.Bottom);
@@ -1092,7 +1226,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 
 			// Draw mouse action indicators
-			if (this.mouseScrolling)
+			if (this.mouseAction == MouseAction.Scroll)
 			{
 				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 				e.Graphics.FillEllipse(new SolidBrush(this.renderer.ColorText.ScaleAlpha(0.5f)), this.mouseActionOrigin.X - 3, this.mouseActionOrigin.Y - 3, 6, 6);
@@ -1180,7 +1314,9 @@ namespace AdamsLair.WinForms.TimelineControls
 					string unitTextSecondary = !string.IsNullOrEmpty(this.model.UnitName) ? this.model.UnitName : null;
 
 					if (unitTextPrimary != null && unitTextSecondary != null)
+					{
 						unitText = string.Format("{0} ({1})", unitTextPrimary, unitTextSecondary);
+					}
 					else
 						unitText = (unitTextPrimary ?? unitTextSecondary) ?? "Units";
 				}
@@ -1199,6 +1335,8 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			// Draw ruler markings
 			{
+				int timeDecimals = Math.Max(0, -(int)Math.Log10(this.VisibleUnitWidth) + 2);
+
 				Pen bigLinePen = new Pen(new SolidBrush(this.renderer.ColorRulerMarkMajor));
 				Pen medLinePen = new Pen(new SolidBrush(this.renderer.ColorRulerMarkRegular));
 				Pen minLinePen = new Pen(new SolidBrush(this.renderer.ColorRulerMarkMinor));
@@ -1249,7 +1387,10 @@ namespace AdamsLair.WinForms.TimelineControls
 
 					if (mark.Weight == TimelineViewRulerMarkWeight.Major)
 					{
-						string timeString = string.Format("{0}", mark.UnitValue);
+						string timeString = string.Format(
+							System.Globalization.CultureInfo.InvariantCulture, 
+							"{0:F" + timeDecimals + "}", 
+							mark.UnitValue);
 						g.DrawString(
 							timeString, 
 							this.renderer.FontSmall, 
@@ -1261,6 +1402,17 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 		}
 		
+		private void RaiseSelectionChanged(float lastBegin, float lastEnd)
+		{
+			float begin = this.SelectionBeginTime;
+			float end = this.SelectionEndTime;
+
+			if (lastBegin == begin && lastEnd == end) return;
+			if (begin == end && lastBegin == lastEnd) return;
+
+			this.OnSelectionChanged(new TimelineViewSelectionEventArgs(this, this.SelectionBeginTime, this.SelectionEndTime, lastBegin, lastEnd));
+		}
+
 		private void track_HeightSettingsChanged(object sender, EventArgs e)
 		{
 			this.OnContentHeightChanged(EventArgs.Empty);
@@ -1321,7 +1473,7 @@ namespace AdamsLair.WinForms.TimelineControls
 					break;
 				default:
 				case NiceMultipleGranularity.Medium:
-					allowedFactors = new float[] { 1.0f, 2.5f, 5.0f, 10.0f };
+					allowedFactors = new float[] { 1.0f, 2.0f, 5.0f, 10.0f };
 					break;
 				case NiceMultipleGranularity.High:
 					allowedFactors = new float[] { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f };

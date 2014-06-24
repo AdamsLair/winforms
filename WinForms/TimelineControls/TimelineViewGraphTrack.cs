@@ -33,6 +33,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			public	string		Text;
 			public	Rectangle	TargetRect;
 			public	Rectangle	ActualRect;
+			public	Color		Color;
 		}
 
 
@@ -222,8 +223,11 @@ namespace AdamsLair.WinForms.TimelineControls
 					break;
 			}
 
-			if (this.verticalUnitBottom == this.verticalUnitTop)
-				this.verticalUnitTop += 1.0f;
+			if (Math.Abs(this.verticalUnitBottom - this.verticalUnitTop) <= 0.00000001f)
+			{
+				this.verticalUnitBottom -= 0.5f;
+				this.verticalUnitTop += 0.5f;
+			}
 
 			this.Invalidate();
 		}
@@ -274,7 +278,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			float unitPixelRadius = this.ParentView.ConvertPixelsToUnits(1.0f);
 			float unitEnvelopeRadius = unitPixelRadius * TimelineViewGraph.EnvelopeBasePixelRadius;
-			float mouseoverTime = this.ParentView.MouseoverUnits;
+			float mouseoverTime = this.ParentView.MouseoverTime;
 			float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
 
 			// Update graph mouseover visualizations
@@ -549,10 +553,10 @@ namespace AdamsLair.WinForms.TimelineControls
 			base.OnPaintOverlay(e);
 
 			// Display mouseover data / effects
-			if (this.ParentView.MouseoverContent)
+			if (this.ParentView.MouseoverContent && this.ParentView.ActiveMouseAction == TimelineView.MouseAction.None)
 			{
 				float unitEnvelopeRadius = this.ParentView.ConvertPixelsToUnits(TimelineViewGraph.EnvelopeBasePixelRadius);
-				float mouseoverTime = this.ParentView.MouseoverUnits;
+				float mouseoverTime = this.ParentView.MouseoverTime;
 				float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
 
 				// Accumulate graph value text information
@@ -561,9 +565,42 @@ namespace AdamsLair.WinForms.TimelineControls
 				textFormat.FormatFlags |= StringFormatFlags.NoWrap;
 				textFormat.Trimming = StringTrimming.EllipsisCharacter;
 				Rectangle totalTextRect = Rectangle.Empty;
-				Dictionary<TimelineViewGraph,GraphValueTextInfo> textInfoDict = new Dictionary<TimelineViewGraph,GraphValueTextInfo>();
+				List<GraphValueTextInfo> textInfoList = new List<GraphValueTextInfo>();
 				{
 					int textYAdv = 0;
+					float visibleTimeSpan = this.ParentView.VisibleUnitWidth;
+					float visibleValueSpan = Math.Abs(this.verticalUnitTop - this.verticalUnitBottom);
+					int timeDecimals = Math.Max(0, -(int)Math.Log10(visibleTimeSpan) + 2);
+					int valueDecimals = Math.Max(0, -(int)Math.Log10(visibleValueSpan) + 2);
+
+					// Time text
+					{
+						GraphValueTextInfo textInfo;
+						textInfo.Text = string.Format(
+							System.Globalization.CultureInfo.InvariantCulture, 
+							"{0:F" + timeDecimals + "}", 
+							mouseoverTime);
+						textInfo.TargetRect = new Rectangle((int)mouseoverPixels + 2, e.TargetRect.Y + textYAdv + 1, MaxGraphValueTextWidth - 2, e.TargetRect.Height - textYAdv);
+						SizeF textSize = e.Graphics.MeasureString(textInfo.Text, textFont, textInfo.TargetRect.Size, textFormat);
+						textInfo.ActualRect = new Rectangle(textInfo.TargetRect.X, textInfo.TargetRect.Y, (int)textSize.Width, (int)textSize.Height);
+						textInfo.Color = e.Renderer.ColorText;
+
+						if (totalTextRect.IsEmpty)
+						{
+							totalTextRect = textInfo.ActualRect;
+						}
+						else
+						{
+							totalTextRect.X = Math.Min(totalTextRect.X, textInfo.ActualRect.X);
+							totalTextRect.Y = Math.Min(totalTextRect.Y, textInfo.ActualRect.Y);
+							totalTextRect.Width = Math.Max(totalTextRect.Width, textInfo.ActualRect.Right - totalTextRect.Left);
+							totalTextRect.Height = Math.Max(totalTextRect.Height, textInfo.ActualRect.Bottom - totalTextRect.Top);
+						}
+						textInfoList.Add(textInfo);
+						textYAdv += (int)textSize.Height;
+					}
+
+					// Graph texts
 					foreach (TimelineViewGraph graph in this.graphList)
 					{
 						GraphAreaInfo info;
@@ -571,12 +608,23 @@ namespace AdamsLair.WinForms.TimelineControls
 
 						GraphValueTextInfo textInfo;
 						if (info.EnvelopeVisibility < 0.25f)
-							textInfo.Text = string.Format("{0}", Math.Round(info.AverageValue, 2));
+						{
+							textInfo.Text = string.Format(
+								System.Globalization.CultureInfo.InvariantCulture, 
+								"{0:F" + valueDecimals + "}", 
+								Math.Round(info.AverageValue, 2));
+						}
 						else
-							textInfo.Text = string.Format("[{0}, {1}]", Math.Round(info.MinValue, 2), Math.Round(info.MaxValue, 2));
+						{
+							textInfo.Text = string.Format(
+								System.Globalization.CultureInfo.InvariantCulture, 
+								"[{0:F" + valueDecimals + "}, {1:F" + valueDecimals + "}]", Math.Round(info.MinValue, 2), 
+								Math.Round(info.MaxValue, 2));
+						}
 						textInfo.TargetRect = new Rectangle((int)mouseoverPixels + 2, e.TargetRect.Y + textYAdv + 1, MaxGraphValueTextWidth - 2, e.TargetRect.Height - textYAdv);
 						SizeF textSize = e.Graphics.MeasureString(textInfo.Text, textFont, textInfo.TargetRect.Size, textFormat);
 						textInfo.ActualRect = new Rectangle(textInfo.TargetRect.X, textInfo.TargetRect.Y, (int)textSize.Width, (int)textSize.Height);
+						textInfo.Color = graph.BaseColor.ScaleBrightness(0.75f);
 
 						if (totalTextRect.IsEmpty)
 						{
@@ -590,7 +638,7 @@ namespace AdamsLair.WinForms.TimelineControls
 							totalTextRect.Height = Math.Max(totalTextRect.Height, textInfo.ActualRect.Bottom - totalTextRect.Top);
 						}
 
-						textInfoDict[graph] = textInfo;
+						textInfoList.Add(textInfo);
 						textYAdv += (int)textSize.Height;
 					}
 				}
@@ -643,20 +691,25 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 
 				// Draw value information texts
-				foreach (TimelineViewGraph graph in this.graphList)
+				foreach (GraphValueTextInfo textInfo in textInfoList)
 				{
-					GraphValueTextInfo textInfo;
-					if (!textInfoDict.TryGetValue(graph, out textInfo)) continue;
-
-					Color valueBaseColor = graph.BaseColor.ScaleBrightness(0.75f);
-					e.Graphics.DrawString(textInfo.Text, textFont, new SolidBrush(valueBaseColor), textInfo.TargetRect, textFormat);
+					e.Graphics.DrawString(textInfo.Text, textFont, new SolidBrush(textInfo.Color), textInfo.TargetRect, textFormat);
 				}
 			}
 		}
 		protected void DrawRuler(Graphics g, TimelineViewControlRenderer r, Rectangle rect, bool left)
 		{
-			string verticalTopText = string.Format("{0}", (float)Math.Round(this.verticalUnitTop, 2));
-			string verticalBottomText = string.Format("{0}", (float)Math.Round(this.verticalUnitBottom, 2));
+			float visibleValueSpan = Math.Abs(this.verticalUnitTop - this.verticalUnitBottom);
+			int valueDecimals = Math.Max(0, -(int)Math.Log10(visibleValueSpan) + 2);
+
+			string verticalTopText = string.Format(
+				System.Globalization.CultureInfo.InvariantCulture,
+				"{0:F" + valueDecimals + "}", 
+				this.verticalUnitTop);
+			string verticalBottomText = string.Format(
+				System.Globalization.CultureInfo.InvariantCulture,
+				"{0:F" + valueDecimals + "}", 
+				this.verticalUnitBottom);
 			SizeF verticalTopTextSize = g.MeasureString(verticalTopText, r.FontSmall);
 			SizeF verticalBottomTextSize = g.MeasureString(verticalBottomText, r.FontSmall);
 
@@ -796,7 +849,10 @@ namespace AdamsLair.WinForms.TimelineControls
 
 						if (bigMark)
 						{
-							string text = string.Format("{0}", (float)Math.Round(mark.UnitValue, 2));
+							string text = string.Format(
+								System.Globalization.CultureInfo.InvariantCulture,
+								"{0:F" + valueDecimals + "}", 
+								mark.UnitValue);
 							textSize = g.MeasureString(text, r.FontSmall);
 							g.DrawString(
 								text, 
