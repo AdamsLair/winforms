@@ -339,7 +339,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			// Draw boundaries
 			{
-				Pen boundaryPen = new Pen(Color.FromArgb(128, Color.Red));
+				Pen boundaryPen = new Pen(Color.FromArgb(128, this.baseColor));
 				boundaryPen.DashStyle = DashStyle.Dash;
 				e.Graphics.DrawLine(boundaryPen, beginX, rect.Top, beginX, rect.Bottom);
 				e.Graphics.DrawLine(boundaryPen, endX, rect.Top, endX, rect.Bottom);
