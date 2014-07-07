@@ -461,17 +461,27 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal override void OnCursorMove(TimelineViewCursorEventArgs e)
 		{
 			base.OnCursorMove(e);
-
-			// Update displayed graph information, such as value ranges at cursor position, etc.
 			this.UpdateDisplayedGraphInfo();
-
-			// Due to general mouseover display, invalidate cursor-local areas
 			if (e.CursorUnitSpeed != 0.0f)
 			{
 				float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
 				this.Invalidate(e.CursorUnits - unitsPerPixel * 6, e.CursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
 				this.Invalidate(e.LastCursorUnits - unitsPerPixel * 6, e.LastCursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
 			}
+		}
+		protected internal override void OnCursorEnter(TimelineViewCursorEventArgs e)
+		{
+			base.OnCursorLeave(e);
+			this.UpdateDisplayedGraphInfo();
+			float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
+			this.Invalidate(e.CursorUnits - unitsPerPixel * 6, e.CursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
+		}
+		protected internal override void OnCursorLeave(TimelineViewCursorEventArgs e)
+		{
+			base.OnCursorLeave(e);
+			this.UpdateDisplayedGraphInfo();
+			float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
+			this.Invalidate(e.LastCursorUnits - unitsPerPixel * 6, e.LastCursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
 		}
 		
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)

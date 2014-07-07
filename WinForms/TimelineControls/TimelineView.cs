@@ -681,9 +681,17 @@ namespace AdamsLair.WinForms.TimelineControls
 				Rectangle trackRect = this.GetTrackRectangle(this.mouseoverTrack);
 				this.mouseoverTrack.OnMouseMove(new MouseEventArgs(Control.MouseButtons, 0, mousePos.X - trackRect.X, mousePos.Y - trackRect.Y, 0));
 			}
+			if (!oldHoverContent && this.mouseoverContent)
+			{
+				this.OnCursorEnter(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
+			}
 			if (oldHoverContent != this.mouseoverContent || oldUnits != this.mouseoverTime)
 			{
 				this.OnCursorMove(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
+			}
+			if (oldHoverContent && !this.mouseoverContent)
+			{
+				this.OnCursorLeave(new TimelineViewCursorEventArgs(this, unitsDrawing, oldUnitsDrawing));
 			}
 		}
 
@@ -960,6 +968,20 @@ namespace AdamsLair.WinForms.TimelineControls
 			foreach (TimelineViewTrack track in this.trackList)
 			{
 				track.OnCursorMove(e);
+			}
+		}
+		protected virtual void OnCursorEnter(TimelineViewCursorEventArgs e)
+		{
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				track.OnCursorEnter(e);
+			}
+		}
+		protected virtual void OnCursorLeave(TimelineViewCursorEventArgs e)
+		{
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				track.OnCursorLeave(e);
 			}
 		}
 		protected virtual void OnSelectionChanged(TimelineViewSelectionEventArgs e)

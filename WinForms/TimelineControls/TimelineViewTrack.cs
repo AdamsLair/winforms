@@ -220,6 +220,8 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal virtual void OnMouseLeave(EventArgs e) {}
 		protected internal virtual void OnMouseMove(MouseEventArgs e) {}
 		protected internal virtual void OnCursorMove(TimelineViewCursorEventArgs e) { }
+		protected internal virtual void OnCursorEnter(TimelineViewCursorEventArgs e) { }
+		protected internal virtual void OnCursorLeave(TimelineViewCursorEventArgs e) { }
 		protected virtual void OnHeightSettingsChanged()
 		{
 			if (this.HeightSettingsChanged != null)
