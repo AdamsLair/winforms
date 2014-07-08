@@ -256,7 +256,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 
 		protected string DefaultValueStringGenerator(object obj)
 		{
-			return this.selectedObject != null ? this.selectedObject.ToString() : "null";
+			return this.selectedObject != null ? this.selectedObject.ToString() : "";
 		}
 	}
 }

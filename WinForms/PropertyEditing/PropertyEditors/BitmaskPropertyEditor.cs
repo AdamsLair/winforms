@@ -69,13 +69,16 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			base.OnGetValue();
 			this.BeginUpdate();
 			object[] values = this.GetValue().ToArray();
+			IEnumerable<object> valuesNotNull = values.Where(o => o != null);
 
 			// Apply values to editors
-			if (!values.Any())
+			if (!valuesNotNull.Any())
+			{
 				this.val = 0L;
+			}
 			else
 			{
-				this.val = Convert.ToUInt64(values.Where(o => o != null).First());
+				this.val = Convert.ToUInt64(valuesNotNull.First());
 				this.valMultiple = values.Any(o => o == null) || !values.All(o => this.val == Convert.ToUInt64(o));
 			}
 

@@ -17,7 +17,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 		public override object DisplayedValue
 		{
-			get { return Convert.ChangeType(this.val, this.EditedType); }
+			get { return this.val != null ? Convert.ChangeType(this.val, this.EditedType) : this.EditedType.GetDefaultInstanceOf(); }
 		}
 		public bool IsDropDownOpened
 		{
@@ -55,20 +55,23 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		{
 			base.OnGetValue();
 			this.BeginUpdate();
-			object[] values = this.GetValue().ToArray();
+			Enum[] values = this.GetValue().Select(o => o is Enum ? (Enum)o : null).ToArray();
+			IEnumerable<Enum> valuesNotNull = values.Where(o => o != null);
 
 			// Apply values to editors
-			if (!values.Any())
+			if (!valuesNotNull.Any())
+			{
 				this.val = null;
+			}
 			else
 			{
-				Enum firstVal = (Enum)values.Where(o => o != null).First();
+				Enum firstVal = valuesNotNull.First();
 
 				this.val = firstVal;
 				this.valMultiple = values.Any(o => o == null) || !values.All(o => Enum.Equals(o, firstVal));
 			}
 
-			this.stringSelector.SelectedObject = this.val.ToString();
+			this.stringSelector.SelectedObject = this.val != null ? this.val.ToString() : null;
 			this.EndUpdate();
 		}
 

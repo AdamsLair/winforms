@@ -179,12 +179,12 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			this.displayedKeys = new object[visibleElementCount];
 			foreach (object key in values.Where(o => o != null).First().Keys)
 			{
+				if (elemIndex >= this.offset + visibleElementCount) break;
 				if (elemIndex >= this.offset)
 				{
 					this.displayedKeys[elemIndex - this.offset] = key;
 				}
 				elemIndex++;
-				if (elemIndex >= this.offset + visibleElementCount) break;
 			}
 
 			this.BeginUpdate();

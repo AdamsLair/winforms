@@ -105,6 +105,8 @@ namespace AdamsLair.WinForms.TestApp
 			public List<Test2> StructList { get; set; }
 			public Dictionary<string,int> SomeDict { get; set; }
 			public Dictionary<string,List<int>> SomeDict2 { get; set; }
+			public Dictionary<EnumTest,int> SomeDict3 { get; set; }
+			public Dictionary<FlaggedEnumTest,int> SomeDict4 { get; set; }
 			public TimeSpan ElapsedTime
 			{
 				get { return this.w.Elapsed; }
