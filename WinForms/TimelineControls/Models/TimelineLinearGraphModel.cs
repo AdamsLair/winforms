@@ -28,7 +28,8 @@ namespace AdamsLair.WinForms.TimelineControls
 			}
 		}
 
-		private List<Key> values = new List<Key>();
+		private List<Key>	values			= new List<Key>();
+		private	float		minSampleDist	= float.MaxValue;
 
 		public event EventHandler<TimelineGraphRangeEventArgs> GraphChanged;
 
@@ -79,6 +80,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		{
 			this.values.AddRange(values);
 			this.values.Sort();
+			this.UpdateMinSampleDist();
 			this.RaiseGraphChanged(values.Min(v => v.X), values.Max(v => v.X));
 		}
 		public void Add(Key frame)
@@ -92,6 +94,11 @@ namespace AdamsLair.WinForms.TimelineControls
 			else
 				this.values.Insert(insertIndex, frame);
 
+			if (insertIndex > 0)
+				this.minSampleDist = Math.Min(this.minSampleDist, this.values[insertIndex].X - this.values[insertIndex - 1].X);
+			if (insertIndex + 1 < this.values.Count)
+				this.minSampleDist = Math.Min(this.minSampleDist, this.values[insertIndex + 1].X - this.values[insertIndex].X);
+
 			this.RaiseGraphChanged(frame.X);
 		}
 		public void Add(float x, float y)
@@ -101,6 +108,7 @@ namespace AdamsLair.WinForms.TimelineControls
 		public void Remove(float x)
 		{
 			this.values.RemoveAll(f => f.X == x);
+			this.UpdateMinSampleDist();
 			this.RaiseGraphChanged(x);
 		}
 		public void Clear()
@@ -108,6 +116,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			float begin = this.BeginTime;
 			float end = this.EndTime;
 			this.values.Clear();
+			this.minSampleDist = float.MaxValue;
 			this.RaiseGraphChanged(begin, end);
 		}
 
@@ -157,6 +166,7 @@ namespace AdamsLair.WinForms.TimelineControls
 
 			return result;
 		}
+
 		private int SearchIndexBelow(float x)
 		{
 			int left = 0;
@@ -190,6 +200,14 @@ namespace AdamsLair.WinForms.TimelineControls
 				}
 			}
 			return -1;
+		}
+		private void UpdateMinSampleDist()
+		{
+			this.minSampleDist = float.MaxValue;
+			for (int i = 1; i < this.values.Count; i++)
+			{
+				this.minSampleDist = Math.Min(this.minSampleDist, this.values[i].X - this.values[i - 1].X);
+			}
 		}
 
 		private void RaiseGraphChanged(float at)

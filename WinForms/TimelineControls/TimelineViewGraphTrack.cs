@@ -274,46 +274,75 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected void UpdateDisplayedGraphInfo()
 		{
 			this.graphDisplayedInfo.Clear();
-			if (!this.ParentView.MouseoverContent) return;
 
-			float unitPixelRadius = this.ParentView.ConvertPixelsToUnits(1.0f);
-			float unitEnvelopeRadius = unitPixelRadius * TimelineViewGraph.EnvelopeBasePixelRadius;
-			float mouseoverTime = this.ParentView.MouseoverTime;
-			float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
+			float unitPixelRadius		= this.ParentView.ConvertPixelsToUnits(1.0f);
+			float unitEnvelopeRadius	= unitPixelRadius * TimelineViewGraph.EnvelopeBasePixelRadius;
+			float mouseoverTime			= this.ParentView.MouseoverTime;
+			float selectionBeginTime	= this.ParentView.SelectionBeginTime;
+			float selectionEndTime		= this.ParentView.SelectionEndTime;
 
 			// Update graph mouseover visualizations
 			foreach (TimelineViewGraph graph in this.graphList)
 			{
-				if (graph.Model.BeginTime > mouseoverTime) continue;
-				if (graph.Model.EndTime < mouseoverTime) continue;
+				GraphAreaInfo info = new GraphAreaInfo();
 
-				GraphAreaInfo info;
-
-				// Determine mouseover data
-				info.BeginTime = mouseoverTime;
-				info.EndTime = mouseoverTime;
-				info.MinValue = graph.Model.GetMinValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
-				info.MaxValue = graph.Model.GetMaxValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
-				info.EnvelopeVisibility = Math.Min(1.0f, 10.0f * graph.GetEnvelopeVisibility(
-					graph.Model.GetMaxValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f) - 
-					graph.Model.GetMinValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f)));
-				if (info.EnvelopeVisibility > 0.05f)
+				// Determine selection data
+				if (selectionBeginTime != selectionEndTime)
 				{
+					if (graph.Model.BeginTime > selectionEndTime) continue;
+					if (graph.Model.EndTime < selectionBeginTime) continue;
+
+					info.BeginTime = selectionBeginTime;
+					info.EndTime = selectionEndTime;
+					info.MinValue = graph.Model.GetMinValueInRange(selectionBeginTime, selectionEndTime);
+					info.MaxValue = graph.Model.GetMaxValueInRange(selectionBeginTime, selectionEndTime);
+					info.EnvelopeVisibility = 1.0f;
 					info.AverageValue = 0.0f;
 					const int SampleCount = 10;
-					float smallUnitEnvelopeRadius = unitEnvelopeRadius / (float)SampleCount;
+					float sampleBegin = Math.Max(selectionBeginTime, graph.Model.BeginTime);
+					float sampleEnd = Math.Min(selectionEndTime, graph.Model.EndTime);
+					float timeRadius = 0.5f * (sampleEnd - sampleBegin);
+					float sampleRadius = timeRadius / (float)SampleCount;
 					for (int i = 0; i < SampleCount; i++)
 					{
-						float sampleTime = mouseoverTime - unitEnvelopeRadius + ((float)i / (float)(SampleCount - 1)) * 2.0f * unitEnvelopeRadius;
-						float localMin = graph.Model.GetMinValueInRange(sampleTime - smallUnitEnvelopeRadius, sampleTime + smallUnitEnvelopeRadius);
-						float localMax = graph.Model.GetMaxValueInRange(sampleTime - smallUnitEnvelopeRadius, sampleTime + smallUnitEnvelopeRadius);
+						float sampleTime = sampleBegin + ((float)i / (float)(SampleCount - 1)) * 2.0f * timeRadius;
+						float localMin = graph.Model.GetMinValueInRange(sampleTime - sampleRadius, sampleTime + sampleRadius);
+						float localMax = graph.Model.GetMaxValueInRange(sampleTime - sampleRadius, sampleTime + sampleRadius);
 						info.AverageValue += (localMin + localMax) * 0.5f;
 					}
 					info.AverageValue /= (float)SampleCount;
 				}
-				else
+				// Determine mouseover data
+				else if (this.ParentView.MouseoverContent)
 				{
-					info.AverageValue = graph.Model.GetValueAtX(mouseoverTime);
+					if (graph.Model.BeginTime > mouseoverTime) continue;
+					if (graph.Model.EndTime < mouseoverTime) continue;
+
+					info.BeginTime = mouseoverTime;
+					info.EndTime = mouseoverTime;
+					info.MinValue = graph.Model.GetMinValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
+					info.MaxValue = graph.Model.GetMaxValueInRange(mouseoverTime - unitEnvelopeRadius, mouseoverTime + unitEnvelopeRadius);
+					info.EnvelopeVisibility = Math.Min(1.0f, 10.0f * graph.GetEnvelopeVisibility(
+						graph.Model.GetMaxValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f) - 
+						graph.Model.GetMinValueInRange(mouseoverTime - unitPixelRadius * 0.5f, mouseoverTime + unitPixelRadius * 0.5f)));
+					if (info.EnvelopeVisibility > 0.05f)
+					{
+						info.AverageValue = 0.0f;
+						const int SampleCount = 10;
+						float sampleRadius = unitEnvelopeRadius / (float)SampleCount;
+						for (int i = 0; i < SampleCount; i++)
+						{
+							float sampleTime = mouseoverTime - unitEnvelopeRadius + ((float)i / (float)(SampleCount - 1)) * 2.0f * unitEnvelopeRadius;
+							float localMin = graph.Model.GetMinValueInRange(sampleTime - sampleRadius, sampleTime + sampleRadius);
+							float localMax = graph.Model.GetMaxValueInRange(sampleTime - sampleRadius, sampleTime + sampleRadius);
+							info.AverageValue += (localMin + localMax) * 0.5f;
+						}
+						info.AverageValue /= (float)SampleCount;
+					}
+					else
+					{
+						info.AverageValue = graph.Model.GetValueAtX(mouseoverTime);
+					}
 				}
 
 				this.graphDisplayedInfo[graph] = info;
@@ -483,6 +512,30 @@ namespace AdamsLair.WinForms.TimelineControls
 			float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
 			this.Invalidate(e.LastCursorUnits - unitsPerPixel * 6, e.LastCursorUnits + unitsPerPixel * MaxGraphValueTextWidth);
 		}
+		protected internal override void OnTimeSelectionChanged(TimelineViewSelectionEventArgs e)
+		{
+			base.OnTimeSelectionChanged(e);
+			this.UpdateDisplayedGraphInfo();
+			float unitsPerPixel = this.ParentView.ConvertPixelsToUnits(1.0f);
+			if (e.IsEmpty)
+			{
+				this.Invalidate(
+					e.LastBeginTime - unitsPerPixel * MaxGraphValueTextWidth, 
+					e.LastEndTime + unitsPerPixel * MaxGraphValueTextWidth);
+			}
+			else if (e.WasEmpty)
+			{
+				this.Invalidate(
+					e.BeginTime - unitsPerPixel * MaxGraphValueTextWidth, 
+					e.EndTime + unitsPerPixel * MaxGraphValueTextWidth);
+			}
+			else
+			{
+				this.Invalidate(
+					Math.Min(e.BeginTime, e.LastBeginTime) - unitsPerPixel * MaxGraphValueTextWidth, 
+					Math.Max(e.EndTime, e.LastEndTime) + unitsPerPixel * MaxGraphValueTextWidth);
+			}
+		}
 		
 		protected internal override void OnPaint(TimelineViewTrackPaintEventArgs e)
 		{
@@ -561,27 +614,118 @@ namespace AdamsLair.WinForms.TimelineControls
 		protected internal override void OnPaintOverlay(TimelineViewTrackPaintEventArgs e)
 		{
 			base.OnPaintOverlay(e);
+			
+			// Determine overlay data
+			float unitEnvelopeRadius	= this.ParentView.ConvertPixelsToUnits(TimelineViewGraph.EnvelopeBasePixelRadius);
+			float mouseoverTime			= this.ParentView.MouseoverTime;
+			float selectionBeginTime	= this.ParentView.SelectionBeginTime;
+			float selectionEndTime		= this.ParentView.SelectionEndTime;
+			float mouseoverPixels		= this.ParentView.GetPosAtUnit(mouseoverTime);
+			float selectionBeginPixels	= this.ParentView.GetPosAtUnit(selectionBeginTime);
+			float selectionEndPixels	= this.ParentView.GetPosAtUnit(selectionEndTime);
 
-			// Display mouseover data / effects
-			if (this.ParentView.MouseoverContent && this.ParentView.ActiveMouseAction == TimelineView.MouseAction.None)
+			float visibleTimeSpan	= this.ParentView.VisibleUnitWidth;
+			float visibleValueSpan	= Math.Abs(this.verticalUnitTop - this.verticalUnitBottom);
+			int timeDecimals		= Math.Max(0, -(int)Math.Log10(visibleTimeSpan) + 2);
+			int valueDecimals		= Math.Max(0, -(int)Math.Log10(visibleValueSpan) + 2);
+
+			Font textFont = e.Renderer.FontSmall;
+			StringFormat textFormat = new StringFormat();
+			textFormat.FormatFlags |= StringFormatFlags.NoWrap;
+			textFormat.Trimming = StringTrimming.EllipsisCharacter;
+
+			// Display selection data
+			if (this.ParentView.SelectionBeginTime != this.ParentView.SelectionEndTime)
 			{
-				float unitEnvelopeRadius = this.ParentView.ConvertPixelsToUnits(TimelineViewGraph.EnvelopeBasePixelRadius);
-				float mouseoverTime = this.ParentView.MouseoverTime;
-				float mouseoverPixels = this.ParentView.GetPosAtUnit(mouseoverTime);
+				// Draw begin and end time values
+				{
+					string timeText = string.Format(
+						System.Globalization.CultureInfo.InvariantCulture, 
+						"{0:F" + timeDecimals + "}", 
+						selectionEndTime);
+					e.Graphics.DrawString(
+						timeText,
+						textFont, 
+						new SolidBrush(e.Renderer.ColorText), 
+						(int)selectionEndPixels + 2, 
+						e.TargetRect.Y + 1, 
+						textFormat);
+				}
+				{
+					string timeText = string.Format(
+						System.Globalization.CultureInfo.InvariantCulture, 
+						"{0:F" + timeDecimals + "}", 
+						selectionBeginTime);
+					SizeF textSize = e.Graphics.MeasureString(timeText, textFont);
+					e.Graphics.DrawString(
+						timeText,
+						textFont, 
+						new SolidBrush(e.Renderer.ColorText), 
+						(int)selectionBeginPixels - 2 - textSize.Width, 
+						e.TargetRect.Y + 1, 
+						textFormat);
+				}
 
+				// Draw display value overlay
+				foreach (TimelineViewGraph graph in this.graphList)
+				{
+					GraphAreaInfo info;
+					if (!this.graphDisplayedInfo.TryGetValue(graph, out info)) continue;
+					
+					// Draw min, max and average values
+					float averagePixels = e.TargetRect.Y + this.GetPosAtUnit(info.AverageValue);
+					float minPixels = Math.Min(e.TargetRect.Y + this.GetPosAtUnit(info.MinValue), e.TargetRect.Bottom - 2);
+					float maxPixels = Math.Max(e.TargetRect.Y + this.GetPosAtUnit(info.MaxValue), e.TargetRect.Top + 1);
+
+					Color graphInfoColor = graph.BaseColor.ScaleBrightness(0.75f);
+					{
+						SolidBrush brush = new SolidBrush(graphInfoColor);
+						e.Graphics.FillRectangle(new SolidBrush(graphInfoColor.ScaleAlpha(0.3f)), selectionBeginPixels, Math.Min(minPixels, maxPixels), selectionEndPixels - selectionBeginPixels, Math.Abs(maxPixels - minPixels));
+						e.Graphics.FillRectangle(brush, selectionBeginPixels, minPixels, selectionEndPixels - selectionBeginPixels, 1);
+						e.Graphics.FillRectangle(brush, selectionBeginPixels, maxPixels, selectionEndPixels - selectionBeginPixels, 1);
+					}
+
+					// Draw min and max texts
+					{
+						SolidBrush brush = new SolidBrush(graphInfoColor);
+						string text = string.Format(
+							System.Globalization.CultureInfo.InvariantCulture, 
+							"{0:F" + valueDecimals + "}", 
+							info.MinValue);
+						SizeF textSize = e.Graphics.MeasureString(text, textFont);
+						PointF textPos;
+						textPos = new PointF((selectionBeginPixels + selectionEndPixels) * 0.5f - textSize.Width * 0.5f, minPixels + 2);
+						if (textSize.Width > (selectionEndPixels - selectionBeginPixels) - 4)
+							textPos.X = selectionEndPixels + 2;
+						if (textSize.Height * 2 <= Math.Abs(maxPixels - minPixels) - 4)
+							textPos.Y = minPixels - 2 - textSize.Height;
+						e.Graphics.DrawString(text, textFont, brush, textPos.X, textPos.Y, textFormat);
+					}
+					{
+						SolidBrush brush = new SolidBrush(graphInfoColor);
+						string text = string.Format(
+							System.Globalization.CultureInfo.InvariantCulture, 
+							"{0:F" + valueDecimals + "}", 
+							info.MaxValue);
+						SizeF textSize = e.Graphics.MeasureString(text, textFont);
+						PointF textPos;
+						textPos = new PointF((selectionBeginPixels + selectionEndPixels) * 0.5f - textSize.Width * 0.5f, maxPixels - 2 - textSize.Height);
+						if (textSize.Width > (selectionEndPixels - selectionBeginPixels) - 4)
+							textPos.X = selectionEndPixels + 2;
+						if (textSize.Height * 2 <= Math.Abs(maxPixels - minPixels) - 4)
+							textPos.Y = maxPixels + 2;
+						e.Graphics.DrawString(text, textFont, brush, textPos.X, textPos.Y, textFormat);
+					}
+				}
+			}
+			// Display mouseover data / effects
+			else if (this.ParentView.MouseoverContent && this.ParentView.ActiveMouseAction == TimelineView.MouseAction.None)
+			{
 				// Accumulate graph value text information
-				Font textFont = e.Renderer.FontSmall;
-				StringFormat textFormat = new StringFormat();
-				textFormat.FormatFlags |= StringFormatFlags.NoWrap;
-				textFormat.Trimming = StringTrimming.EllipsisCharacter;
 				Rectangle totalTextRect = Rectangle.Empty;
 				List<GraphValueTextInfo> textInfoList = new List<GraphValueTextInfo>();
 				{
 					int textYAdv = 0;
-					float visibleTimeSpan = this.ParentView.VisibleUnitWidth;
-					float visibleValueSpan = Math.Abs(this.verticalUnitTop - this.verticalUnitBottom);
-					int timeDecimals = Math.Max(0, -(int)Math.Log10(visibleTimeSpan) + 2);
-					int valueDecimals = Math.Max(0, -(int)Math.Log10(visibleValueSpan) + 2);
 
 					// Time text
 					{

@@ -179,6 +179,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			minPixelStep = Math.Min(minPixelStep, 4);
 			float minUnitStep = this.ParentView.ConvertPixelsToUnits(minPixelStep);
 			Rectangle rect = e.TargetRect;
+
 			
 			if (this.curveCacheDirty)
 			{

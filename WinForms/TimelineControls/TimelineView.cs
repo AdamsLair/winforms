@@ -986,6 +986,10 @@ namespace AdamsLair.WinForms.TimelineControls
 		}
 		protected virtual void OnSelectionChanged(TimelineViewSelectionEventArgs e)
 		{
+			foreach (TimelineViewTrack track in this.trackList)
+			{
+				track.OnTimeSelectionChanged(e);
+			}
 			if (e.IsEmpty != e.WasEmpty)
 			{
 				this.Invalidate(this.rectContentArea);
@@ -1259,7 +1263,7 @@ namespace AdamsLair.WinForms.TimelineControls
 			paintWatch.Stop();
 			if (qualityHint == QualityLevel.High) this.lastPaintHqTime = paintWatch.Elapsed;
 
-			Console.WriteLine("{1}\t{0:F}\t{2}", paintWatch.Elapsed.TotalMilliseconds, qualityHint, e.ClipRectangle);
+			//Console.WriteLine("{1}\t{0:F}\t{2}", paintWatch.Elapsed.TotalMilliseconds, qualityHint, e.ClipRectangle);
 		}
 		protected virtual void OnPaintTopRuler(TimelineViewPaintEventArgs e)
 		{
