@@ -28,7 +28,9 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			AdamsLair.WinForms.ItemModels.ListModel<object> listModel_11 = new AdamsLair.WinForms.ItemModels.ListModel<object>();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
+			AdamsLair.WinForms.TimelineControls.TimelineModel timelineModel1 = new AdamsLair.WinForms.TimelineControls.TimelineModel();
 			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
 			this.radioDisabled = new System.Windows.Forms.RadioButton();
@@ -65,6 +67,7 @@
 			this.tabPageTimeline = new System.Windows.Forms.TabPage();
 			this.trackBarTimelineUnitZoom = new System.Windows.Forms.TrackBar();
 			this.timelineView1 = new AdamsLair.WinForms.TimelineControls.TimelineView();
+			this.menuStrip = new System.Windows.Forms.MenuStrip();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
@@ -88,7 +91,7 @@
 			this.propertyGrid1.Name = "propertyGrid1";
 			this.propertyGrid1.ReadOnly = false;
 			this.propertyGrid1.ShowNonPublic = false;
-			this.propertyGrid1.Size = new System.Drawing.Size(300, 379);
+			this.propertyGrid1.Size = new System.Drawing.Size(300, 364);
 			this.propertyGrid1.TabIndex = 0;
 			// 
 			// radioEnabled
@@ -96,7 +99,7 @@
 			this.radioEnabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioEnabled.AutoSize = true;
 			this.radioEnabled.Checked = true;
-			this.radioEnabled.Location = new System.Drawing.Point(6, 391);
+			this.radioEnabled.Location = new System.Drawing.Point(6, 376);
 			this.radioEnabled.Name = "radioEnabled";
 			this.radioEnabled.Size = new System.Drawing.Size(64, 17);
 			this.radioEnabled.TabIndex = 3;
@@ -109,7 +112,7 @@
 			// 
 			this.radioDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioDisabled.AutoSize = true;
-			this.radioDisabled.Location = new System.Drawing.Point(154, 391);
+			this.radioDisabled.Location = new System.Drawing.Point(154, 376);
 			this.radioDisabled.Name = "radioDisabled";
 			this.radioDisabled.Size = new System.Drawing.Size(66, 17);
 			this.radioDisabled.TabIndex = 4;
@@ -121,7 +124,7 @@
 			// 
 			this.radioReadOnly.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioReadOnly.AutoSize = true;
-			this.radioReadOnly.Location = new System.Drawing.Point(76, 391);
+			this.radioReadOnly.Location = new System.Drawing.Point(76, 376);
 			this.radioReadOnly.Name = "radioReadOnly";
 			this.radioReadOnly.Size = new System.Drawing.Size(72, 17);
 			this.radioReadOnly.TabIndex = 5;
@@ -144,7 +147,7 @@
 			// 
 			this.checkBoxNonPublic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkBoxNonPublic.AutoSize = true;
-			this.checkBoxNonPublic.Location = new System.Drawing.Point(226, 391);
+			this.checkBoxNonPublic.Location = new System.Drawing.Point(226, 376);
 			this.checkBoxNonPublic.Name = "checkBoxNonPublic";
 			this.checkBoxNonPublic.Size = new System.Drawing.Size(78, 17);
 			this.checkBoxNonPublic.TabIndex = 8;
@@ -205,10 +208,10 @@
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
 			this.tabControl.Controls.Add(this.tabPageTimeline);
-			this.tabControl.Location = new System.Drawing.Point(12, 12);
+			this.tabControl.Location = new System.Drawing.Point(12, 27);
 			this.tabControl.Name = "tabControl";
 			this.tabControl.SelectedIndex = 0;
-			this.tabControl.Size = new System.Drawing.Size(435, 438);
+			this.tabControl.Size = new System.Drawing.Size(435, 423);
 			this.tabControl.TabIndex = 13;
 			// 
 			// tabPagePropertyGrid
@@ -225,7 +228,7 @@
 			this.tabPagePropertyGrid.Location = new System.Drawing.Point(4, 22);
 			this.tabPagePropertyGrid.Name = "tabPagePropertyGrid";
 			this.tabPagePropertyGrid.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPagePropertyGrid.Size = new System.Drawing.Size(427, 412);
+			this.tabPagePropertyGrid.Size = new System.Drawing.Size(427, 397);
 			this.tabPagePropertyGrid.TabIndex = 0;
 			this.tabPagePropertyGrid.Text = "PropertyGrid";
 			this.tabPagePropertyGrid.UseVisualStyleBackColor = true;
@@ -247,7 +250,7 @@
 			this.tabPageTiledView.Location = new System.Drawing.Point(4, 22);
 			this.tabPageTiledView.Name = "tabPageTiledView";
 			this.tabPageTiledView.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPageTiledView.Size = new System.Drawing.Size(427, 412);
+			this.tabPageTiledView.Size = new System.Drawing.Size(427, 372);
 			this.tabPageTiledView.TabIndex = 1;
 			this.tabPageTiledView.Text = "TiledView";
 			this.tabPageTiledView.UseVisualStyleBackColor = true;
@@ -410,6 +413,7 @@
 			this.tiledView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.tiledView.HighlightModelItem = null;
 			this.tiledView.Location = new System.Drawing.Point(6, 6);
+			this.tiledView.Model = listModel_11;
 			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
@@ -432,7 +436,7 @@
 			this.tabPageColorControls.Controls.Add(this.buttonColorPicker);
 			this.tabPageColorControls.Location = new System.Drawing.Point(4, 22);
 			this.tabPageColorControls.Name = "tabPageColorControls";
-			this.tabPageColorControls.Size = new System.Drawing.Size(427, 412);
+			this.tabPageColorControls.Size = new System.Drawing.Size(427, 372);
 			this.tabPageColorControls.TabIndex = 2;
 			this.tabPageColorControls.Text = "Color";
 			this.tabPageColorControls.UseVisualStyleBackColor = true;
@@ -509,7 +513,7 @@
 			this.tabPageTimeline.Controls.Add(this.timelineView1);
 			this.tabPageTimeline.Location = new System.Drawing.Point(4, 22);
 			this.tabPageTimeline.Name = "tabPageTimeline";
-			this.tabPageTimeline.Size = new System.Drawing.Size(427, 412);
+			this.tabPageTimeline.Size = new System.Drawing.Size(427, 372);
 			this.tabPageTimeline.TabIndex = 3;
 			this.tabPageTimeline.Text = "Timeline";
 			this.tabPageTimeline.UseVisualStyleBackColor = true;
@@ -532,16 +536,34 @@
 			// 
 			// timelineView1
 			// 
+			this.timelineView1.AdaptiveDrawingQuality = true;
 			this.timelineView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.timelineView1.AutoScroll = true;
 			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
 			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.timelineView1.LeftSidebarSize = 50;
 			this.timelineView1.Location = new System.Drawing.Point(23, 24);
+			timelineModel1.UnitBaseScale = 1F;
+			timelineModel1.UnitDescription = "Time";
+			timelineModel1.UnitName = "Seconds";
+			this.timelineView1.Model = timelineModel1;
 			this.timelineView1.Name = "timelineView1";
+			this.timelineView1.RightSidebarSize = 100;
+			this.timelineView1.SelectionBeginTime = 0F;
+			this.timelineView1.SelectionEndTime = 0F;
 			this.timelineView1.Size = new System.Drawing.Size(350, 362);
 			this.timelineView1.TabIndex = 0;
+			this.timelineView1.TabStop = true;
+			// 
+			// menuStrip
+			// 
+			this.menuStrip.Location = new System.Drawing.Point(0, 0);
+			this.menuStrip.Name = "menuStrip";
+			this.menuStrip.Size = new System.Drawing.Size(459, 24);
+			this.menuStrip.TabIndex = 14;
+			this.menuStrip.Text = "Main Menu";
 			// 
 			// DemoForm
 			// 
@@ -549,6 +571,8 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(459, 462);
 			this.Controls.Add(this.tabControl);
+			this.Controls.Add(this.menuStrip);
+			this.MainMenuStrip = this.menuStrip;
 			this.MinimumSize = new System.Drawing.Size(475, 500);
 			this.Name = "DemoForm";
 			this.Text = "Form1";
@@ -564,6 +588,7 @@
 			this.tabPageTimeline.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTimelineUnitZoom)).EndInit();
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
@@ -605,6 +630,7 @@
 		private System.Windows.Forms.TabPage tabPageTimeline;
 		private TimelineControls.TimelineView timelineView1;
 		private System.Windows.Forms.TrackBar trackBarTimelineUnitZoom;
+		private System.Windows.Forms.MenuStrip menuStrip;
 	}
 }
 

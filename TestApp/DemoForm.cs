@@ -183,6 +183,8 @@ namespace AdamsLair.WinForms.TestApp
 		private Test objB;
 		private ListModel<TiledModelItem> tiledViewModel;
 		private	TimelineModel timelineViewModel;
+		private	MenuModel menuModel;
+		private MenuStripMenuView menuView;
 
 		public DemoForm()
 		{
@@ -208,6 +210,36 @@ namespace AdamsLair.WinForms.TestApp
 			this.objB.stringListField = new List<string>() { "hallo", "welt" };
 
 			this.propertyGrid1.SelectObject(this.objA);
+
+			this.menuModel = new MenuModel();
+			this.menuView = new MenuStripMenuView(this.menuStrip.Items);
+			this.menuView.Model = this.menuModel;
+			{
+				MenuModelItem file = new MenuModelItem("File", null, new[]
+				{
+					new MenuModelItem { Name = "Quit", SortValue = MenuModelItem.SortValue_Bottom, ActionHandler = OnMenuItemClicked },
+					new MenuModelItem { Name = "New", Items = new[]
+					{
+						new MenuModelItem("Stuff", OnMenuItemClicked),
+						new MenuModelItem("Awesome Stuff", OnMenuItemClicked)	
+					}},
+					new MenuModelItem("Open", bmpItemSmall, OnMenuItemClicked),
+					new MenuModelItem("Close", OnMenuItemClicked),
+					MenuModelItem.Separator,
+				});
+				MenuModelItem edit = new MenuModelItem("Edit", null, new[] 
+				{
+					new MenuModelItem("Undo", OnMenuItemClicked),
+					new MenuModelItem("Redo", OnMenuItemClicked),
+					new MenuModelItem("Checkable", OnMenuItemClicked)
+				});
+				this.menuModel.AddItem(file);
+				this.menuModel.AddItem(edit);
+
+				this.menuModel.FindItem(@"File\Close").Enabled = false;
+				this.menuModel.FindItem(@"Edit\Undo").ShortcutKeys = Keys.Control | Keys.Z;
+				this.menuModel.FindItem(@"Edit\Checkable").Checkable = true;
+			}
 
 			this.tiledViewModel = new ListModel<TiledModelItem>();
 			this.tiledViewModel.Add(new TiledModelItem { Name = "Frederick" });
@@ -313,6 +345,12 @@ namespace AdamsLair.WinForms.TestApp
 				graphTrack.Add(new TimelineLinearGraphModel(Enumerable.Range(0, 360).Select(i => (float)Math.Sin((float)i * Math.PI / 180.0f)), 1.0f, 50.0f));
 				this.timelineViewModel.Add(graphTrack);
 			}
+		}
+
+		private void OnMenuItemClicked(object sender, EventArgs e)
+		{
+			IMenuModelItem modelItem = sender as IMenuModelItem;
+			Console.WriteLine(string.Format(modelItem.Checkable ? "Sender: {0}, Checked: {1}" : "Sender: {0}", modelItem.Name, modelItem.Checked));
 		}
 
 		private void radioEnabled_CheckedChanged(object sender, EventArgs e)

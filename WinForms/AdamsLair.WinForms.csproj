@@ -71,8 +71,15 @@
     <Compile Include="Drawing\TextBoxStyle.cs" />
     <Compile Include="Internal\ExtMethodsMessage.cs" />
     <Compile Include="Internal\NativeWinAPI.cs" />
+    <Compile Include="ItemModels\EventArgs\MenuModelItemsEventArgs.cs" />
+    <Compile Include="ItemModels\IMenuModel.cs" />
+    <Compile Include="ItemModels\IMenuModelItem.cs" />
     <Compile Include="ItemModels\ListModel.cs" />
+    <Compile Include="ItemModels\MenuItemTypeHint.cs" />
+    <Compile Include="ItemModels\MenuModel.cs" />
+    <Compile Include="ItemModels\MenuModelItem.cs" />
     <Compile Include="ItemViews\ITiledViewItemEditor.cs" />
+    <Compile Include="ItemViews\MenuToolStripView.cs" />
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -147,7 +154,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ItemModels\IListModel.cs" />
-    <Compile Include="ItemModels\EventArgs\ListModelEventArgs.cs" />
+    <Compile Include="ItemModels\EventArgs\ListModelItemsEventArgs.cs" />
     <Compile Include="ItemViews\EventArgs\TiledViewItemAppearanceEventArgs.cs" />
     <Compile Include="ItemViews\EventArgs\TiledViewItemMouseEventArgs.cs" />
     <Compile Include="ItemViews\EventArgs\TiledViewItemEventArgs.cs" />
