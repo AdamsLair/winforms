@@ -34,11 +34,50 @@ namespace AdamsLair.WinForms.ItemModels
 			}
 		}
 		
-		public MenuModelItem FindItem(string fullItemName)
+		public MenuModelItem GetItem(string fullItemName)
 		{
 			fullItemName = fullItemName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 			return this.ItemsDeep.FirstOrDefault(i => string.Equals(i.FullName, fullItemName, StringComparison.InvariantCultureIgnoreCase));
 		}
+		public MenuModelItem RequestItem(string fullItemName)
+		{
+			// Check if such item already exists. Returns it, if it does.
+			{
+				MenuModelItem existingItem = this.GetItem(fullItemName);
+				if (existingItem != null) return existingItem;
+			}
+
+			// Create an item that matches the specified full name
+			MenuModelItem resultItem = null;
+			{
+				fullItemName = fullItemName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+				string[] itemNames = fullItemName.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.None);
+
+				// Create the root item
+				MenuModelItem item = this.items.FirstOrDefault(c => string.Equals(c.Name, itemNames[0], StringComparison.InvariantCultureIgnoreCase));
+				if (item == null)
+				{
+					item = new MenuModelItem(itemNames[0]);
+					this.AddItem(item);
+				}
+
+				// Create subsequent items
+				resultItem = item;
+				for (int i = 1; i < itemNames.Length; i++)
+				{
+					resultItem = item.Items.FirstOrDefault(c => string.Equals(c.Name, itemNames[i], StringComparison.InvariantCultureIgnoreCase));
+					if (resultItem == null)
+					{
+						resultItem = new MenuModelItem(itemNames[i]);
+						item.AddItem(resultItem);
+					}
+					item = resultItem;
+				}
+			}
+
+			return resultItem;
+		}
+
 		public void AddItem(MenuModelItem item)
 		{
 			this.AddItems(new[] { item });

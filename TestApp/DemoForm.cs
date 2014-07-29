@@ -236,9 +236,15 @@ namespace AdamsLair.WinForms.TestApp
 				this.menuModel.AddItem(file);
 				this.menuModel.AddItem(edit);
 
-				this.menuModel.FindItem(@"File\Close").Enabled = false;
-				this.menuModel.FindItem(@"Edit\Undo").ShortcutKeys = Keys.Control | Keys.Z;
-				this.menuModel.FindItem(@"Edit\Checkable").Checkable = true;
+				this.menuModel.GetItem(@"File\Close").Enabled = false;
+				this.menuModel.GetItem(@"Edit\Undo").ShortcutKeys = Keys.Control | Keys.Z;
+				this.menuModel.GetItem(@"Edit\Checkable").Checkable = true;
+
+				this.menuModel.RequestItem(@"File\New Option\Blah").ActionHandler = OnMenuItemClicked;
+				this.menuModel.RequestItem(@"file\New Option\blah");
+				this.menuModel.RequestItem(@"File\New Option\Blub");
+				this.menuModel.RequestItem(@"File\New option\blub").ActionHandler = OnMenuItemClicked;
+				this.menuModel.RequestItem(@"A Menu\Stuff\Execute").ActionHandler = OnMenuItemClicked;
 			}
 
 			this.tiledViewModel = new ListModel<TiledModelItem>();

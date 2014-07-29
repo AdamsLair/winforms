@@ -79,7 +79,7 @@
     <Compile Include="ItemModels\MenuModel.cs" />
     <Compile Include="ItemModels\MenuModelItem.cs" />
     <Compile Include="ItemViews\ITiledViewItemEditor.cs" />
-    <Compile Include="ItemViews\MenuToolStripView.cs" />
+    <Compile Include="ItemViews\MenuStripMenuView.cs" />
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
       <SubType>Component</SubType>
     </Compile>
