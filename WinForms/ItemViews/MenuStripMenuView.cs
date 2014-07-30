@@ -16,6 +16,9 @@ namespace AdamsLair.WinForms.ItemViews
 		private	Dictionary<IMenuModelItem,ToolStripItem>	viewItems			= new Dictionary<IMenuModelItem,ToolStripItem>();
 		private	HashSet<ToolStripItem>						visibleSeparators	= new HashSet<ToolStripItem>();
 
+		public event EventHandler<MenuStripMenuViewItemEventArgs> ItemInserted = null;
+		public event EventHandler<MenuStripMenuViewItemEventArgs> ItemRemoved = null;
+
 		public IMenuModel Model
 		{
 			get { return this.model; }
@@ -151,6 +154,7 @@ namespace AdamsLair.WinForms.ItemViews
 			}
 
 			this.UpdateSeparatorVisibility(parentCollection);
+			this.RaiseItemInserted(modelItem, viewItem);
 		}
 		private void RemoveViewItem(ToolStripItemCollection parentCollection, ToolStripItem viewItem, IMenuModelItem modelItem)
 		{
@@ -166,6 +170,7 @@ namespace AdamsLair.WinForms.ItemViews
 			}
 
 			this.UpdateSeparatorVisibility(parentCollection);
+			this.RaiseItemRemoved(modelItem, viewItem);
 		}
 		private void CreateViewItems(ToolStripItemCollection parentCollection, IEnumerable<IMenuModelItem> modelItems)
 		{
@@ -214,6 +219,17 @@ namespace AdamsLair.WinForms.ItemViews
 			return viewMenuItem.DropDownItems;
 		}
 		
+		private void RaiseItemInserted(IMenuModelItem modelItem, ToolStripItem viewItem)
+		{
+			if (this.ItemInserted != null)
+				this.ItemInserted(this, new MenuStripMenuViewItemEventArgs(modelItem, viewItem, this));
+		}
+		private void RaiseItemRemoved(IMenuModelItem modelItem, ToolStripItem viewItem)
+		{
+			if (this.ItemRemoved != null)
+				this.ItemRemoved(this, new MenuStripMenuViewItemEventArgs(modelItem, viewItem, this));
+		}
+
 		private void viewMenuItem_DropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
 		{
 			if (e.CloseReason != ToolStripDropDownCloseReason.ItemClicked) return;

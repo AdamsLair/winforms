@@ -78,6 +78,8 @@
     <Compile Include="ItemModels\MenuItemTypeHint.cs" />
     <Compile Include="ItemModels\MenuModel.cs" />
     <Compile Include="ItemModels\MenuModelItem.cs" />
+    <Compile Include="ItemViews\EventArgs\MenuStripMenuViewEventArgs.cs" />
+    <Compile Include="ItemViews\EventArgs\MenuStripMenuViewItemEventArgs.cs" />
     <Compile Include="ItemViews\ITiledViewItemEditor.cs" />
     <Compile Include="ItemViews\MenuStripMenuView.cs" />
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
