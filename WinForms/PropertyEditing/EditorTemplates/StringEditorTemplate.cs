@@ -360,7 +360,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		public void OnMouseDown(MouseEventArgs e)
 		{
 			if (!this.rect.Contains(e.Location)) return;
-			Cursor.Current = Cursors.IBeam;
+			this.CurrentCursor = Cursors.IBeam;
 
 			// Pick char
 			int pickedCharIndex;
@@ -383,7 +383,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		}
 		public void OnMouseUp(MouseEventArgs e)
 		{
-			Cursor.Current = Cursors.IBeam;
+			this.CurrentCursor = Cursors.IBeam;
 			this.mouseSelect = false;
 		}
 		public override void OnMouseMove(MouseEventArgs e)
@@ -392,7 +392,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 
 			if (this.mouseSelect)
 			{
-				Cursor.Current = Cursors.IBeam;
+				this.CurrentCursor = Cursors.IBeam;
 
 				// Pick char
 				int pickedCharIndex;
@@ -414,14 +414,14 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 			else
 			{
 				if (!this.rect.Contains(e.Location)) return;
-				Cursor.Current = this.hovered && (Control.MouseButtons == MouseButtons.None) ? Cursors.IBeam : Cursors.Default;
+				this.CurrentCursor = this.hovered && (Control.MouseButtons == MouseButtons.None) ? Cursors.IBeam : Cursors.Default;
 			}
 		}
 		public override void OnMouseLeave(EventArgs e)
 		{
 			if (!this.hovered) return;
 			base.OnMouseLeave(e);
-			Cursor.Current = (this.hovered || this.mouseSelect) ? Cursors.IBeam : Cursors.Default;
+			this.CurrentCursor = (this.hovered || this.mouseSelect) ? Cursors.IBeam : Cursors.Default;
 		}
 
 		private void cursorTimer_Tick(object sender, EventArgs e)

@@ -10,11 +10,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 {
 	public abstract class EditorTemplate
 	{
-		protected	PropertyEditor	parent	= null;
-		protected	Rectangle	rect		= Rectangle.Empty;
-		protected	bool		readOnly	= true;
-		protected	bool		hovered		= false;
-		protected	bool		focused		= false;
+		protected	PropertyEditor	parent		= null;
+		protected	Rectangle		rect		= Rectangle.Empty;
+		protected	bool			readOnly	= true;
+		protected	bool			hovered		= false;
+		protected	bool			focused		= false;
 
 		public event EventHandler Invalidate = null;
 		public event EventHandler<PropertyEditorValueEventArgs> Edited = null;
@@ -41,6 +41,16 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		public bool Hovered
 		{
 			get { return this.hovered; }
+		}
+		public Cursor CurrentCursor
+		{
+			get { return this.parent != null && this.parent.ParentGrid != null ? this.parent.ParentGrid.Cursor : null; }
+			set
+			{
+				if (this.parent == null) return;
+				if (this.parent.ParentGrid == null) return;
+				this.parent.ParentGrid.Cursor = value;
+			}
 		}
 		protected ControlRenderer ControlRenderer
 		{
