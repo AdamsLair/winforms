@@ -360,7 +360,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		public void OnMouseDown(MouseEventArgs e)
 		{
 			if (!this.rect.Contains(e.Location)) return;
-			this.CurrentCursor = Cursors.IBeam;
 
 			// Pick char
 			int pickedCharIndex;
@@ -383,11 +382,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		}
 		public void OnMouseUp(MouseEventArgs e)
 		{
-			this.CurrentCursor = Cursors.IBeam;
 			this.mouseSelect = false;
 		}
 		public override void OnMouseMove(MouseEventArgs e)
 		{
+			bool lastHovered = this.hovered;
 			base.OnMouseMove(e);
 
 			if (this.mouseSelect)
@@ -411,7 +410,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 				this.UpdateScroll();
 				this.EmitInvalidate();
 			}
-			else
+			else if (this.hovered != lastHovered)
 			{
 				this.CurrentCursor = this.hovered && (Control.MouseButtons == MouseButtons.None) ? Cursors.IBeam : Cursors.Default;
 			}

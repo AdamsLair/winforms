@@ -191,7 +191,7 @@
 			// buttonColorPicker
 			// 
 			this.buttonColorPicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonColorPicker.Location = new System.Drawing.Point(293, 379);
+			this.buttonColorPicker.Location = new System.Drawing.Point(293, 366);
 			this.buttonColorPicker.Name = "buttonColorPicker";
 			this.buttonColorPicker.Size = new System.Drawing.Size(123, 23);
 			this.buttonColorPicker.TabIndex = 12;
@@ -250,7 +250,7 @@
 			this.tabPageTiledView.Location = new System.Drawing.Point(4, 22);
 			this.tabPageTiledView.Name = "tabPageTiledView";
 			this.tabPageTiledView.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPageTiledView.Size = new System.Drawing.Size(427, 372);
+			this.tabPageTiledView.Size = new System.Drawing.Size(427, 397);
 			this.tabPageTiledView.TabIndex = 1;
 			this.tabPageTiledView.Text = "TiledView";
 			this.tabPageTiledView.UseVisualStyleBackColor = true;
@@ -259,7 +259,7 @@
 			// 
 			this.checkBoxTiledViewStyle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkBoxTiledViewStyle.AutoSize = true;
-			this.checkBoxTiledViewStyle.Location = new System.Drawing.Point(317, 389);
+			this.checkBoxTiledViewStyle.Location = new System.Drawing.Point(317, 374);
 			this.checkBoxTiledViewStyle.Name = "checkBoxTiledViewStyle";
 			this.checkBoxTiledViewStyle.Size = new System.Drawing.Size(49, 17);
 			this.checkBoxTiledViewStyle.TabIndex = 11;
@@ -278,7 +278,7 @@
 			this.trackBarTileViewHeight.Minimum = 16;
 			this.trackBarTileViewHeight.Name = "trackBarTileViewHeight";
 			this.trackBarTileViewHeight.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.trackBarTileViewHeight.Size = new System.Drawing.Size(45, 261);
+			this.trackBarTileViewHeight.Size = new System.Drawing.Size(45, 246);
 			this.trackBarTileViewHeight.SmallChange = 5;
 			this.trackBarTileViewHeight.TabIndex = 10;
 			this.trackBarTileViewHeight.TickFrequency = 25;
@@ -296,7 +296,7 @@
 			this.trackBarTileViewWidth.Minimum = 16;
 			this.trackBarTileViewWidth.Name = "trackBarTileViewWidth";
 			this.trackBarTileViewWidth.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.trackBarTileViewWidth.Size = new System.Drawing.Size(45, 261);
+			this.trackBarTileViewWidth.Size = new System.Drawing.Size(45, 246);
 			this.trackBarTileViewWidth.SmallChange = 5;
 			this.trackBarTileViewWidth.TabIndex = 9;
 			this.trackBarTileViewWidth.TickFrequency = 25;
@@ -309,7 +309,7 @@
 			this.checkBoxTileViewHighlightHover.AutoSize = true;
 			this.checkBoxTileViewHighlightHover.Checked = true;
 			this.checkBoxTileViewHighlightHover.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxTileViewHighlightHover.Location = new System.Drawing.Point(232, 390);
+			this.checkBoxTileViewHighlightHover.Location = new System.Drawing.Point(232, 375);
 			this.checkBoxTileViewHighlightHover.Name = "checkBoxTileViewHighlightHover";
 			this.checkBoxTileViewHighlightHover.Size = new System.Drawing.Size(79, 17);
 			this.checkBoxTileViewHighlightHover.TabIndex = 8;
@@ -323,7 +323,7 @@
 			this.checkBoxTileViewUserSelect.AutoSize = true;
 			this.checkBoxTileViewUserSelect.Checked = true;
 			this.checkBoxTileViewUserSelect.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxTileViewUserSelect.Location = new System.Drawing.Point(148, 390);
+			this.checkBoxTileViewUserSelect.Location = new System.Drawing.Point(148, 375);
 			this.checkBoxTileViewUserSelect.Name = "checkBoxTileViewUserSelect";
 			this.checkBoxTileViewUserSelect.Size = new System.Drawing.Size(78, 17);
 			this.checkBoxTileViewUserSelect.TabIndex = 7;
@@ -335,7 +335,7 @@
 			// 
 			this.radioTiledDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioTiledDisabled.AutoSize = true;
-			this.radioTiledDisabled.Location = new System.Drawing.Point(76, 389);
+			this.radioTiledDisabled.Location = new System.Drawing.Point(76, 374);
 			this.radioTiledDisabled.Name = "radioTiledDisabled";
 			this.radioTiledDisabled.Size = new System.Drawing.Size(66, 17);
 			this.radioTiledDisabled.TabIndex = 6;
@@ -348,7 +348,7 @@
 			this.radioTiledEnabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.radioTiledEnabled.AutoSize = true;
 			this.radioTiledEnabled.Checked = true;
-			this.radioTiledEnabled.Location = new System.Drawing.Point(6, 389);
+			this.radioTiledEnabled.Location = new System.Drawing.Point(6, 374);
 			this.radioTiledEnabled.Name = "radioTiledEnabled";
 			this.radioTiledEnabled.Size = new System.Drawing.Size(64, 17);
 			this.radioTiledEnabled.TabIndex = 5;
@@ -417,7 +417,7 @@
 			this.tiledView.ModelItemEditProperty = "Name";
 			this.tiledView.Name = "tiledView";
 			this.tiledView.RowAlignment = AdamsLair.WinForms.ItemViews.TiledView.HorizontalAlignment.Center;
-			this.tiledView.Size = new System.Drawing.Size(334, 377);
+			this.tiledView.Size = new System.Drawing.Size(334, 363);
 			this.tiledView.TabIndex = 0;
 			this.tiledView.TabStop = true;
 			this.tiledView.ItemClicked += new System.EventHandler<AdamsLair.WinForms.ItemViews.TiledViewItemMouseEventArgs>(this.tiledView_ItemClicked);
@@ -436,7 +436,7 @@
 			this.tabPageColorControls.Controls.Add(this.buttonColorPicker);
 			this.tabPageColorControls.Location = new System.Drawing.Point(4, 22);
 			this.tabPageColorControls.Name = "tabPageColorControls";
-			this.tabPageColorControls.Size = new System.Drawing.Size(427, 372);
+			this.tabPageColorControls.Size = new System.Drawing.Size(427, 397);
 			this.tabPageColorControls.TabIndex = 2;
 			this.tabPageColorControls.Text = "Color";
 			this.tabPageColorControls.UseVisualStyleBackColor = true;
@@ -456,7 +456,7 @@
 			this.colorPanel3.Enabled = false;
 			this.colorPanel3.Location = new System.Drawing.Point(209, 209);
 			this.colorPanel3.Name = "colorPanel3";
-			this.colorPanel3.Size = new System.Drawing.Size(207, 164);
+			this.colorPanel3.Size = new System.Drawing.Size(207, 151);
 			this.colorPanel3.TabIndex = 18;
 			this.colorPanel3.TopLeftColor = System.Drawing.Color.Red;
 			this.colorPanel3.TopRightColor = System.Drawing.Color.Lime;
@@ -477,7 +477,7 @@
 			this.colorPanel2.BottomRightColor = System.Drawing.Color.Black;
 			this.colorPanel2.Location = new System.Drawing.Point(3, 209);
 			this.colorPanel2.Name = "colorPanel2";
-			this.colorPanel2.Size = new System.Drawing.Size(200, 200);
+			this.colorPanel2.Size = new System.Drawing.Size(200, 151);
 			this.colorPanel2.TabIndex = 16;
 			this.colorPanel2.TopLeftColor = System.Drawing.Color.Red;
 			this.colorPanel2.TopRightColor = System.Drawing.Color.Lime;
@@ -513,7 +513,7 @@
 			this.tabPageTimeline.Controls.Add(this.timelineView1);
 			this.tabPageTimeline.Location = new System.Drawing.Point(4, 22);
 			this.tabPageTimeline.Name = "tabPageTimeline";
-			this.tabPageTimeline.Size = new System.Drawing.Size(427, 372);
+			this.tabPageTimeline.Size = new System.Drawing.Size(427, 397);
 			this.tabPageTimeline.TabIndex = 3;
 			this.tabPageTimeline.Text = "Timeline";
 			this.tabPageTimeline.UseVisualStyleBackColor = true;
@@ -523,12 +523,12 @@
 			this.trackBarTimelineUnitZoom.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.trackBarTimelineUnitZoom.BackColor = System.Drawing.SystemColors.Window;
-			this.trackBarTimelineUnitZoom.Location = new System.Drawing.Point(379, 24);
+			this.trackBarTimelineUnitZoom.Location = new System.Drawing.Point(379, 3);
 			this.trackBarTimelineUnitZoom.Maximum = 1000;
 			this.trackBarTimelineUnitZoom.Minimum = -1000;
 			this.trackBarTimelineUnitZoom.Name = "trackBarTimelineUnitZoom";
 			this.trackBarTimelineUnitZoom.Orientation = System.Windows.Forms.Orientation.Vertical;
-			this.trackBarTimelineUnitZoom.Size = new System.Drawing.Size(45, 362);
+			this.trackBarTimelineUnitZoom.Size = new System.Drawing.Size(45, 391);
 			this.trackBarTimelineUnitZoom.TabIndex = 1;
 			this.trackBarTimelineUnitZoom.TickFrequency = 100;
 			this.trackBarTimelineUnitZoom.Value = 1;
@@ -544,7 +544,7 @@
 			this.timelineView1.BackColor = System.Drawing.SystemColors.Control;
 			this.timelineView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.timelineView1.LeftSidebarSize = 50;
-			this.timelineView1.Location = new System.Drawing.Point(23, 24);
+			this.timelineView1.Location = new System.Drawing.Point(3, 3);
 			timelineModel1.UnitBaseScale = 1F;
 			timelineModel1.UnitDescription = "Time";
 			timelineModel1.UnitName = "Seconds";
@@ -553,7 +553,7 @@
 			this.timelineView1.RightSidebarSize = 100;
 			this.timelineView1.SelectionBeginTime = 0F;
 			this.timelineView1.SelectionEndTime = 0F;
-			this.timelineView1.Size = new System.Drawing.Size(350, 362);
+			this.timelineView1.Size = new System.Drawing.Size(370, 391);
 			this.timelineView1.TabIndex = 0;
 			this.timelineView1.TabStop = true;
 			// 
