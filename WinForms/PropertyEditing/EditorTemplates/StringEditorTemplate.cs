@@ -413,15 +413,13 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 			}
 			else
 			{
-				if (!this.rect.Contains(e.Location)) return;
 				this.CurrentCursor = this.hovered && (Control.MouseButtons == MouseButtons.None) ? Cursors.IBeam : Cursors.Default;
 			}
 		}
 		public override void OnMouseLeave(EventArgs e)
 		{
-			if (!this.hovered) return;
 			base.OnMouseLeave(e);
-			this.CurrentCursor = (this.hovered || this.mouseSelect) ? Cursors.IBeam : Cursors.Default;
+			this.CurrentCursor = Cursors.Default;
 		}
 
 		private void cursorTimer_Tick(object sender, EventArgs e)
