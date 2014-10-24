@@ -406,7 +406,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		protected int NameLabelWidth
 		{
-			get { return this.size.Width * 2 / 5; }
+			get { return (int)Math.Round(this.size.Width * 2.0f / 5.0f); }
 		}
 		internal protected ControlRenderer ControlRenderer
 		{

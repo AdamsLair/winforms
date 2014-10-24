@@ -334,8 +334,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 		protected static Type GetIListElementType(Type listType)
 		{
+			Type ilistInterface = null;
 			if (listType.HasElementType)
 				return listType.GetElementType();
+			else if ((ilistInterface = listType.GetInterfaces().Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)).FirstOrDefault()) != null)
+				return ilistInterface.GetGenericArguments()[0];
 			else if (listType.IsGenericType)
 				return listType.GetGenericArguments()[0];
 			else

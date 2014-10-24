@@ -417,15 +417,21 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		
 		protected static Type GetIDictionaryValueType(Type dictType)
 		{
+			Type idictionaryInterface = null;
 			if (dictType.IsGenericType && dictType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
 				return dictType.GetGenericArguments()[1];
+			else if ((idictionaryInterface = dictType.GetInterfaces().Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>)).FirstOrDefault()) != null)
+				return idictionaryInterface.GetGenericArguments()[1];
 			else
 				return typeof(object);
 		}
 		protected static Type GetIDictionaryKeyType(Type dictType)
 		{
+			Type idictionaryInterface = null;
 			if (dictType.IsGenericType && dictType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
 				return dictType.GetGenericArguments()[0];
+			else if ((idictionaryInterface = dictType.GetInterfaces().Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>)).FirstOrDefault()) != null)
+				return idictionaryInterface.GetGenericArguments()[0];
 			else
 				return typeof(object);
 		}

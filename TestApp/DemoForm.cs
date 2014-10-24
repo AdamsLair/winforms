@@ -39,6 +39,8 @@ namespace AdamsLair.WinForms.TestApp
 		{
 			int InterfaceInt { get; }
 		}
+		private class DerivedList : List<int> {}
+		private class DerivedDict : Dictionary<string,int> {}
 		private class Test
 		{
 			private int i;
@@ -127,6 +129,8 @@ namespace AdamsLair.WinForms.TestApp
 			{
 				get { return this.w.Elapsed.TotalMilliseconds; }
 			}
+			public DerivedList DerivedList { get; set; }
+			public DerivedDict DerivedDict { get; set; }
 		}
 		private struct Test2
 		{
