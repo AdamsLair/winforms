@@ -187,6 +187,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			this.ClearContent();
 		}
+		protected override void OnDisposing(bool manually)
+		{
+			base.OnDisposing(manually);
+			foreach (PropertyEditor child in this.propertyEditors)
+				child.Dispose();
+		}
 
 		public virtual void InitContent()
 		{
@@ -934,6 +940,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected override void OnSizeChanged()
 		{
 			if (this.IsUpdating) return;
+			if (this.Disposed) return;
 			base.OnSizeChanged();
 			this.UpdateChildGeometry();
 		}

@@ -70,7 +70,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 	}
 	
-	public abstract class PropertyEditor
+	public abstract class PropertyEditor : IDisposable
 	{
 		[Flags]
 		public enum HintFlags
@@ -102,6 +102,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool			mutableValue	= false;
 		private	bool			memberNonPublic	= false;
 		private	int				updateLockCount	= 0;
+		private	bool			disposed		= false;
 		private	HintFlags		hints			= HintFlags.Default;
 		private	Rectangle		rect			= new Rectangle(0, 0, 0, 20);
 		private	Rectangle		clientRect		= Rectangle.Empty;
@@ -121,6 +122,10 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public event EventHandler<PropertyEditorValueEventArgs>		ValueChanged	= null;
 
 
+		public bool Disposed
+		{
+			get { return this.disposed; }
+		}
 		public PropertyGrid ParentGrid
 		{
 			get { return this.parentGrid; }
@@ -416,12 +421,33 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		
 
+		~PropertyEditor()
+		{
+			this.Dispose(false);
+		}
+		public void Dispose()
+		{
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		private void Dispose(bool manually)
+		{
+			if (this.disposed) return;
+
+			this.OnDisposing(manually);
+			this.disposed = true;
+		}
+		protected virtual void OnDisposing(bool manually) {}
+
+
 		public void PerformGetValue()
 		{
+			if (this.Disposed) return;
 			this.OnGetValue();
 		}
 		public void PerformSetValue()
 		{
+			if (this.Disposed) return;
 			if (this.ReadOnly) return;
 			this.OnSetValue();
 		}

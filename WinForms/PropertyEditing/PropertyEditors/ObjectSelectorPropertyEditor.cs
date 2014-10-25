@@ -152,6 +152,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private void objSelector_Edited(object sender, EventArgs e)
 		{
 			if (this.IsUpdating) return;
+			if (this.Disposed) return;
 
 			this.val = (this.objSelector.SelectedObject as ObjectItem).Value;
 			this.Invalidate();
