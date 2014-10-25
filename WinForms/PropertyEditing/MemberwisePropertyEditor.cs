@@ -162,7 +162,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				{
 					this.AddPropertyEditor(e, replaceOld);
 					this.RemovePropertyEditor(replaceOld);
-					replaceOld.Dispose();
 				}
 				else
 				{

@@ -124,7 +124,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private void stringEditor_Edited(object sender, EventArgs e)
 		{
 			if (this.IsUpdating) return;
-			if (this.Disposed) return;
 
 			this.val = this.stringEditor.Text;
 			this.Invalidate();

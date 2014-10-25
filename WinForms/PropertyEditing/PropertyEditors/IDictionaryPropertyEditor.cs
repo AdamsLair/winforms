@@ -154,12 +154,14 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected void UpdateElementEditors(IDictionary[] values)
 		{
 			PropertyInfo indexer = typeof(IDictionary).GetProperty("Item");
-			int visibleElementCount = values.Where(o => o != null).Min(o => (int)o.Count);
+			IEnumerable<IDictionary> valuesNotNull = values.Where(v => v != null);
+			int visibleElementCount = valuesNotNull.Min(o => (int)o.Count);
 			bool showOffset = false;
 			if (visibleElementCount > 10)
 			{
 				this.offset = Math.Min(this.offset, visibleElementCount - 10);
 				this.offsetEditor.Maximum = visibleElementCount - 10;
+				this.offsetEditor.ValueBarMaximum = this.offsetEditor.Maximum;
 				visibleElementCount = 10;
 				showOffset = true;
 			}
@@ -177,7 +179,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			// Determine which keys are currently displayed
 			int elemIndex = 0;
 			this.displayedKeys = new object[visibleElementCount];
-			foreach (object key in values.Where(o => o != null).First().Keys)
+			foreach (object key in valuesNotNull.First().Keys)
 			{
 				if (elemIndex >= this.offset + visibleElementCount) break;
 				if (elemIndex >= this.offset)
@@ -191,13 +193,13 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			// Add missing editors
 			Type dictValueType = GetIDictionaryValueType(this.EditedType);
-			Type reflectedDictValueType = PropertyEditor.ReflectDynamicType(dictValueType, values.Select(a => GetIDictionaryValueType(a.GetType())));
+			Type reflectedDictValueType = PropertyEditor.ReflectDynamicType(dictValueType, valuesNotNull.Select(a => GetIDictionaryValueType(a.GetType())));
 			for (int i = this.internalEditors; i < visibleElementCount + this.internalEditors; i++)
 			{
 				object elementKey = this.displayedKeys[i - this.internalEditors];
 				Type reflectedElementValueType = PropertyEditor.ReflectDynamicType(
 					reflectedDictValueType, 
-					values.Where(v => v != null).Select(v => indexer.GetValue(v, new object[] { elementKey })));
+					valuesNotNull.Select(v => indexer.GetValue(v, new object[] { elementKey })));
 				PropertyEditor elementEditor;
 
 				// Retrieve and Update existing editor
@@ -212,7 +214,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						
 						this.AddPropertyEditor(elementEditor, oldEditor);
 						this.RemovePropertyEditor(oldEditor);
-						oldEditor.Dispose();
 
 						this.ParentGrid.ConfigureEditor(elementEditor);
 					}
@@ -366,7 +367,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 		private void AddKeyToDictionary(object key)
 		{
-			IDictionary[] targetArray = this.GetValue().Cast<IDictionary>().ToArray();
+			IDictionary[] targetArray = this.GetValue().Cast<IDictionary>().Where(v => v != null).ToArray();
 			Type valueType = GetIDictionaryValueType(this.EditedType);
 			Type reflectedValueType = PropertyEditor.ReflectDynamicType(valueType, targetArray.Select(a => GetIDictionaryValueType(a.GetType())));
 
@@ -392,7 +393,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		}
 		private void RemoveKeyFromDictionary(object key)
 		{
-			IDictionary[] targetArray = this.GetValue().Cast<IDictionary>().ToArray();
+			IDictionary[] targetArray = this.GetValue().Cast<IDictionary>().Where(v => v != null).ToArray();
 			Type valueType = GetIDictionaryValueType(this.EditedType);
 
 			for (int t = 0; t < targetArray.Length; t++)

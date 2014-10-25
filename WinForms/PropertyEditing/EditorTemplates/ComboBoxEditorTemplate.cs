@@ -205,11 +205,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 			Size dropDownSize = new Size(
 				this.rect.Width, 
 				Math.Min(this.dropdownHeight, this.dropdown.PreferredHeight));
-
-			Point dropDownLoc = parentGrid.GetEditorLocation(this.Parent, true);
-			//dropDownLoc = parentGrid.PointToScreen(dropDownLoc);
+			
+			Point dropDownLoc = new Point(
+				this.rect.X + parentGrid.AutoScrollPosition.X,
+				this.rect.Y + parentGrid.AutoScrollPosition.Y);
 			dropDownLoc.Y += this.rect.Height + 1;
-			dropDownLoc.X += this.rect.X;
 			
 			this.dropdown.Location = dropDownLoc;
 			this.dropdown.Size = dropDownSize;

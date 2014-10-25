@@ -70,7 +70,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 	}
 	
-	public abstract class PropertyEditor : IDisposable
+	public abstract class PropertyEditor
 	{
 		[Flags]
 		public enum HintFlags
@@ -102,22 +102,20 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool			mutableValue	= false;
 		private	bool			memberNonPublic	= false;
 		private	int				updateLockCount	= 0;
-		private	bool			disposed		= false;
 		private	HintFlags		hints			= HintFlags.Default;
-		private	Size			size			= new Size(0, 20);
+		private	Rectangle		rect			= new Rectangle(0, 0, 0, 20);
 		private	Rectangle		clientRect		= Rectangle.Empty;
 		private	Rectangle		nameLabelRect	= Rectangle.Empty;
 		private	Rectangle		buttonRect		= Rectangle.Empty;
 		private	bool			buttonHovered	= false;
 		private	bool			buttonPressed	= false;
-		private	IconImage		buttonIcon		= null;
+		private	IconImage		buttonIcon		= new IconImage(AdamsLair.WinForms.Properties.ResourcesCache.ImageDelete);
 		private	Func<IEnumerable<object>>	getter	= null;
 		private	Action<IEnumerable<object>>	setter	= null;
-		private	Func<object,object>	converterGet	= null;
-		private	Func<object,object>	converterSet	= null;
 
 
 		public event EventHandler	SizeChanged		= null;
+		public event EventHandler	LocationChanged	= null;
 		public event EventHandler	ButtonPressed	= null;
 		public event EventHandler<PropertyEditingFinishedEventArgs>	EditingFinished = null;
 		public event EventHandler<PropertyEditorValueEventArgs>		ValueChanged	= null;
@@ -194,10 +192,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 			}
 		}
 		
-		public bool Disposed
-		{
-			get { return this.disposed; }
-		}
 		/// <summary>
 		/// [GET / SET] The Type of values that this PropertyEditor is able to edit.
 		/// </summary>
@@ -291,23 +285,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (this.ReadOnly != lastReadOnly) this.OnReadOnlyChanged();
 			}
 		}
-		public Func<object,object> ConverterGet
-		{
-			get { return this.converterGet; }
-			set
-			{
-				if (this.converterGet != value)
-				{
-					this.converterGet = value;
-					if (this.getter != null) this.PerformGetValue();
-				}
-			}
-		}
-		public Func<object,object> ConverterSet
-		{
-			get { return this.converterSet; }
-			set { this.converterSet = value; }
-		}
 		public abstract object DisplayedValue { get; }
 		public bool ReadOnly
 		{
@@ -366,27 +343,48 @@ namespace AdamsLair.WinForms.PropertyEditing
 			get { return this.updateLockCount > 0; }
 		}
 
-		public Size Size
+		public Rectangle EditorRectangle
 		{
-			get { return this.size; }
+			get { return this.rect; }
 			set
 			{
-				if (this.size != value)
+				this.Location = value.Location;
+				this.Size = value.Size;
+			}
+		}
+		public Point Location
+		{
+			get { return this.rect.Location; }
+			set
+			{
+				if (this.rect.Location != value)
 				{
-					this.size = value;
+					this.rect.Location = value;
+					this.OnLocationChanged();
+				}
+			}
+		}
+		public Size Size
+		{
+			get { return this.rect.Size; }
+			set
+			{
+				if (this.rect.Size != value)
+				{
+					this.rect.Size = value;
 					this.OnSizeChanged();
 				}
 			}
 		}
 		public int Width
 		{
-			get { return this.size.Width; }
-			set { this.Size = new Size(value, this.size.Height); }
+			get { return this.rect.Width; }
+			set { this.Size = new Size(value, this.rect.Height); }
 		}
 		public int Height
 		{
-			get { return this.size.Height; }
-			set { this.Size = new Size(this.size.Width, value); }
+			get { return this.rect.Height; }
+			set { this.Size = new Size(this.rect.Width, value); }
 		}
 		
 		public Rectangle ClientRectangle
@@ -406,7 +404,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		protected int NameLabelWidth
 		{
-			get { return (int)Math.Round(this.size.Width * 2.0f / 5.0f); }
+			get
+			{
+				if (this.parentGrid == null) return 0;
+				return Math.Max(this.parentGrid.SplitterPosition - this.rect.X, 0);
+			}
 		}
 		internal protected ControlRenderer ControlRenderer
 		{
@@ -414,42 +416,18 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		
 
-		public PropertyEditor()
-		{
-			this.ButtonIcon = null;
-		}
-		~PropertyEditor()
-		{
-			this.Dispose(false);
-		}
-		public void Dispose()
-		{
-			this.Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-		private void Dispose(bool manually)
-		{
-			if (this.disposed) return;
-
-			this.OnDisposing(manually);
-			this.disposed = true;
-		}
-		protected virtual void OnDisposing(bool manually) {}
-
 		public void PerformGetValue()
 		{
-			if (this.Disposed) return;
 			this.OnGetValue();
 		}
 		public void PerformSetValue()
 		{
 			if (this.ReadOnly) return;
-			if (this.Disposed) return;
 			this.OnSetValue();
 		}
 
 		/// <summary>
-		/// Performs a get operation using the PropertyEditors <see cref="Getter"/> and <see cref="ConverterGet"/>.
+		/// Performs a get operation using the PropertyEditors <see cref="Getter"/>.
 		/// </summary>
 		/// <returns></returns>
 		protected IEnumerable<object> GetValue()
@@ -458,10 +436,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 			IEnumerable<object> result = null;
 			if (this.getter != null) result = this.getter();
 
-			// Perform converter operation, if available
-			if (this.converterGet != null && result != null)
-				result = result.Select(this.converterGet);
-
 			// Perform a safety check, whether the EditedType matches the received value
 			if (this.editedType != null && result != null)
 				result = result.Where(v => v == null || this.editedType.IsInstanceOfType(v));
@@ -469,7 +443,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			return result;
 		}
 		/// <summary>
-		/// Performs a set operation using the PropertyEditors <see cref="Setter"/> and <see cref="ConverterSet"/>.
+		/// Performs a set operation using the PropertyEditors <see cref="Setter"/>.
 		/// </summary>
 		/// <param name="objEnum"></param>
 		protected void SetValues(IEnumerable<object> objEnum)
@@ -477,10 +451,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (this.setter == null) return;
 			this.parentGrid.PrepareSetValue();
 
-			if (this.converterSet != null && objEnum != null)
-				this.setter(objEnum.Select(this.converterSet));
-			else
-				this.setter(objEnum);
+			this.setter(objEnum);
 
 			if (this.parentEditor != null)
 				this.parentEditor.VerifyReflectedTypeEditors(this.parentEditor.GetValue());
@@ -489,7 +460,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			this.parentGrid.PostSetValue();
 		}
 		/// <summary>
-		/// Performs a set operation using the PropertyEditors <see cref="Setter"/> and <see cref="ConverterSet"/>.
+		/// Performs a set operation using the PropertyEditors <see cref="Setter"/>.
 		/// </summary>
 		/// <param name="obj"></param>
 		protected void SetValue(object obj)
@@ -516,18 +487,21 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public void Invalidate()
 		{
 			if (this.parentGrid == null) return;
-			Rectangle invalidateRect = new Rectangle(this.parentGrid.GetEditorLocation(this, true), this.size);
+			Rectangle invalidateRect = new Rectangle(
+				this.rect.X + this.parentGrid.AutoScrollPosition.X, 
+				this.rect.Y + this.parentGrid.AutoScrollPosition.Y, 
+				this.rect.Width, 
+				this.rect.Height);
 			this.parentGrid.Invalidate(invalidateRect);
 		}
-		public void Invalidate(Rectangle rect)
+		public void Invalidate(Rectangle targetRect)
 		{
 			if (this.parentGrid == null) return;
-			Point editorLoc = this.parentGrid.GetEditorLocation(this, true);
 			Rectangle invalidateRect = new Rectangle(
-				editorLoc.X + rect.X,
-				editorLoc.Y + rect.Y,
-				rect.Width,
-				rect.Height);
+				this.parentGrid.AutoScrollPosition.X + targetRect.X, 
+				this.parentGrid.AutoScrollPosition.Y + targetRect.Y, 
+				targetRect.Width, 
+				targetRect.Height);
 			this.parentGrid.Invalidate(invalidateRect);
 		}
 		public void Focus()
@@ -540,19 +514,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (this.parentEditor == null) return false;
 			return this.parentEditor.IsChildOf(parent);
 		}
-		public virtual PropertyEditor PickEditorAt(int x, int y)
-		{
-			return this;
-		}
-		public virtual Point GetChildLocation(PropertyEditor child)
-		{
-			return Point.Empty;
-		}
 
 		protected virtual void UpdateGeometry()
 		{
 			if ((this.hints & HintFlags.HasPropertyName) != HintFlags.None)
-				this.nameLabelRect = new Rectangle(0, 0, this.NameLabelWidth, this.size.Height);
+				this.nameLabelRect = new Rectangle(this.rect.X, this.rect.Y, this.NameLabelWidth, this.rect.Height);
 			else
 				this.nameLabelRect = Rectangle.Empty;
 
@@ -560,14 +526,14 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				Size buttonSize = this.buttonIcon != null ? this.buttonIcon.Size : new Size(10, 10);
 				this.buttonRect.Height = this.Size.Height;
-				this.buttonRect.Width = Math.Min(this.size.Height, buttonSize.Height + 2);
-				this.buttonRect.X = this.Size.Width - buttonRect.Width - 1;
-				this.buttonRect.Y = 0;
+				this.buttonRect.Width = Math.Min(this.rect.Height, buttonSize.Height + 2);
+				this.buttonRect.X = this.rect.Right - buttonRect.Width - 1;
+				this.buttonRect.Y = this.rect.Y;
 			}
 			else
 				this.buttonRect = Rectangle.Empty;
 
-			this.clientRect = new Rectangle(0, 0, this.size.Width, this.size.Height);
+			this.clientRect = this.rect;
 			this.clientRect.X += this.nameLabelRect.Width;
 			this.clientRect.Width -= this.nameLabelRect.Width;
 			this.clientRect.Width -= this.buttonRect.Width;
@@ -601,7 +567,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
 			Color bgColor = this.ControlRenderer.ColorBackground;
 			if (focusBg) bgColor = bgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
-			g.FillRectangle(new SolidBrush(bgColor), new Rectangle(Point.Empty, this.size));
+			g.FillRectangle(new SolidBrush(bgColor), this.rect);
 		}
 		protected void PaintButton(Graphics g)
 		{
@@ -630,7 +596,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				buttonBgRect.X = this.buttonRect.X + this.buttonRect.Width / 2 - buttonBgRect.Width / 2 - 1;
 				buttonBgRect.Y = this.buttonRect.Y + this.buttonRect.Height / 2 - buttonBgRect.Height / 2 - 1;
 				g.FillRectangle(new SolidBrush(Color.FromArgb(128, Color.White)), buttonBgRect);
-				g.DrawRectangle(new Pen(Color.FromArgb(255, Color.White)), buttonBgRect);
 			}
 				
 			g.DrawImage(buttonImage, buttonCenter.X - buttonSize.Width / 2, buttonCenter.Y - buttonSize.Height / 2, buttonSize.Width, buttonSize.Height);
@@ -666,7 +631,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		internal protected virtual void OnMouseDown(MouseEventArgs e)
 		{
-			if (this.FocusOnClick && new Rectangle(0, 0, this.size.Width, this.size.Height).Contains(e.Location))
+			if (this.FocusOnClick && this.rect.Contains(e.Location))
 				this.Focus();
 			if (this.buttonHovered && (e.Button & MouseButtons.Left) != MouseButtons.None)
 			{
@@ -725,6 +690,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 			else
 				this.forceWriteBack = false;
 		}
+		protected virtual void OnLocationChanged()
+		{
+			if (this.parentGrid != null) this.UpdateGeometry();
+			if (this.LocationChanged != null)
+				this.LocationChanged(this, EventArgs.Empty);
+		}
 		protected virtual void OnSizeChanged()
 		{
 			if (this.parentGrid != null) this.UpdateGeometry();
@@ -760,6 +731,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected void OnEditingFinished(FinishReason reason)
 		{
 			this.OnEditingFinished(this, new PropertyEditingFinishedEventArgs(this, this.DisplayedValue, reason));
+		}
+
+		public override string ToString()
+		{
+			return string.Format("{0} Editor of {1}", 
+				this.editedType != null ? this.editedType.GetTypeCSCodeName(true) : "null", 
+				this.editedMember != null ? this.editedMember.Name : "null");
 		}
 		
 		/// <summary>

@@ -148,7 +148,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private void stringSelector_Edited(object sender, EventArgs e)
 		{
 			if (this.IsUpdating) return;
-			if (this.Disposed) return;
 
 			this.val = (Enum)Enum.Parse(this.EditedType, this.stringSelector.SelectedObject.ToString());
 			this.Invalidate();

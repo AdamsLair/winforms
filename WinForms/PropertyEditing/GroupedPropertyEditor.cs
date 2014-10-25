@@ -62,7 +62,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 						if (this.expanded && !this.contentInit)
 							this.InitContent();
 						else
-							this.UpdateHeight();
+							this.UpdateChildGeometry();
 					}
 				}
 			}
@@ -88,7 +88,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (this.indent != value)
 				{
 					this.indent = value;
-					this.UpdateChildWidth();
+					this.UpdateChildGeometry();
 					this.Invalidate();
 				}
 			}
@@ -101,7 +101,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (this.headerHeight != value)
 				{
 					this.headerHeight = value;
-					this.UpdateHeight();
+					this.UpdateChildGeometry();
 				}
 			}
 		}
@@ -187,12 +187,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			this.ClearContent();
 		}
-		protected override void OnDisposing(bool manually)
-		{
-			base.OnDisposing(manually);
-			foreach (PropertyEditor child in this.propertyEditors)
-				child.Dispose();
-		}
 
 		public virtual void InitContent()
 		{
@@ -224,45 +218,27 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		protected override void OnSetValue() {}
 
-		public PropertyEditor PickEditorAt(int x, int y, bool ownChildrenOnly)
+		public PropertyEditor PickEditorAt(int x, int y, bool ownChildrenOnly = false)
 		{
-			// Pick child editor, if applying
-			int curY = this.headerHeight;
 			Rectangle indentClientRect = this.ClientRectangle;
 			indentClientRect.X += this.indent;
 			indentClientRect.Width -= this.indent;
 			if (this.expanded && indentClientRect.Contains(new Point(x, y)))
 			{
-				foreach (PropertyEditor e in this.propertyEditors)
+				foreach (PropertyEditor child in this.propertyEditors)
 				{
-					if (y >= curY && y < curY + e.Height) return ownChildrenOnly ? e : e.PickEditorAt(x - indentClientRect.X, y - curY - indentClientRect.Y);
-					curY += e.Height;
+					if (child.EditorRectangle.Contains(x, y))
+					{
+						GroupedPropertyEditor groupedEditor = child as GroupedPropertyEditor;
+						if (groupedEditor != null && !ownChildrenOnly)
+							return groupedEditor.PickEditorAt(x, y);
+						else
+							return child;
+					}
 				}
 			}
 
-			return base.PickEditorAt(x, y);
-		}
-		public override PropertyEditor PickEditorAt(int x, int y)
-		{
-			return this.PickEditorAt(x, y, false);
-		}
-		public override Point GetChildLocation(PropertyEditor child)
-		{
-			// Pick child editor, if applying
-			int curY = this.headerHeight;
-			foreach (PropertyEditor e in this.propertyEditors)
-			{
-				if (child == e || child.IsChildOf(e))
-				{
-					Point result = e.GetChildLocation(child);
-					result.X += this.ClientRectangle.X + this.indent;
-					result.Y += this.ClientRectangle.Y + curY;
-					return result;
-				}
-				curY += e.Height;
-			}
-
-			return base.GetChildLocation(child);
+			return this;
 		}
 
 		protected bool HasPropertyEditor(PropertyEditor editor)
@@ -292,7 +268,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (this.propertyEditors.Contains(editor)) this.propertyEditors.Remove(editor);
 
 			editor.ParentEditor = this;
-			this.UpdateChildWidth(editor);
 
 			if (atIndex == -1)
 				this.propertyEditors.Add(editor);
@@ -304,7 +279,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				groupedEditor.InitContent();
 
 			this.OnEditorAdded(editor);
-			this.UpdateHeight();
+			this.UpdateChildGeometry();
 
 			editor.ValueChanged += this.OnValueChanged;
 			editor.EditingFinished += this.OnEditingFinished;
@@ -319,7 +294,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			this.OnEditorRemoving(editor);
 			this.propertyEditors.Remove(editor);
-			this.UpdateHeight();
+			this.UpdateChildGeometry();
 		}
 		protected void ClearPropertyEditors()
 		{
@@ -332,29 +307,21 @@ namespace AdamsLair.WinForms.PropertyEditing
 				this.OnEditorRemoving(e);
 			}
 			this.propertyEditors.Clear();
-			this.UpdateHeight();
+			this.UpdateChildGeometry();
 		}
-		protected void UpdateHeight()
+		protected void UpdateChildGeometry()
 		{
-			int h = this.headerHeight;
-			if (this.expanded)
+			int height = this.headerHeight;
+			int y = this.Location.Y + height;
+			foreach (PropertyEditor e in this.propertyEditors)
 			{
-				foreach (PropertyEditor e in this.propertyEditors)
-					h += e.Height;
+				e.Location = new Point(this.ClientRectangle.X + this.indent, y);
+				e.Width = this.ClientRectangle.Width - this.indent;
+				y += e.Height;
+				if (this.expanded)
+					height += e.Height;
 			}
-			this.Height = h;
-		}
-		protected void UpdateChildWidth(PropertyEditor child = null)
-		{
-			if (child == null)
-			{
-				foreach (PropertyEditor e in this.propertyEditors)
-					e.Width = this.ClientRectangle.Width - this.indent;
-			}
-			else
-			{
-				child.Width = this.ClientRectangle.Width - this.indent;
-			}
+			this.Height = height;
 		}
 		protected override void UpdateGeometry()
 		{
@@ -366,8 +333,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 			clientRect.Width += buttonRect.Width;
 			buttonRect.Height = Math.Min(buttonRect.Height, this.headerHeight);
 			buttonRect.Width = Math.Min(buttonRect.Width, this.headerHeight);
-			buttonRect.X = this.Size.Width - buttonRect.Width - 1;
-			buttonRect.Y = this.headerHeight / 2 - buttonRect.Height / 2;
+			buttonRect.X = this.EditorRectangle.Right - buttonRect.Width - 1;
+			buttonRect.Y = this.Location.Y + this.headerHeight / 2 - buttonRect.Height / 2;
 
 			this.ClientRectangle = clientRect;
 			this.ButtonRectangle = buttonRect;
@@ -399,6 +366,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				this.activeCheckRect = new Rectangle(this.expandCheckRect.Right, this.expandCheckRect.Y, 0, 0);
 			}
+
+			this.UpdateChildGeometry();
 		}
 		
 		protected virtual void OnEditorAdded(PropertyEditor e)
@@ -498,7 +467,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (!string.IsNullOrEmpty(this.PropertyName) && !string.IsNullOrEmpty(this.headerValueText))
 			{
 				int nameWidth;
-				nameWidth = this.NameLabelWidth - textRect.X;
+				nameWidth = this.NameLabelWidth - (textRect.X - this.headerRect.X);
 				nameTextRect = new Rectangle(textRect.X, textRect.Y, nameWidth, textRect.Height);
 				valueTextRect = new Rectangle(textRect.X + nameWidth, textRect.Y, textRect.Width - nameWidth, textRect.Height);
 			}
@@ -548,7 +517,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (childGroup.headerHeight == 0) return;
 			if ((childGroup.Hints & HintFlags.HasExpandCheck) == HintFlags.None) return;
 
-			Rectangle indentExpandRect = new Rectangle(0, curY, this.indent, childGroup.headerHeight);
+			Rectangle indentExpandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
 			Rectangle expandButtonRect = new Rectangle(
 				indentExpandRect.X + indentExpandRect.Width / 2 - ControlRenderer.ExpandNodeSize.Width / 2,
 				indentExpandRect.Y + indentExpandRect.Height / 2 - ControlRenderer.ExpandNodeSize.Height / 2 - 1,
@@ -582,14 +551,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		protected internal override void OnPaint(PaintEventArgs e)
 		{
-			int curY = 0;
 			// Paint background and name label
 			this.PaintBackground(e.Graphics);
 			this.PaintNameLabel(e.Graphics);
 
 			// Paint header
 			this.PaintHeader(e.Graphics);
-			curY += this.headerHeight;
 
 			// Paint right button
 			this.PaintButton(e.Graphics);
@@ -605,29 +572,26 @@ namespace AdamsLair.WinForms.PropertyEditing
 				foreach (PropertyEditor child in this.propertyEditors)
 				{
 					if (clipRectBase.IntersectsWith(new Rectangle(
-						this.ClientRectangle.X, 
-						this.ClientRectangle.Y + curY,
+						child.Location.X - this.indent, 
+						child.Location.Y,
 						child.Width, 
 						child.Height)))
 					{
 						// Paint child editor
 						GraphicsState oldState = e.Graphics.Save();
-						Rectangle editorRect = new Rectangle(this.ClientRectangle.X + this.indent, this.ClientRectangle.Y + curY, child.Width, child.Height);
-						editorRect.Intersect(this.ClientRectangle);
-						Rectangle clipRect = editorRect;
-						clipRect.Intersect(clipRectBase);
-						e.Graphics.SetClip(clipRect);
-						e.Graphics.TranslateTransform(this.ClientRectangle.X + this.indent, this.ClientRectangle.Y + curY);
-
-						child.OnPaint(e);
+						{
+							Rectangle clipRect = child.EditorRectangle;
+							clipRect.Intersect(this.ClientRectangle);
+							clipRect.Intersect(clipRectBase);
+							e.Graphics.SetClip(clipRect);
+							child.OnPaint(e);
+						}
 						e.Graphics.Restore(oldState);
 
 						// Paint child groups expand button
 						if (child is GroupedPropertyEditor && this.UseIndentChildExpand)
-							this.PaintIndentExpandButton(e.Graphics, child as GroupedPropertyEditor, curY);
+							this.PaintIndentExpandButton(e.Graphics, child as GroupedPropertyEditor, child.Location.Y);
 					}
-
-					curY += child.Height;
 				}
 			}
 		}
@@ -635,7 +599,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected void IndentChildExpandOnMouseMove(MouseEventArgs e, GroupedPropertyEditor childGroup, int curY)
 		{
 			if (childGroup == null) return;
-			Rectangle expandRect = new Rectangle(0, curY, this.indent, childGroup.headerHeight);
+			Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
 			bool lastExpandHovered = childGroup.expandCheckHovered;
 
 			childGroup.expandCheckHovered = 
@@ -648,7 +612,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected void IndentChildExpandOnMouseLeave(EventArgs e, GroupedPropertyEditor childGroup, int curY)
 		{
 			if (childGroup == null) return;
-			Rectangle expandRect = new Rectangle(0, curY, this.indent, childGroup.headerHeight);
+			Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
 
 			if (childGroup.expandCheckHovered) this.Invalidate(expandRect);
 			childGroup.expandCheckHovered = false;
@@ -660,7 +624,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			if (childGroup.expandCheckHovered && (e.Button & MouseButtons.Left) != MouseButtons.None)
 			{
-				Rectangle expandRect = new Rectangle(0, curY, this.indent, childGroup.headerHeight);
+				Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
 				childGroup.expandCheckPressed = true;
 				this.Invalidate(expandRect);
 				childGroup.OnExpandCheckPressed();
@@ -675,7 +639,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			
 			if (childGroup.expandCheckPressed && (e.Button & MouseButtons.Left) != MouseButtons.None)
 			{
-				Rectangle expandRect = new Rectangle(0, curY, this.indent, childGroup.headerHeight);
+				Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
 				childGroup.expandCheckPressed = false;
 				this.Invalidate(expandRect);
 			}
@@ -714,20 +678,14 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				this.hoverEditor.OnMouseMove(new MouseEventArgs(
-					e.Button, 
-					e.Clicks, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.Delta));
+				this.hoverEditor.OnMouseMove(e);
 			}
 			else
 			{
 				bool lastExpandHovered = this.expandCheckHovered;
 				bool lastActiveHovered = this.activeCheckHovered;
-				Rectangle expandHotSpot = new Rectangle(this.expandCheckRect.X, 0, this.expandCheckRect.Width, this.headerHeight);
-				Rectangle activeHotSpot = new Rectangle(this.activeCheckRect.X, 0, this.activeCheckRect.Width, this.headerHeight);
+				Rectangle expandHotSpot = new Rectangle(this.expandCheckRect.X, this.headerRect.Y, this.expandCheckRect.Width, this.headerRect.Height);
+				Rectangle activeHotSpot = new Rectangle(this.activeCheckRect.X, this.headerRect.Y, this.activeCheckRect.Width, this.headerRect.Height);
 				this.expandCheckHovered = this.CanExpand && (this.Hints & HintFlags.ExpandEnabled) != HintFlags.None && expandHotSpot.Contains(e.Location);
 				this.activeCheckHovered = !this.ReadOnly && (this.Hints & HintFlags.ActiveEnabled) != HintFlags.None && activeHotSpot.Contains(e.Location);
 				if (lastExpandHovered != this.expandCheckHovered) this.Invalidate();
@@ -781,13 +739,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			this.hoverEditorLock = Control.MouseButtons != MouseButtons.None;
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				this.hoverEditor.OnMouseDown(new MouseEventArgs(
-					e.Button, 
-					e.Clicks, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.Delta));
+				this.hoverEditor.OnMouseDown(e);
 			}
 			else
 			{
@@ -805,7 +757,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 				if (!handled)
 				{
-					if (new Rectangle(0, 0, this.Width, this.Height).Contains(e.Location))
+					if (this.EditorRectangle.Contains(e.Location))
 						this.Focus();
 
 					if (this.expandCheckHovered && (e.Button & MouseButtons.Left) != MouseButtons.None)
@@ -829,13 +781,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			this.hoverEditorLock = Control.MouseButtons != MouseButtons.None;
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				this.hoverEditor.OnMouseUp(new MouseEventArgs(
-					e.Button, 
-					e.Clicks, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.Delta));
+				this.hoverEditor.OnMouseUp(e);
 			}
 			else
 			{
@@ -867,13 +813,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnMouseClick(e);
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				this.hoverEditor.OnMouseClick(new MouseEventArgs(
-					e.Button, 
-					e.Clicks, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.Delta));
+				this.hoverEditor.OnMouseClick(e);
 			}
 		}
 		protected internal override void OnMouseDoubleClick(MouseEventArgs e)
@@ -881,13 +821,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnMouseDoubleClick(e);
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				this.hoverEditor.OnMouseDoubleClick(new MouseEventArgs(
-					e.Button, 
-					e.Clicks, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.Delta));
+				this.hoverEditor.OnMouseDoubleClick(e);
 			}
 			else if ( // Double-Click expand, if we're certain it's not handled elsewhere
 				this.CanExpand && 
@@ -961,16 +895,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				DragEventArgs childEvent = new DragEventArgs(
-					e.Data, 
-					e.KeyState, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.AllowedEffect,
-					e.Effect);
-				this.hoverEditor.OnDragOver(childEvent);
-				e.Effect = childEvent.Effect;
+				this.hoverEditor.OnDragOver(e);
 			}
 			else
 			{
@@ -982,16 +907,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnDragDrop(e);
 			if (this.hoverEditor != null)
 			{
-				Point editorLoc = this.GetChildLocation(this.hoverEditor);
-				DragEventArgs childEvent = new DragEventArgs(
-					e.Data, 
-					e.KeyState, 
-					e.X - editorLoc.X, 
-					e.Y - editorLoc.Y, 
-					e.AllowedEffect,
-					e.Effect);
-				this.hoverEditor.OnDragDrop(childEvent);
-				e.Effect = childEvent.Effect;
+				this.hoverEditor.OnDragDrop(e);
 			}
 		}
 
@@ -1018,9 +934,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected override void OnSizeChanged()
 		{
 			if (this.IsUpdating) return;
-			if (this.Disposed) return;
 			base.OnSizeChanged();
-			this.UpdateChildWidth();
+			this.UpdateChildGeometry();
 		}
 		protected void OnExpandCheckPressed()
 		{
@@ -1039,7 +954,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		private void child_SizeChanged(object sender, EventArgs e)
 		{
-			this.UpdateHeight();
+			this.UpdateChildGeometry();
 			this.Invalidate();
 		}
 		

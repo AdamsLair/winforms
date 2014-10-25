@@ -141,7 +141,8 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected void UpdateElementEditors(IList[] values)
 		{
 			PropertyInfo indexer = typeof(IList).GetProperty("Item");
-			int visibleElementCount = values.Where(o => o != null).Min(o => (int)o.Count);
+			IEnumerable<IList> valuesNotNull = values.Where(v => v != null);
+			int visibleElementCount = valuesNotNull.Min(o => (int)o.Count);
 			bool showOffset = false;
 			if (visibleElementCount > 10)
 			{
@@ -166,13 +167,13 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			// Add missing editors
 			Type elementType = GetIListElementType(this.EditedType);
-			Type reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, values.Select(a => GetIListElementType(a.GetType())));
+			Type reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, valuesNotNull.Select(a => GetIListElementType(a.GetType())));
 			for (int i = this.internalEditors; i < visibleElementCount + this.internalEditors; i++)
 			{
 				int elementIndex = i - this.internalEditors + this.offset;
 				Type reflectedElementType = PropertyEditor.ReflectDynamicType(
 					reflectedArrayType, 
-					values.Where(v => v != null).Select(v => indexer.GetValue(v, new object[] { elementIndex })));
+					valuesNotNull.Select(v => indexer.GetValue(v, new object[] { elementIndex })));
 				PropertyEditor elementEditor;
 
 				// Retrieve and Update existing editor
@@ -187,7 +188,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						
 						this.AddPropertyEditor(elementEditor, oldEditor);
 						this.RemovePropertyEditor(oldEditor);
-						oldEditor.Dispose();
 
 						this.ParentGrid.ConfigureEditor(elementEditor);
 					}

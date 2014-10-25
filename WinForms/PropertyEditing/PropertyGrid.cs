@@ -197,6 +197,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool				deferredSizeUpdate	= false;
 		private	bool				mouseInside			= false;
 		private	MouseButtons		mouseDownTemp		= MouseButtons.None;
+		private	float				splitterRatio		= 2.0f / 5.0f;
 		
 
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
@@ -249,6 +250,21 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public ControlRenderer Renderer
 		{
 			get { return this.renderer; }
+		}
+		public float SplitterRatio
+		{
+			get { return this.splitterRatio; }
+			set
+			{
+				this.splitterRatio = value;
+				this.UpdatePropertyEditor();
+				this.Invalidate();
+			}
+		}
+		public int SplitterPosition
+		{
+			get { return (int)Math.Round(this.SplitterRatio * this.Width); }
+			set { this.SplitterRatio = (float)value / (float)this.Width; }
 		}
 		protected override CreateParams CreateParams
 		{
@@ -358,6 +374,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			this.mainEditor.Hints &= ~(PropertyEditor.HintFlags.HasButton | PropertyEditor.HintFlags.ButtonEnabled);
 			this.mainEditor.Getter = this.ValueGetter;
 			this.mainEditor.Setter = this.readOnly ? null : (Action<IEnumerable<object>>)this.ValueSetter;
+			this.mainEditor.Location = Point.Empty;
 			this.mainEditor.Width = this.ClientSize.Width;
 			if (this.mainEditor is GroupedPropertyEditor)
 			{
@@ -371,7 +388,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (this.mainEditor == null) return;
 
 			this.mainEditor.SizeChanged -= this.mainEditor_SizeChanged;
-			this.mainEditor.Dispose();
 			this.mainEditor = null;
 			this.focusEditor = null;
 
@@ -454,8 +470,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				else
 					this.focusEditor.OnGotFocus(EventArgs.Empty);
 			}
-
-			//this.Invalidate();
 		}
 		public PropertyEditor GetFocusReciever(PropertyEditor primary, bool secondaryNext = true)
 		{
@@ -492,24 +506,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 				x -= this.AutoScrollPosition.X;
 				y -= this.AutoScrollPosition.Y;
 			}
-			return this.mainEditor.PickEditorAt(x - this.ClientRectangle.X, y - this.ClientRectangle.Y);
-		}
-		public Point GetEditorLocation(PropertyEditor editor, bool scrolled = false)
-		{
-			if (this.mainEditor == null) return Point.Empty;
-			Point result = this.mainEditor.GetChildLocation(editor);
-			result.X += this.ClientRectangle.X;
-			result.Y += this.ClientRectangle.Y;
-			if (scrolled)
-			{
-				result.X += this.AutoScrollPosition.X;
-				result.Y += this.AutoScrollPosition.Y;
-			}
-			return result;
+			GroupedPropertyEditor groupedMainEdit = this.mainEditor as GroupedPropertyEditor;
+			return groupedMainEdit != null ? groupedMainEdit.PickEditorAt(x - this.ClientRectangle.X, y - this.ClientRectangle.Y) : this.mainEditor;
 		}
 		public void ScrollToEditor(PropertyEditor editor)
 		{
-			Point editorLoc = this.GetEditorLocation(editor);
+			Point editorLoc = editor.Location;
 			Rectangle editorRect = new Rectangle(editorLoc, editor.Size);
 			Point scrollPos = this.AutoScrollPosition;
 			
