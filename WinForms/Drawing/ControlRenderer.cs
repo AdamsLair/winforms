@@ -61,6 +61,7 @@ namespace AdamsLair.WinForms.Drawing
 			set { this.fontBold = value; }
 		}
 		public float FocusBrightnessScale { get; set; }
+		public float NestedBrightnessScale { get; set; }
 		public Color ColorHightlight { get; set; }
 		public Color ColorVeryDarkBackground { get; set; }
 		public Color ColorDarkBackground { get; set; }
@@ -79,6 +80,7 @@ namespace AdamsLair.WinForms.Drawing
 		public virtual void Reset()
 		{
 			this.FocusBrightnessScale = 0.85f;
+			this.NestedBrightnessScale = 0.95f;
 			this.ColorHightlight = SystemColors.Highlight;
 			this.ColorVeryDarkBackground = SystemColors.ControlDarkDark;
 			this.ColorDarkBackground = SystemColors.ControlDark;
@@ -90,6 +92,21 @@ namespace AdamsLair.WinForms.Drawing
 			this.ColorGrayText = SystemColors.GrayText;
 		}
 
+
+		public Color GetBackgroundColor(Color baseColor, bool focus, int nestedDepth)
+		{
+			float brightnessScale = 1.0f;
+
+			if (focus) brightnessScale *= this.FocusBrightnessScale;
+			brightnessScale *= (float)Math.Pow(this.NestedBrightnessScale, Math.Max(nestedDepth - 1, 0));
+
+			if (brightnessScale != 1.0f) baseColor = baseColor.ScaleBrightness(brightnessScale);
+			return baseColor;
+		}
+		public Color GetBackgroundColor(bool focus, int nestedDepth)
+		{
+			return this.GetBackgroundColor(this.ColorBackground, focus, nestedDepth);
+		}
 
 		public void DrawCheckBox(Graphics g, Point loc, CheckBoxState state)
 		{
@@ -131,7 +148,9 @@ namespace AdamsLair.WinForms.Drawing
 			int charsFit, lines;
 			SizeF nameLabelSize = g.MeasureString(text, font, textRect.Size, nameLabelFormat, out charsFit, out lines);
 			if (textRect.Width >= 1)
+			{
 				g.DrawString(text, font, new SolidBrush(textColor), textRect, nameLabelFormat);
+			}
 
 			if (charsFit < text.Length && manualEllipsis)
 			{

@@ -394,6 +394,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 			foreach (PropertyEditor e in this.propertyEditors)
 				e.OnReadOnlyChanged();
 		}
+		internal protected override void OnGridSplitterChanged()
+		{
+			base.OnGridSplitterChanged();
+
+			foreach (PropertyEditor e in this.propertyEditors)
+				e.OnGridSplitterChanged();
+		}
 
 		protected void PaintHeader(Graphics g)
 		{
@@ -490,11 +497,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
-			bool focusBgColor = this.headerStyle == GroupHeaderStyle.Flat || this.headerStyle == GroupHeaderStyle.Simple;
-			Color headerBgColor = this.headerColor.Value;
-			if (focusBg && focusBgColor) headerBgColor = headerBgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
+			bool adaptBgColor = this.headerStyle == GroupHeaderStyle.Flat || this.headerStyle == GroupHeaderStyle.Simple;
+			Color headerBgColor = this.ControlRenderer.GetBackgroundColor(this.headerColor.Value, focusBg && adaptBgColor, this.NestedDepth);
+
 			GroupedPropertyEditor.DrawGroupHeaderBackground(g, this.headerRect, headerBgColor, this.headerStyle);
-			if (focusBg && !focusBgColor)
+			if (focusBg && !adaptBgColor)
 			{
 				this.ControlRenderer.DrawBorder(g, this.headerRect, Drawing.BorderStyle.Simple, BorderState.Normal);
 			}
@@ -518,7 +525,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				valueTextRect, 
 				this.Enabled ? this.ControlRenderer.ColorText : this.ControlRenderer.ColorGrayText);
 		}
-		protected void PaintIndentExpandButton(Graphics g, GroupedPropertyEditor childGroup, int curY)
+		protected void PaintIndentExpandButton(Graphics g, GroupedPropertyEditor childGroup)
 		{
 			if (childGroup.headerHeight == 0) return;
 			if ((childGroup.Hints & HintFlags.HasExpandCheck) == HintFlags.None) return;
@@ -584,25 +591,24 @@ namespace AdamsLair.WinForms.PropertyEditing
 						child.Height)))
 					{
 						// Paint child editor
-						GraphicsState oldState = e.Graphics.Save();
 						{
 							Rectangle clipRect = child.EditorRectangle;
 							clipRect.Intersect(this.ClientRectangle);
 							clipRect.Intersect(clipRectBase);
 							e.Graphics.SetClip(clipRect);
 							child.OnPaint(e);
+							e.Graphics.SetClip(clipRectBase);
 						}
-						e.Graphics.Restore(oldState);
 
 						// Paint child groups expand button
 						if (child is GroupedPropertyEditor && this.UseIndentChildExpand)
-							this.PaintIndentExpandButton(e.Graphics, child as GroupedPropertyEditor, child.Location.Y);
+							this.PaintIndentExpandButton(e.Graphics, child as GroupedPropertyEditor);
 					}
 				}
 			}
 		}
 
-		protected void IndentChildExpandOnMouseMove(MouseEventArgs e, GroupedPropertyEditor childGroup, int curY)
+		protected void IndentChildExpandOnMouseMove(MouseEventArgs e, GroupedPropertyEditor childGroup)
 		{
 			if (childGroup == null) return;
 			Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
@@ -615,7 +621,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			if (lastExpandHovered != childGroup.expandCheckHovered) this.Invalidate(expandRect);
 		}
-		protected void IndentChildExpandOnMouseLeave(EventArgs e, GroupedPropertyEditor childGroup, int curY)
+		protected void IndentChildExpandOnMouseLeave(EventArgs e, GroupedPropertyEditor childGroup)
 		{
 			if (childGroup == null) return;
 			Rectangle expandRect = new Rectangle(childGroup.Location.X - this.indent, childGroup.Location.Y, this.indent, childGroup.headerHeight);
@@ -624,7 +630,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			childGroup.expandCheckHovered = false;
 			childGroup.expandCheckPressed = false;
 		}
-		protected bool IndentChildExpandOnMouseDown(MouseEventArgs e, GroupedPropertyEditor childGroup, int curY)
+		protected bool IndentChildExpandOnMouseDown(MouseEventArgs e, GroupedPropertyEditor childGroup)
 		{
 			if (childGroup == null) return false;
 
@@ -639,7 +645,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			return false;
 		}
-		protected void IndentChildExpandOnMouseUp(MouseEventArgs e, GroupedPropertyEditor childGroup, int curY)
+		protected void IndentChildExpandOnMouseUp(MouseEventArgs e, GroupedPropertyEditor childGroup)
 		{
 			if (childGroup == null) return;
 			
@@ -664,11 +670,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 				// Indent expand button
 				if (this.UseIndentChildExpand)
 				{
-					int curY = this.headerHeight;
 					foreach (PropertyEditor child in this.propertyEditors)
 					{
-						this.IndentChildExpandOnMouseLeave(EventArgs.Empty, child as GroupedPropertyEditor, curY);
-						curY += child.Height;
+						this.IndentChildExpandOnMouseLeave(EventArgs.Empty, child as GroupedPropertyEditor);
 					}
 				}
 
@@ -700,11 +704,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 				// Indent expand button
 				if (this.UseIndentChildExpand)
 				{
-					int curY = this.headerHeight;
 					foreach (PropertyEditor child in this.propertyEditors)
 					{
-						this.IndentChildExpandOnMouseMove(e, child as GroupedPropertyEditor, curY);
-						curY += child.Height;
+						this.IndentChildExpandOnMouseMove(e, child as GroupedPropertyEditor);
 					}
 				}
 			}
@@ -731,11 +733,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 			// Indent expand button
 			if (this.UseIndentChildExpand)
 			{
-				int curY = this.headerHeight;
 				foreach (PropertyEditor child in this.propertyEditors)
 				{
-					this.IndentChildExpandOnMouseLeave(e, child as GroupedPropertyEditor, curY);
-					curY += child.Height;
+					this.IndentChildExpandOnMouseLeave(e, child as GroupedPropertyEditor);
 				}
 			}
 		}
@@ -753,11 +753,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 				bool handled = false;
 				if (this.UseIndentChildExpand)
 				{
-					int curY = this.headerHeight;
 					foreach (PropertyEditor child in this.propertyEditors)
 					{
-						handled = handled || this.IndentChildExpandOnMouseDown(e, child as GroupedPropertyEditor, curY);
-						curY += child.Height;
+						handled = handled || this.IndentChildExpandOnMouseDown(e, child as GroupedPropertyEditor);
 					}
 				}
 
@@ -805,11 +803,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 				// Indent expand button
 				if (this.UseIndentChildExpand)
 				{
-					int curY = this.headerHeight;
 					foreach (PropertyEditor child in this.propertyEditors)
 					{
-						this.IndentChildExpandOnMouseUp(e, child as GroupedPropertyEditor, curY);
-						curY += child.Height;
+						this.IndentChildExpandOnMouseUp(e, child as GroupedPropertyEditor);
 					}
 				}
 			}

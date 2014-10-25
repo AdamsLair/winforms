@@ -115,6 +115,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public const int EditorPriority_Override	= 100;
 
 
+		[Flags]
+		private enum SplitterState
+		{
+			None	= 0x0,
+			Hovered	= 0x1,
+			Dragged	= 0x2
+		}
 		private class MainEditorProvider : IPropertyEditorProvider
 		{
 			private	List<IPropertyEditorProvider>	subProviders	= new List<IPropertyEditorProvider>();
@@ -198,6 +205,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool				mouseInside			= false;
 		private	MouseButtons		mouseDownTemp		= MouseButtons.None;
 		private	float				splitterRatio		= 2.0f / 5.0f;
+		private	SplitterState		splitterState		= SplitterState.None;
+		private	int					splitterDragValue	= 0;
+		private	Point				splitterDragPos		= Point.Empty;
 		
 
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
@@ -256,7 +266,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			get { return this.splitterRatio; }
 			set
 			{
-				this.splitterRatio = value;
+				this.splitterRatio = Math.Max(50.0f / this.Width, Math.Min(value, (float)(this.Width - 50) / (float)this.Width));
 				this.UpdatePropertyEditor();
 				this.Invalidate();
 			}
@@ -574,7 +584,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnMouseLeave(e);
 			this.mouseInside = false;
 
-			if (this.mainEditor != null)
+			if (this.splitterState.HasFlag(SplitterState.Hovered))
+			{
+				this.splitterState &= ~SplitterState.Hovered;
+				this.Cursor = Cursors.Default;
+			}
+			else if (this.mainEditor != null)
 			{
 				this.mainEditor.OnMouseLeave(EventArgs.Empty);
 			}
@@ -582,11 +597,46 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			if (!this.mouseInside) this.OnMouseEnter(EventArgs.Empty);
-			//Console.WriteLine("OnMouseMove");
 
 			base.OnMouseMove(e);
 
-			if (this.mainEditor != null)
+			if (this.splitterState.HasFlag(SplitterState.Dragged))
+			{
+				this.SplitterPosition = this.splitterDragValue + e.X - this.splitterDragPos.X;
+				if (this.mainEditor != null)
+				{
+					this.mainEditor.OnGridSplitterChanged();
+				}
+			}
+			else
+			{
+				bool splitterHovered = Math.Abs(e.X - this.SplitterPosition) < 3;
+				if (splitterHovered && !this.splitterState.HasFlag(SplitterState.Hovered))
+				{
+					this.splitterState |= SplitterState.Hovered;
+					if (this.mainEditor != null)
+					{
+						this.mainEditor.OnMouseLeave(EventArgs.Empty);
+					}
+					this.Cursor = Cursors.VSplit;
+				}
+				else if (!splitterHovered && this.splitterState.HasFlag(SplitterState.Hovered))
+				{
+					this.splitterState &= ~SplitterState.Hovered;
+					this.Cursor = Cursors.Default;
+					if (this.mainEditor != null)
+					{
+						this.mainEditor.OnMouseEnter(new MouseEventArgs(
+							e.Button, 
+							e.Clicks, 
+							e.X - this.ClientRectangle.X, 
+							e.Y - this.ClientRectangle.Y - this.AutoScrollPosition.Y, 
+							e.Delta));
+					}
+				}
+			}
+
+			if (this.mainEditor != null && this.splitterState == SplitterState.None)
 			{
 				this.mainEditor.OnMouseMove(new MouseEventArgs(
 					e.Button, 
@@ -605,7 +655,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 			base.OnMouseDown(e);
 			this.mouseDownTemp |= e.Button;
 
-			if (this.mainEditor != null)
+			if (this.splitterState.HasFlag(SplitterState.Hovered))
+			{
+				this.splitterState |= SplitterState.Dragged;
+				this.splitterDragPos = e.Location;
+				this.splitterDragValue = this.SplitterPosition;
+			}
+			else if (this.mainEditor != null)
 			{
 				this.mainEditor.OnMouseDown(new MouseEventArgs(
 					e.Button, 
@@ -630,7 +686,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 				this.deferredSizeUpdate = false;
 			}
 
-			if (this.mainEditor != null)
+			if (this.splitterState.HasFlag(SplitterState.Dragged))
+			{
+				this.splitterState &= ~SplitterState.Dragged;
+			}
+			else if (this.mainEditor != null)
 			{
 				this.mainEditor.OnMouseUp(new MouseEventArgs(
 					e.Button, 
@@ -644,7 +704,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		{
 			base.OnMouseClick(e);
 
-			if (this.mainEditor != null)
+			if (this.mainEditor != null && this.splitterState == SplitterState.None)
 			{
 				this.mainEditor.OnMouseClick(new MouseEventArgs(
 					e.Button, 
@@ -658,7 +718,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		{
 			base.OnMouseDoubleClick(e);
 
-			if (this.mainEditor != null)
+			if (this.mainEditor != null && this.splitterState == SplitterState.None)
 			{
 				this.mainEditor.OnMouseDoubleClick(new MouseEventArgs(
 					e.Button, 
@@ -872,11 +932,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected override void OnGotFocus(EventArgs e)
 		{
 			base.OnGotFocus(e);
-			if (this.focusEditor != null)
-				this.focusEditor.OnGotFocus(EventArgs.Empty);
-			else
-				this.Focus(this.mainEditor);
-			//this.Invalidate();
+			if (this.focusEditor != null) this.focusEditor.OnGotFocus(EventArgs.Empty);
 		}
 		protected override void OnLostFocus(EventArgs e)
 		{
@@ -886,7 +942,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 			// Emulate leaving mouse if losing focus to something that might be a dropdown popup
 			if (!Application.OpenForms.OfType<Form>().Any(c => c.Focused || c.ContainsFocus))
 				this.OnMouseLeave(EventArgs.Empty);
-			//this.Invalidate();
 		}
 
 		protected override void OnSizeChanged(EventArgs e)

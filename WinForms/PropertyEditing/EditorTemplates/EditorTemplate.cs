@@ -44,12 +44,12 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		}
 		public Cursor CurrentCursor
 		{
-			get { return this.parent != null && this.parent.ParentGrid != null ? this.parent.ParentGrid.Cursor : null; }
+			get { return (this.parent != null && this.parent.ParentGrid != null) ? this.parent.ParentGrid.Cursor : Cursors.Default; }
 			set
 			{
 				if (this.parent == null) return;
 				if (this.parent.ParentGrid == null) return;
-				this.parent.ParentGrid.Cursor = value;
+				this.parent.ParentGrid.Cursor = value ?? Cursors.Default;
 			}
 		}
 		protected ControlRenderer ControlRenderer

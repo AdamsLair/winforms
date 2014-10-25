@@ -90,6 +90,15 @@ namespace AdamsLair.WinForms.PropertyEditing
 			Default = HasPropertyName
 		}
 
+		[Flags]
+		private enum StateFlags
+		{
+			None			= 0x0,
+
+			ButtonHovered	= 0x1,
+			ButtonPressed	= 0x2,
+		}
+
 		private	PropertyGrid	parentGrid		= null;
 		private	PropertyEditor	parentEditor	= null;
 		private	Type			editedType		= null;
@@ -108,8 +117,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	Rectangle		clientRect		= Rectangle.Empty;
 		private	Rectangle		nameLabelRect	= Rectangle.Empty;
 		private	Rectangle		buttonRect		= Rectangle.Empty;
-		private	bool			buttonHovered	= false;
-		private	bool			buttonPressed	= false;
+		private	StateFlags		stateFlags		= StateFlags.None;
 		private	IconImage		buttonIcon		= new IconImage(AdamsLair.WinForms.Properties.ResourcesCache.ImageDelete);
 		private	Func<IEnumerable<object>>	getter	= null;
 		private	Action<IEnumerable<object>>	setter	= null;
@@ -194,6 +202,20 @@ namespace AdamsLair.WinForms.PropertyEditing
 						yield return subChild;
 					}
 				}
+			}
+		}
+		public int NestedDepth
+		{
+			get
+			{
+				int nestedDepth = 0;
+				PropertyEditor editor = this.parentEditor;
+				while (editor != null)
+				{
+					nestedDepth++;
+					editor = editor.parentEditor;
+				}
+				return nestedDepth;
 			}
 		}
 		
@@ -591,13 +613,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected void PaintBackground(Graphics g)
 		{
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
-			Color bgColor = this.ControlRenderer.ColorBackground;
-			if (focusBg) bgColor = bgColor.ScaleBrightness(this.ControlRenderer.FocusBrightnessScale);
+			Color bgColor = this.ControlRenderer.GetBackgroundColor(focusBg, this.NestedDepth);
 			g.FillRectangle(new SolidBrush(bgColor), this.rect);
 		}
 		protected void PaintButton(Graphics g)
 		{
-			if ((this.hints & HintFlags.HasButton) == HintFlags.None || this.buttonIcon == null) return;
+			if (!this.hints.HasFlag(HintFlags.HasButton) || this.buttonIcon == null) return;
 
 			Size buttonSize = new Size(
 				Math.Min(this.buttonIcon.Width, this.buttonRect.Width),
@@ -607,14 +628,14 @@ namespace AdamsLair.WinForms.PropertyEditing
 			Image buttonImage;
 			if ((this.Hints & HintFlags.ButtonEnabled) == HintFlags.None || this.ReadOnly || !this.Enabled)
 				buttonImage = this.buttonIcon.Disabled;
-			else if (this.buttonPressed)
+			else if (this.stateFlags.HasFlag(StateFlags.ButtonPressed))
 				buttonImage = this.buttonIcon.Active;
-			else if (this.buttonHovered || this.Focused)
+			else if (this.stateFlags.HasFlag(StateFlags.ButtonHovered) || this.Focused)
 				buttonImage = this.buttonIcon.Normal;
 			else
 				buttonImage = this.buttonIcon.Passive;
 				
-			if (this.buttonHovered)
+			if (this.stateFlags.HasFlag(StateFlags.ButtonHovered))
 			{
 				Rectangle buttonBgRect = this.buttonRect;
 				buttonBgRect.Height = Math.Min(buttonBgRect.Height, buttonBgRect.Width) - 1;
@@ -645,35 +666,41 @@ namespace AdamsLair.WinForms.PropertyEditing
 		internal protected virtual void OnMouseEnter(EventArgs e) {}
 		internal protected virtual void OnMouseLeave(EventArgs e)
 		{
-			if (this.buttonHovered) this.Invalidate();
-			this.buttonHovered = false;
-			this.buttonPressed = false;
+			if (this.stateFlags.HasFlag(StateFlags.ButtonHovered)) this.Invalidate();
+			this.stateFlags &= ~StateFlags.ButtonHovered;
 		}
 		internal protected virtual void OnMouseMove(MouseEventArgs e)
 		{
-			bool lastHovered = this.buttonHovered;
-			this.buttonHovered = (this.Hints & HintFlags.ButtonEnabled) != HintFlags.None && !this.ReadOnly && this.ButtonRectangle.Contains(e.Location);
-			if (lastHovered != this.buttonHovered) this.Invalidate();
+			bool lastHovered = this.stateFlags.HasFlag(StateFlags.ButtonHovered);
+			bool buttonHovered = (this.Hints & HintFlags.ButtonEnabled) != HintFlags.None && !this.ReadOnly && this.ButtonRectangle.Contains(e.Location);
+			if (buttonHovered && !lastHovered)
+			{
+				this.stateFlags |= StateFlags.ButtonHovered;
+				this.Invalidate();
+			}
+			else if (!buttonHovered && lastHovered)
+			{
+				this.stateFlags &= ~StateFlags.ButtonHovered;
+				this.Invalidate();
+			}
 		}
 		internal protected virtual void OnMouseDown(MouseEventArgs e)
 		{
 			if (this.FocusOnClick && this.rect.Contains(e.Location))
 				this.Focus();
-			if (this.buttonHovered && (e.Button & MouseButtons.Left) != MouseButtons.None)
+			if (this.stateFlags.HasFlag(StateFlags.ButtonHovered) && (e.Button & MouseButtons.Left) != MouseButtons.None)
 			{
-				this.buttonPressed = true;
+				this.stateFlags |= StateFlags.ButtonPressed;
 				this.Invalidate();
 			}
 		}
 		internal protected virtual void OnMouseUp(MouseEventArgs e)
 		{
-			//if (this.FocusOnClick && new Rectangle(0, 0, this.size.Width, this.size.Height).Contains(e.Location))
-			//    this.Focus();
-			if (this.buttonPressed && (e.Button & MouseButtons.Left) != MouseButtons.None)
+			if (this.stateFlags.HasFlag(StateFlags.ButtonPressed) && (e.Button & MouseButtons.Left) != MouseButtons.None)
 			{
-				this.buttonPressed = false;
+				this.stateFlags &= ~StateFlags.ButtonPressed;
 				this.Invalidate();
-				if (this.buttonHovered) this.OnButtonPressed();
+				if (this.stateFlags.HasFlag(StateFlags.ButtonHovered)) this.OnButtonPressed();
 			}
 		}
 		internal protected virtual void OnMouseClick(MouseEventArgs e) {}
@@ -700,6 +727,10 @@ namespace AdamsLair.WinForms.PropertyEditing
 		internal protected virtual void OnReadOnlyChanged()
 		{
 			this.Invalidate();
+		}
+		internal protected virtual void OnGridSplitterChanged()
+		{
+			this.UpdateGeometry();
 		}
 		protected virtual void OnEditedTypeChanged()
 		{
