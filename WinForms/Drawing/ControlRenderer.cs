@@ -62,6 +62,7 @@ namespace AdamsLair.WinForms.Drawing
 		}
 		public float FocusBrightnessScale { get; set; }
 		public float NestedBrightnessScale { get; set; }
+		public int NestedBrightnessOffset { get; set; }
 		public Color ColorHightlight { get; set; }
 		public Color ColorVeryDarkBackground { get; set; }
 		public Color ColorDarkBackground { get; set; }
@@ -81,6 +82,7 @@ namespace AdamsLair.WinForms.Drawing
 		{
 			this.FocusBrightnessScale = 0.85f;
 			this.NestedBrightnessScale = 0.95f;
+			this.NestedBrightnessOffset = PropertyEditing.GroupedPropertyEditor.DefaultIndent;
 			this.ColorHightlight = SystemColors.Highlight;
 			this.ColorVeryDarkBackground = SystemColors.ControlDarkDark;
 			this.ColorDarkBackground = SystemColors.ControlDark;
@@ -93,19 +95,19 @@ namespace AdamsLair.WinForms.Drawing
 		}
 
 
-		public Color GetBackgroundColor(Color baseColor, bool focus, int nestedDepth)
+		public Color GetBackgroundColor(Color baseColor, bool focus, int indent)
 		{
 			float brightnessScale = 1.0f;
 
 			if (focus) brightnessScale *= this.FocusBrightnessScale;
-			brightnessScale *= (float)Math.Pow(this.NestedBrightnessScale, Math.Max(nestedDepth - 1, 0));
+			brightnessScale *= (float)Math.Pow(this.NestedBrightnessScale, Math.Max((indent - this.NestedBrightnessOffset) / PropertyEditing.GroupedPropertyEditor.DefaultIndent, 0));
 
 			if (brightnessScale != 1.0f) baseColor = baseColor.ScaleBrightness(brightnessScale);
 			return baseColor;
 		}
-		public Color GetBackgroundColor(bool focus, int nestedDepth)
+		public Color GetBackgroundColor(bool focus, int indent)
 		{
-			return this.GetBackgroundColor(this.ColorBackground, focus, nestedDepth);
+			return this.GetBackgroundColor(this.ColorBackground, focus, indent);
 		}
 
 		public void DrawCheckBox(Graphics g, Point loc, CheckBoxState state)

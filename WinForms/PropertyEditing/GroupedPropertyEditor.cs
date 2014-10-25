@@ -498,7 +498,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
 			bool adaptBgColor = this.headerStyle == GroupHeaderStyle.Flat || this.headerStyle == GroupHeaderStyle.Simple;
-			Color headerBgColor = this.ControlRenderer.GetBackgroundColor(this.headerColor.Value, focusBg && adaptBgColor, this.NestedDepth);
+			Color headerBgColor = this.ControlRenderer.GetBackgroundColor(this.headerColor.Value, focusBg && adaptBgColor, this.Location.X);
 
 			GroupedPropertyEditor.DrawGroupHeaderBackground(g, this.headerRect, headerBgColor, this.headerStyle);
 			if (focusBg && !adaptBgColor)

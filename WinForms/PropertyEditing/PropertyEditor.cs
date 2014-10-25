@@ -204,20 +204,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				}
 			}
 		}
-		public int NestedDepth
-		{
-			get
-			{
-				int nestedDepth = 0;
-				PropertyEditor editor = this.parentEditor;
-				while (editor != null)
-				{
-					nestedDepth++;
-					editor = editor.parentEditor;
-				}
-				return nestedDepth;
-			}
-		}
 		
 		/// <summary>
 		/// [GET / SET] The Type of values that this PropertyEditor is able to edit.
@@ -613,7 +599,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected void PaintBackground(Graphics g)
 		{
 			bool focusBg = this.Focused || (this is IPopupControlHost && (this as IPopupControlHost).IsDropDownOpened);
-			Color bgColor = this.ControlRenderer.GetBackgroundColor(focusBg, this.NestedDepth);
+			Color bgColor = this.ControlRenderer.GetBackgroundColor(focusBg, this.rect.X);
 			g.FillRectangle(new SolidBrush(bgColor), this.rect);
 		}
 		protected void PaintButton(Graphics g)
