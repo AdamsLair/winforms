@@ -123,7 +123,7 @@ namespace AdamsLair.WinForms.ItemModels
 				item.Model = null;
 			}
 			this.items.Clear();
-			this.RaiseItemsChanged(oldItems);
+			this.RaiseItemsRemoved(oldItems);
 		}
 		
 		internal void RaiseItemsAdded(IEnumerable<IMenuModelItem> items)
