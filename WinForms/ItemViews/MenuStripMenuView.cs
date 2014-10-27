@@ -95,8 +95,9 @@ namespace AdamsLair.WinForms.ItemViews
 			ToolStripMenuItem viewMenuItem = viewItem as ToolStripMenuItem;
 			if (viewMenuItem != null)
 			{
-				viewMenuItem.ShortcutKeys = modelItem.ShortcutKeys;
-				viewMenuItem.CheckOnClick = modelItem.Checkable;
+				viewMenuItem.ShortcutKeys	= modelItem.ShortcutKeys;
+				viewMenuItem.CheckOnClick	= modelItem.Checkable;
+				viewMenuItem.Checked		= modelItem.Checked;
 			}
 		}
 		

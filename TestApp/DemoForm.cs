@@ -243,6 +243,7 @@ namespace AdamsLair.WinForms.TestApp
 				this.menuModel.GetItem(@"File\Close").Enabled = false;
 				this.menuModel.GetItem(@"Edit\Undo").ShortcutKeys = Keys.Control | Keys.Z;
 				this.menuModel.GetItem(@"Edit\Checkable").Checkable = true;
+				this.menuModel.GetItem(@"Edit\Checkable").Checked = true;
 
 				this.menuModel.RequestItem(@"File\New Option\Blah").ActionHandler = OnMenuItemClicked;
 				this.menuModel.RequestItem(@"file\New Option\blah");
