@@ -610,7 +610,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 			}
 			else
 			{
-				bool splitterHovered = Math.Abs(e.X - this.SplitterPosition) < 3;
+				int splitterPos = this.SplitterPosition;
+				bool splitterHovered = e.Button == MouseButtons.None && e.X < splitterPos && e.X >= splitterPos - 6;
 				if (splitterHovered && !this.splitterState.HasFlag(SplitterState.Hovered))
 				{
 					this.splitterState |= SplitterState.Hovered;
