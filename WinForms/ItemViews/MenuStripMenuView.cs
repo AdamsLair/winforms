@@ -85,11 +85,13 @@ namespace AdamsLair.WinForms.ItemViews
 		}
 		protected virtual void UpdateItemProperties(IMenuModelItem modelItem, ToolStripItem viewItem)
 		{
+			bool wasVisible = viewItem.Available;
+
 			viewItem.Tag		= modelItem.Tag;
 			viewItem.Image		= modelItem.Icon;
 			viewItem.Name		= modelItem.Name;
 			viewItem.Text		= modelItem.Name;
-			viewItem.Visible	= modelItem.Visible && (modelItem.TypeHint != MenuItemTypeHint.Separator || this.visibleSeparators.Contains(viewItem));
+			viewItem.Available	= modelItem.Visible && (modelItem.TypeHint != MenuItemTypeHint.Separator || this.visibleSeparators.Contains(viewItem));
 			viewItem.Enabled	= modelItem.Enabled;
 
 			ToolStripMenuItem viewMenuItem = viewItem as ToolStripMenuItem;
@@ -99,6 +101,9 @@ namespace AdamsLair.WinForms.ItemViews
 				viewMenuItem.CheckOnClick	= modelItem.Checkable;
 				viewMenuItem.Checked		= modelItem.Checked;
 			}
+
+			if (wasVisible != viewItem.Available)
+				this.UpdateSeparatorVisibility(this.GetTargetViewItemCollection(modelItem));
 		}
 		
 		private void UpdateSeparatorVisibility(ToolStripItemCollection parentCollection)
@@ -106,6 +111,7 @@ namespace AdamsLair.WinForms.ItemViews
 			this.visibleSeparators.Clear();
 			bool separatorStreak = false;
 			bool isFirstVisibleItem = true;
+			int lastSeparatorIndex = -1;
 			for (int i = 0; i < parentCollection.Count; i++)
 			{
 				ToolStripItem viewItem = parentCollection[i];
@@ -116,14 +122,15 @@ namespace AdamsLair.WinForms.ItemViews
 
 				if (isSeparator)
 				{
-					viewItem.Visible = false;
+					viewItem.Available = false;
 					separatorStreak = true;
+					lastSeparatorIndex = i;
 				}
 				else if (separatorStreak && !isFirstVisibleItem)
 				{
-					ToolStripItem lastViewItem = parentCollection[i - 1];
+					ToolStripItem lastViewItem = parentCollection[lastSeparatorIndex];
 					IMenuModelItem lastModelItem = this.GetModelItem(lastViewItem);
-					parentCollection[i - 1].Visible = lastModelItem.Visible;
+					lastViewItem.Available = lastModelItem.Visible;
 					this.visibleSeparators.Add(lastViewItem);
 				}
 
