@@ -221,6 +221,10 @@ namespace AdamsLair.WinForms.TestApp
 			{
 				MenuModelItem file = new MenuModelItem("File", null, new[]
 				{
+					MenuModelItem.Separator,
+					new MenuModelItem { Name = "Invisible", Visible = false },
+					MenuModelItem.Separator,
+
 					new MenuModelItem { Name = "Quit", SortValue = MenuModelItem.SortValue_Bottom, ActionHandler = OnMenuItemClicked },
 					new MenuModelItem { Name = "New", Items = new[]
 					{
@@ -229,7 +233,6 @@ namespace AdamsLair.WinForms.TestApp
 					}},
 					new MenuModelItem("Open", bmpItemSmall, OnMenuItemClicked),
 					new MenuModelItem("Close", OnMenuItemClicked),
-					MenuModelItem.Separator,
 				});
 				MenuModelItem edit = new MenuModelItem("Edit", null, new[] 
 				{

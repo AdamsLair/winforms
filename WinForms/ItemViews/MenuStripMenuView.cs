@@ -105,22 +105,31 @@ namespace AdamsLair.WinForms.ItemViews
 		{
 			this.visibleSeparators.Clear();
 			bool separatorStreak = false;
+			bool isFirstVisibleItem = true;
 			for (int i = 0; i < parentCollection.Count; i++)
 			{
 				ToolStripItem viewItem = parentCollection[i];
 				IMenuModelItem modelItem = this.GetModelItem(viewItem);
+				if (!modelItem.Visible) continue;
+
 				bool isSeparator = modelItem.TypeHint == MenuItemTypeHint.Separator;
+
 				if (isSeparator)
 				{
 					viewItem.Visible = false;
 					separatorStreak = true;
 				}
-				else if (separatorStreak)
+				else if (separatorStreak && !isFirstVisibleItem)
 				{
 					ToolStripItem lastViewItem = parentCollection[i - 1];
 					IMenuModelItem lastModelItem = this.GetModelItem(lastViewItem);
 					parentCollection[i - 1].Visible = lastModelItem.Visible;
 					this.visibleSeparators.Add(lastViewItem);
+				}
+
+				if (!isSeparator)
+				{
+					isFirstVisibleItem = false;
 				}
 			}
 		}
