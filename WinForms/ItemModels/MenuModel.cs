@@ -36,46 +36,19 @@ namespace AdamsLair.WinForms.ItemModels
 		
 		public MenuModelItem GetItem(string fullItemName)
 		{
-			fullItemName = fullItemName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-			return this.ItemsDeep.FirstOrDefault(i => string.Equals(i.FullName, fullItemName, StringComparison.InvariantCultureIgnoreCase));
+			return this.GetItem(SplitItemName(fullItemName));
 		}
-		public MenuModelItem RequestItem(string fullItemName)
+		public MenuModelItem GetItem(string[] itemNameTreePath)
 		{
-			// Check if such item already exists. Returns it, if it does.
-			{
-				MenuModelItem existingItem = this.GetItem(fullItemName);
-				if (existingItem != null) return existingItem;
-			}
-
-			// Create an item that matches the specified full name
-			MenuModelItem resultItem = null;
-			{
-				fullItemName = fullItemName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-				string[] itemNames = fullItemName.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.None);
-
-				// Create the root item
-				MenuModelItem item = this.items.FirstOrDefault(c => string.Equals(c.Name, itemNames[0], StringComparison.InvariantCultureIgnoreCase));
-				if (item == null)
-				{
-					item = new MenuModelItem(itemNames[0]);
-					this.AddItem(item);
-				}
-
-				// Create subsequent items
-				resultItem = item;
-				for (int i = 1; i < itemNames.Length; i++)
-				{
-					resultItem = item.Items.FirstOrDefault(c => string.Equals(c.Name, itemNames[i], StringComparison.InvariantCultureIgnoreCase));
-					if (resultItem == null)
-					{
-						resultItem = new MenuModelItem(itemNames[i]);
-						item.AddItem(resultItem);
-					}
-					item = resultItem;
-				}
-			}
-
-			return resultItem;
+			return GetItemDeep(this.items, itemNameTreePath);
+		}
+		public MenuModelItem RequestItem(string fullItemName, Action<MenuModelItem> onCreatingNewItem = null)
+		{
+			return this.RequestItem(SplitItemName(fullItemName), onCreatingNewItem);
+		}
+		public MenuModelItem RequestItem(string[] itemNameTreePath, Action<MenuModelItem> onCreatingNewItem = null)
+		{
+			return RequestItem(this.items, itemNameTreePath, i => this.AddItem(i), onCreatingNewItem);
 		}
 
 		public void AddItem(MenuModelItem item)
@@ -145,6 +118,64 @@ namespace AdamsLair.WinForms.ItemModels
 		IEnumerable<IMenuModelItem> IMenuModel.Items
 		{
 			get { return this.items; }
+		}
+
+		internal static string[] SplitItemName(string fullItemName)
+		{
+			fullItemName = fullItemName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+			return fullItemName.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.None);
+		}
+		internal static MenuModelItem GetItemDeep(IEnumerable<MenuModelItem> rootItems, string[] itemNameTreePath)
+		{
+			IEnumerable<MenuModelItem> itemCollection = rootItems;
+			MenuModelItem item = null;
+			for (int nameIndex = 0; nameIndex < itemNameTreePath.Length; nameIndex++)
+			{
+				item = itemCollection.FirstOrDefault(i => i.Name == itemNameTreePath[nameIndex]);
+				if (item == null) return null;
+
+				itemCollection = item.Items;
+			}
+			return item;
+		}
+		internal static MenuModelItem RequestItem(IEnumerable<MenuModelItem> rootItems, string[] itemNameTreePath, Action<MenuModelItem> addAction, Action<MenuModelItem> configureAction)
+		{
+			// Check if such item already exists. Returns it, if it does.
+			{
+				MenuModelItem existingItem = GetItemDeep(rootItems, itemNameTreePath);
+				if (existingItem != null) return existingItem;
+			}
+
+			// Create an item that matches the specified full name
+			MenuModelItem resultItem = null;
+			{
+				// Create the root item
+				MenuModelItem item = rootItems.FirstOrDefault(c => string.Equals(c.Name, itemNameTreePath[0], StringComparison.InvariantCultureIgnoreCase));
+				if (item == null)
+				{
+					item = new MenuModelItem(itemNameTreePath[0]);
+					if (configureAction != null)
+						configureAction(item);
+					addAction(item);
+				}
+
+				// Create subsequent items
+				resultItem = item;
+				for (int i = 1; i < itemNameTreePath.Length; i++)
+				{
+					resultItem = item.Items.FirstOrDefault(c => string.Equals(c.Name, itemNameTreePath[i], StringComparison.InvariantCultureIgnoreCase));
+					if (resultItem == null)
+					{
+						resultItem = new MenuModelItem(itemNameTreePath[i]);
+						if (configureAction != null)
+							configureAction(resultItem);
+						item.AddItem(resultItem);
+					}
+					item = resultItem;
+				}
+			}
+
+			return resultItem;
 		}
 	}
 }

@@ -15,6 +15,7 @@ namespace AdamsLair.WinForms.ItemViews
 		private	IMenuModel									model				= null;
 		private	Dictionary<IMenuModelItem,ToolStripItem>	viewItems			= new Dictionary<IMenuModelItem,ToolStripItem>();
 		private	HashSet<ToolStripItem>						visibleSeparators	= new HashSet<ToolStripItem>();
+		private	Comparison<IMenuModelItem>					comparison			= DefaultItemComparison;
 
 		public event EventHandler<MenuStripMenuViewItemEventArgs> ItemInserted = null;
 		public event EventHandler<MenuStripMenuViewItemEventArgs> ItemRemoved = null;
@@ -26,9 +27,6 @@ namespace AdamsLair.WinForms.ItemViews
 			{
 				if (this.model != value)
 				{
-					IEnumerable<IMenuModelItem> newItems = Enumerable.Empty<IMenuModelItem>();
-					IEnumerable<IMenuModelItem> oldItems = Enumerable.Empty<IMenuModelItem>();
-
 					if (this.model != null)
 					{
 						this.model.ItemsAdded -= this.model_ItemsAdded;
@@ -46,6 +44,19 @@ namespace AdamsLair.WinForms.ItemViews
 						this.model.ItemsRemoved += this.model_ItemsRemoved;
 						this.model.ItemsChanged += this.model_ItemsChanged;
 					}
+				}
+			}
+		}
+		public Comparison<IMenuModelItem> ItemSortComparison
+		{
+			get { return this.comparison; }
+			set
+			{
+				value = value ?? DefaultItemComparison;
+				if (this.comparison != value)
+				{
+					this.comparison = value;
+					this.SortItems();
 				}
 			}
 		}
@@ -72,6 +83,16 @@ namespace AdamsLair.WinForms.ItemViews
 		public IMenuModelItem GetModelItem(ToolStripItem viewItem)
 		{
 			return this.viewItems.Where(p => p.Value == viewItem).Select(p => p.Key).FirstOrDefault();
+		}
+
+		public void SortItems()
+		{
+			if (this.model == null) return;
+			if (this.model.Items == null) return;
+
+			IMenuModelItem[] items = this.model.Items.ToArray();
+			this.model_ItemsRemoved(this.model, new MenuModelItemsEventArgs(items));
+			this.model_ItemsAdded(this.model, new MenuModelItemsEventArgs(items));
 		}
 
 		protected virtual ToolStripItem CreateViewItem(IMenuModelItem modelItem)
@@ -137,6 +158,7 @@ namespace AdamsLair.WinForms.ItemViews
 				if (!isSeparator)
 				{
 					isFirstVisibleItem = false;
+					separatorStreak = false;
 				}
 			}
 		}
@@ -149,7 +171,7 @@ namespace AdamsLair.WinForms.ItemViews
 			for (int i = 0; i < parentCollection.Count; i++)
 			{
 				IMenuModelItem item = this.GetModelItem(parentCollection[i]);
-				if (item.SortValue > modelItem.SortValue)
+				if (comparison(item, modelItem) > 0)
 				{
 					insertIndex = i;
 					break;
@@ -318,6 +340,11 @@ namespace AdamsLair.WinForms.ItemViews
 					}
 				}
 			}
+		}
+
+		private static int DefaultItemComparison(IMenuModelItem itemA, IMenuModelItem itemB)
+		{
+			return itemA.SortValue - itemB.SortValue;
 		}
 	}
 }

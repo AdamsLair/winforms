@@ -243,6 +243,23 @@ namespace AdamsLair.WinForms.ItemModels
 				this.AddItems(items);
 			}
 		}
+		
+		public MenuModelItem GetItem(string fullItemName)
+		{
+			return this.GetItem(MenuModel.SplitItemName(fullItemName));
+		}
+		public MenuModelItem GetItem(string[] itemNameTreePath)
+		{
+			return MenuModel.GetItemDeep(this.items, itemNameTreePath);
+		}
+		public MenuModelItem RequestItem(string fullItemName, Action<MenuModelItem> onCreatingNewItem = null)
+		{
+			return this.RequestItem(MenuModel.SplitItemName(fullItemName), onCreatingNewItem);
+		}
+		public MenuModelItem RequestItem(string[] itemNameTreePath, Action<MenuModelItem> onCreatingNewItem = null)
+		{
+			return MenuModel.RequestItem(this.items, itemNameTreePath, i => this.AddItem(i), onCreatingNewItem);
+		}
 
 		public void AddItem(MenuModelItem item)
 		{
