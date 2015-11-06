@@ -99,6 +99,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 			ButtonPressed	= 0x2,
 		}
 
+		private static readonly PropertyEditor[] EmptyPropertyEditors = new PropertyEditor[0];
+
 		private	PropertyGrid	parentGrid		= null;
 		private	PropertyEditor	parentEditor	= null;
 		private	Type			editedType		= null;
@@ -158,51 +160,17 @@ namespace AdamsLair.WinForms.PropertyEditing
 				this.OnParentEditorChanged();
 			}
 		}
-		public PropertyEditor NextEditor
+		public virtual bool AreChildEditorsVisible
 		{
-			get
-			{
-				if (this.parentEditor == null) return null;
-				bool foundMe = false;
-				foreach (PropertyEditor child in this.parentEditor.Children)
-				{
-					if (foundMe) return child;
-					if (child == this) foundMe = true;
-				}
-				return null;
-			}
+			get { return false; }
 		}
-		public PropertyEditor PrevEditor
+		public virtual IReadOnlyList<PropertyEditor> ChildEditors
 		{
-			get
-			{
-				if (this.parentEditor == null) return null;
-				PropertyEditor last = null;
-				foreach (PropertyEditor child in this.parentEditor.Children)
-				{
-					if (child == this) return last;
-					last = child;
-				}
-				return null;
-			}
+			get { return EmptyPropertyEditors; }
 		}
-		public virtual IEnumerable<PropertyEditor> Children
+		public IReadOnlyList<PropertyEditor> VisibleChildEditors
 		{
-			get { return new PropertyEditor[0]; }
-		}
-		public IEnumerable<PropertyEditor> ChildrenDeep
-		{
-			get
-			{
-				foreach (PropertyEditor child in this.Children)
-				{
-					yield return child;
-					foreach (PropertyEditor subChild in child.ChildrenDeep)
-					{
-						yield return subChild;
-					}
-				}
-			}
+			get { return this.AreChildEditorsVisible ? this.ChildEditors : EmptyPropertyEditors; }
 		}
 		
 		/// <summary>
@@ -547,6 +515,19 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (this.parentEditor == parent) return true;
 			if (this.parentEditor == null) return false;
 			return this.parentEditor.IsChildOf(parent);
+		}
+		public IEnumerable<PropertyEditor> GetChildEditorsDeep(bool visibleOnly)
+		{
+			if (visibleOnly && !this.AreChildEditorsVisible) yield break;
+
+			foreach (PropertyEditor child in this.ChildEditors)
+			{
+				yield return child;
+				foreach (PropertyEditor subChild in child.GetChildEditorsDeep(visibleOnly))
+				{
+					yield return subChild;
+				}
+			}
 		}
 
 		protected virtual void UpdateGeometry()

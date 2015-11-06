@@ -158,9 +158,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 		{
 			get { return !this.contentInit || this.propertyEditors.Count > 0; }
 		}
-		public override IEnumerable<PropertyEditor> Children
+		public override bool AreChildEditorsVisible
 		{
-			get { return this.expanded ? this.propertyEditors : base.Children; }
+			get { return this.expanded; }
+		}
+		public override IReadOnlyList<PropertyEditor> ChildEditors
+		{
+			get { return this.propertyEditors; }
 		}
 		public override bool FocusOnClick
 		{
@@ -257,7 +261,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (before != null && before.ParentEditor == this)
 			{
 				int index = 0;
-				foreach (PropertyEditor child in this.Children)
+				foreach (PropertyEditor child in this.ChildEditors)
 				{
 					if (child == before)
 					{

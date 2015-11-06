@@ -126,16 +126,16 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			this.HeaderValueText = valString;
 
-			foreach (PropertyEditor e in this.Children)
+			foreach (PropertyEditor e in this.ChildEditors)
 				e.PerformGetValue();
 		}
 		protected override void OnSetValue()
 		{
 			if (this.ReadOnly) return;
-			if (!this.Children.Any()) return;
+			if (!this.ChildEditors.Any()) return;
 			base.OnSetValue();
 
-			foreach (PropertyEditor e in this.Children)
+			foreach (PropertyEditor e in this.ChildEditors)
 				e.PerformSetValue();
 		}
 		protected override void VerifyReflectedTypeEditors(IEnumerable<object> values)
@@ -203,9 +203,9 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				PropertyEditor elementEditor;
 
 				// Retrieve and Update existing editor
-				if (i < this.Children.Count())
+				if (i < this.ChildEditors.Count())
 				{
-					elementEditor = this.Children.ElementAt(i);
+					elementEditor = this.ChildEditors.ElementAt(i);
 					if (elementEditor.EditedType != reflectedElementValueType)
 					{
 						// If the editor has the wrong type, we'll need to create a new one
@@ -235,9 +235,9 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				elementEditor.PropertyName = "[" + elementKey.ToString() + "]";
 			}
 			// Remove overflowing editors
-			for (int i = this.Children.Count() - (this.internalEditors + 1); i >= visibleElementCount; i--)
+			for (int i = this.ChildEditors.Count() - (this.internalEditors + 1); i >= visibleElementCount; i--)
 			{
-				PropertyEditor child = this.Children.Last();
+				PropertyEditor child = this.ChildEditors.Last();
 				this.RemovePropertyEditor(child);
 				child.ButtonPressed -= this.elementEditor_ButtonPressed;
 			}
@@ -351,7 +351,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			// Determine key
 			int clickedIndex = -this.internalEditors;
-			foreach (PropertyEditor editor in this.Children)
+			foreach (PropertyEditor editor in this.ChildEditors)
 			{
 				if (editor == elementEditor) break;
 				clickedIndex++;

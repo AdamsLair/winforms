@@ -180,7 +180,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (!this.ContentInitialized) return;
 
 			List<PropertyEditor> invalidEditors = null;
-			foreach (PropertyEditor editor in this.Children)
+			foreach (PropertyEditor editor in this.ChildEditors)
 			{
 				if (editor.EditedMember == null) continue;
 				if (editor.EditedType == null) continue;
@@ -283,16 +283,16 @@ namespace AdamsLair.WinForms.PropertyEditing
 			this.OnUpdateFromObjects(values);
 			this.EndUpdate();
 
-			foreach (PropertyEditor e in this.Children)
+			foreach (PropertyEditor e in this.ChildEditors)
 				e.PerformGetValue();
 		}
 		protected override void OnSetValue()
 		{
 			if (this.ReadOnly) return;
-			if (!this.Children.Any()) return;
+			if (!this.ChildEditors.Any()) return;
 			base.OnSetValue();
 
-			foreach (PropertyEditor e in this.Children)
+			foreach (PropertyEditor e in this.ChildEditors)
 				e.PerformSetValue();
 		}
 		protected virtual void OnUpdateFromObjects(object[] values)

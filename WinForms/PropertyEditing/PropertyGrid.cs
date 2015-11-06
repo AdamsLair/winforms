@@ -76,13 +76,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public void UpdateFrom(PropertyEditor mainEditor)
 		{
 			if (mainEditor == null) return;
-			foreach (GroupedPropertyEditor child in mainEditor.ChildrenDeep.OfType<GroupedPropertyEditor>())
+			foreach (GroupedPropertyEditor child in mainEditor.GetChildEditorsDeep(false).OfType<GroupedPropertyEditor>())
 				this.SetEditorExpanded(child, child.Expanded);
 		}
 		public void ApplyTo(PropertyEditor mainEditor, bool dontCollapse = true)
 		{
 			if (mainEditor == null) return;
-			foreach (GroupedPropertyEditor child in mainEditor.ChildrenDeep.OfType<GroupedPropertyEditor>())
+			foreach (GroupedPropertyEditor child in mainEditor.GetChildEditorsDeep(false).OfType<GroupedPropertyEditor>())
 			{
 				if (child.Expanded && dontCollapse) continue;
 				child.Expanded = this.IsEditorExpanded(child);
@@ -482,6 +482,29 @@ namespace AdamsLair.WinForms.PropertyEditing
 					this.focusEditor.OnGotFocus(EventArgs.Empty);
 			}
 		}
+		
+		private PropertyEditor GetNextFocusEditor(PropertyEditor current)
+		{
+			if (current.ParentEditor == null) return null;
+			bool foundCurrent = false;
+			foreach (PropertyEditor child in current.ParentEditor.VisibleChildEditors)
+			{
+				if (foundCurrent) return child;
+				if (child == current) foundCurrent = true;
+			}
+			return null;
+		}
+		private PropertyEditor GetPrevFocusEditor(PropertyEditor current)
+		{
+			if (current.ParentEditor == null) return null;
+			PropertyEditor last = null;
+			foreach (PropertyEditor child in current.ParentEditor.VisibleChildEditors)
+			{
+				if (child == current) return last;
+				last = child;
+			}
+			return null;
+		}
 		public PropertyEditor GetFocusReciever(PropertyEditor primary, bool secondaryNext = true)
 		{
 			if (primary == null) return null;
@@ -489,19 +512,22 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				if (secondaryNext)
 				{
-					if (primary.ChildrenDeep.Any(e => e.CanGetFocus))
-						primary = primary.ChildrenDeep.FirstOrDefault(e => e.CanGetFocus);
-					else if (primary.NextEditor != null)
-						primary = primary.NextEditor;
+					PropertyEditor[] childEditorsDeep = primary.GetChildEditorsDeep(true).ToArray();
+					PropertyEditor nextEditor = this.GetNextFocusEditor(primary);
+					if (childEditorsDeep.Any(e => e.CanGetFocus))
+						primary = childEditorsDeep.FirstOrDefault(e => e.CanGetFocus);
+					else if (nextEditor != null)
+						primary = nextEditor;
 					else if (primary.ParentEditor != null)
-						primary = this.GetFocusReciever(primary.ParentEditor.NextEditor, secondaryNext);
+						primary = this.GetFocusReciever(this.GetNextFocusEditor(primary.ParentEditor), secondaryNext);
 					else
 						return null;
 				}
 				else
 				{
-					if (primary.PrevEditor != null)
-						primary = primary.PrevEditor;
+					PropertyEditor prevEditor = this.GetPrevFocusEditor(primary);
+					if (prevEditor != null)
+						primary = prevEditor;
 					else
 						primary = this.GetFocusReciever(primary.ParentEditor, secondaryNext);
 				}
@@ -762,11 +788,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 					if (e.KeyCode == Keys.Down)
 					{
 						PropertyEditor current = this.focusEditor;
-						PropertyEditor next = current.NextEditor;
+						PropertyEditor next = this.GetNextFocusEditor(current);
 						if (next == null)
-							next = current.Children.FirstOrDefault();
+							next = current.VisibleChildEditors.FirstOrDefault();
 						if (next == null && current.ParentEditor != null)
-							next = current.ParentEditor.NextEditor;
+							next = this.GetNextFocusEditor(current.ParentEditor);
 
 						next = this.GetFocusReciever(next, true);
 						if (next != null) next.Focus();
@@ -775,7 +801,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 					else if (e.KeyCode == Keys.Up)
 					{
 						PropertyEditor current = this.focusEditor;
-						PropertyEditor prev = current.PrevEditor;
+						PropertyEditor prev = this.GetPrevFocusEditor(current);
 						if (prev == null)
 							prev = current.ParentEditor;
 
@@ -807,8 +833,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 								(this.focusEditor as GroupedPropertyEditor).Expanded = true;
 							}
 							PropertyEditor current = null;
-							current = this.focusEditor.Children.FirstOrDefault(editor => editor.CanGetFocus);
-							if (current == null) current = this.focusEditor.ChildrenDeep.FirstOrDefault(editor => editor.CanGetFocus);
+							current = this.focusEditor.VisibleChildEditors.FirstOrDefault(editor => editor.CanGetFocus);
+							if (current == null) current = this.focusEditor.GetChildEditorsDeep(true).FirstOrDefault(editor => editor.CanGetFocus);
 							if (current != null) current.Focus();
 						}
 						e.Handled = true;
@@ -818,7 +844,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 						if (this.focusEditor.ParentEditor != null)
 						{
 							PropertyEditor current = this.focusEditor.ParentEditor;
-							current = current.Children.FirstOrDefault(editor => editor.CanGetFocus);
+							current = current.VisibleChildEditors.FirstOrDefault(editor => editor.CanGetFocus);
 							if (current != null) current.Focus();
 						}
 						e.Handled = true;
@@ -828,7 +854,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 						if (this.focusEditor.ParentEditor != null)
 						{
 							PropertyEditor current = this.focusEditor.ParentEditor;
-							current = current.Children.LastOrDefault(editor => editor.CanGetFocus);
+							current = current.VisibleChildEditors.LastOrDefault(editor => editor.CanGetFocus);
 							if (current != null) current.Focus();
 						}
 						e.Handled = true;
