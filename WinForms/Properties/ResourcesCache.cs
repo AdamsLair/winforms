@@ -21,6 +21,14 @@ namespace AdamsLair.WinForms.Properties
 		public readonly	static Bitmap ExpandNodeOpenedNormal	= Resources.ExpandNodeOpenedNormal;
 		public readonly	static Bitmap ExpandNodeOpenedHot		= Resources.ExpandNodeOpenedHot;
 		public readonly	static Bitmap ExpandNodeOpenedPressed	= Resources.ExpandNodeOpenedPressed;
+		public readonly	static Bitmap ArrowDown					= Resources.ArrowDown;
+		public readonly	static Bitmap ArrowDownLeft				= Resources.ArrowDownLeft;
+		public readonly	static Bitmap ArrowDownRight			= Resources.ArrowDownRight;
+		public readonly	static Bitmap ArrowUp					= Resources.ArrowUp;
+		public readonly	static Bitmap ArrowUpLeft				= Resources.ArrowUpLeft;
+		public readonly	static Bitmap ArrowUpRight				= Resources.ArrowUpRight;
+		public readonly	static Bitmap ArrowLeft					= Resources.ArrowLeft;
+		public readonly	static Bitmap ArrowRight				= Resources.ArrowRight;
 
 		public readonly static Font DefaultFont = SystemFonts.DefaultFont;
 		public readonly static Font DefaultFontSmall = new Font(DefaultFont.FontFamily, DefaultFont.Size * 0.9f, DefaultFont.Unit);

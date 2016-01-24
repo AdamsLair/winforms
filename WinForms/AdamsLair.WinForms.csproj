@@ -41,7 +41,7 @@
       <HintPath>..\packages\AdamsLair.WinForms.PopupControl.1.0.0.0\lib\net40\PopupControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -86,6 +86,9 @@
     <Compile Include="ItemViews\ITiledViewItemEditor.cs" />
     <Compile Include="ItemViews\MenuStripMenuView.cs" />
     <Compile Include="ItemViews\TiledViewTextItemEditor.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="OriginSelector.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="TimelineControls\EventArgs\TimelineViewSelectionEventArgs.cs" />
@@ -199,6 +202,30 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_down.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_downleft.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_downright.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_up.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_upleft.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EmbeddedResources\arrow_upright.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

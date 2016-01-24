@@ -31,7 +31,6 @@
 			AdamsLair.WinForms.ItemModels.ListModel<object> listModel_11 = new AdamsLair.WinForms.ItemModels.ListModel<object>();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DemoForm));
 			AdamsLair.WinForms.TimelineControls.TimelineModel timelineModel1 = new AdamsLair.WinForms.TimelineControls.TimelineModel();
-			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.radioEnabled = new System.Windows.Forms.RadioButton();
 			this.radioDisabled = new System.Windows.Forms.RadioButton();
 			this.radioReadOnly = new System.Windows.Forms.RadioButton();
@@ -43,6 +42,7 @@
 			this.buttonColorPicker = new System.Windows.Forms.Button();
 			this.tabControl = new System.Windows.Forms.TabControl();
 			this.tabPagePropertyGrid = new System.Windows.Forms.TabPage();
+			this.propertyGrid1 = new AdamsLair.WinForms.PropertyEditing.PropertyGrid();
 			this.tabPageTiledView = new System.Windows.Forms.TabPage();
 			this.checkBoxTiledViewStyle = new System.Windows.Forms.CheckBox();
 			this.trackBarTileViewHeight = new System.Windows.Forms.TrackBar();
@@ -67,7 +67,20 @@
 			this.tabPageTimeline = new System.Windows.Forms.TabPage();
 			this.trackBarTimelineUnitZoom = new System.Windows.Forms.TrackBar();
 			this.timelineView1 = new AdamsLair.WinForms.TimelineControls.TimelineView();
+			this.tabPageOriginSelector = new System.Windows.Forms.TabPage();
+			this.originSelector3 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector2 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector1 = new AdamsLair.WinForms.OriginSelector();
 			this.menuStrip = new System.Windows.Forms.MenuStrip();
+			this.originSelector4 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector5 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector6 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector7 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector8 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector9 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector10 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector11 = new AdamsLair.WinForms.OriginSelector();
+			this.originSelector12 = new AdamsLair.WinForms.OriginSelector();
 			this.tabControl.SuspendLayout();
 			this.tabPagePropertyGrid.SuspendLayout();
 			this.tabPageTiledView.SuspendLayout();
@@ -76,23 +89,8 @@
 			this.tabPageColorControls.SuspendLayout();
 			this.tabPageTimeline.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTimelineUnitZoom)).BeginInit();
+			this.tabPageOriginSelector.SuspendLayout();
 			this.SuspendLayout();
-			// 
-			// propertyGrid1
-			// 
-			this.propertyGrid1.AllowDrop = true;
-			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.propertyGrid1.AutoScroll = true;
-			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
-			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.propertyGrid1.Location = new System.Drawing.Point(6, 6);
-			this.propertyGrid1.Name = "propertyGrid1";
-			this.propertyGrid1.ReadOnly = false;
-			this.propertyGrid1.ShowNonPublic = false;
-			this.propertyGrid1.Size = new System.Drawing.Size(300, 364);
-			this.propertyGrid1.TabIndex = 0;
 			// 
 			// radioEnabled
 			// 
@@ -208,6 +206,7 @@
 			this.tabControl.Controls.Add(this.tabPageTiledView);
 			this.tabControl.Controls.Add(this.tabPageColorControls);
 			this.tabControl.Controls.Add(this.tabPageTimeline);
+			this.tabControl.Controls.Add(this.tabPageOriginSelector);
 			this.tabControl.Location = new System.Drawing.Point(12, 27);
 			this.tabControl.Name = "tabControl";
 			this.tabControl.SelectedIndex = 0;
@@ -232,6 +231,24 @@
 			this.tabPagePropertyGrid.TabIndex = 0;
 			this.tabPagePropertyGrid.Text = "PropertyGrid";
 			this.tabPagePropertyGrid.UseVisualStyleBackColor = true;
+			// 
+			// propertyGrid1
+			// 
+			this.propertyGrid1.AllowDrop = true;
+			this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid1.AutoScroll = true;
+			this.propertyGrid1.BackColor = System.Drawing.SystemColors.Control;
+			this.propertyGrid1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.propertyGrid1.Location = new System.Drawing.Point(6, 6);
+			this.propertyGrid1.Name = "propertyGrid1";
+			this.propertyGrid1.ReadOnly = false;
+			this.propertyGrid1.ShowNonPublic = false;
+			this.propertyGrid1.Size = new System.Drawing.Size(300, 364);
+			this.propertyGrid1.SplitterPosition = 120;
+			this.propertyGrid1.SplitterRatio = 0.4F;
+			this.propertyGrid1.TabIndex = 0;
 			// 
 			// tabPageTiledView
 			// 
@@ -557,6 +574,52 @@
 			this.timelineView1.TabIndex = 0;
 			this.timelineView1.TabStop = true;
 			// 
+			// tabPageOriginSelector
+			// 
+			this.tabPageOriginSelector.Controls.Add(this.originSelector10);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector11);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector12);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector7);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector8);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector9);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector4);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector5);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector6);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector3);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector2);
+			this.tabPageOriginSelector.Controls.Add(this.originSelector1);
+			this.tabPageOriginSelector.Location = new System.Drawing.Point(4, 22);
+			this.tabPageOriginSelector.Name = "tabPageOriginSelector";
+			this.tabPageOriginSelector.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPageOriginSelector.Size = new System.Drawing.Size(427, 397);
+			this.tabPageOriginSelector.TabIndex = 4;
+			this.tabPageOriginSelector.Text = "Origin Selector";
+			this.tabPageOriginSelector.UseVisualStyleBackColor = true;
+			// 
+			// originSelector3
+			// 
+			this.originSelector3.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector3.Location = new System.Drawing.Point(170, 6);
+			this.originSelector3.Name = "originSelector3";
+			this.originSelector3.Size = new System.Drawing.Size(31, 31);
+			this.originSelector3.TabIndex = 2;
+			// 
+			// originSelector2
+			// 
+			this.originSelector2.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector2.Location = new System.Drawing.Point(103, 6);
+			this.originSelector2.Name = "originSelector2";
+			this.originSelector2.Size = new System.Drawing.Size(61, 61);
+			this.originSelector2.TabIndex = 1;
+			// 
+			// originSelector1
+			// 
+			this.originSelector1.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector1.Location = new System.Drawing.Point(6, 6);
+			this.originSelector1.Name = "originSelector1";
+			this.originSelector1.Size = new System.Drawing.Size(91, 91);
+			this.originSelector1.TabIndex = 0;
+			// 
 			// menuStrip
 			// 
 			this.menuStrip.Location = new System.Drawing.Point(0, 0);
@@ -564,6 +627,93 @@
 			this.menuStrip.Size = new System.Drawing.Size(459, 24);
 			this.menuStrip.TabIndex = 14;
 			this.menuStrip.Text = "Main Menu";
+			// 
+			// originSelector4
+			// 
+			this.originSelector4.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector4.InvertArrowsHorizontal = true;
+			this.originSelector4.Location = new System.Drawing.Point(170, 103);
+			this.originSelector4.Name = "originSelector4";
+			this.originSelector4.Size = new System.Drawing.Size(31, 31);
+			this.originSelector4.TabIndex = 5;
+			// 
+			// originSelector5
+			// 
+			this.originSelector5.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector5.InvertArrowsHorizontal = true;
+			this.originSelector5.Location = new System.Drawing.Point(103, 103);
+			this.originSelector5.Name = "originSelector5";
+			this.originSelector5.Size = new System.Drawing.Size(61, 61);
+			this.originSelector5.TabIndex = 4;
+			// 
+			// originSelector6
+			// 
+			this.originSelector6.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector6.InvertArrowsHorizontal = true;
+			this.originSelector6.Location = new System.Drawing.Point(6, 103);
+			this.originSelector6.Name = "originSelector6";
+			this.originSelector6.Size = new System.Drawing.Size(91, 91);
+			this.originSelector6.TabIndex = 3;
+			// 
+			// originSelector7
+			// 
+			this.originSelector7.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector7.InvertArrowsHorizontal = true;
+			this.originSelector7.InvertArrowsVertical = true;
+			this.originSelector7.Location = new System.Drawing.Point(170, 200);
+			this.originSelector7.Name = "originSelector7";
+			this.originSelector7.Size = new System.Drawing.Size(31, 31);
+			this.originSelector7.TabIndex = 8;
+			// 
+			// originSelector8
+			// 
+			this.originSelector8.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector8.InvertArrowsHorizontal = true;
+			this.originSelector8.InvertArrowsVertical = true;
+			this.originSelector8.Location = new System.Drawing.Point(103, 200);
+			this.originSelector8.Name = "originSelector8";
+			this.originSelector8.Size = new System.Drawing.Size(61, 61);
+			this.originSelector8.TabIndex = 7;
+			// 
+			// originSelector9
+			// 
+			this.originSelector9.BackColor = System.Drawing.SystemColors.Control;
+			this.originSelector9.InvertArrowsHorizontal = true;
+			this.originSelector9.InvertArrowsVertical = true;
+			this.originSelector9.Location = new System.Drawing.Point(6, 200);
+			this.originSelector9.Name = "originSelector9";
+			this.originSelector9.Size = new System.Drawing.Size(91, 91);
+			this.originSelector9.TabIndex = 6;
+			// 
+			// originSelector10
+			// 
+			this.originSelector10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+			this.originSelector10.ForeColor = System.Drawing.Color.CornflowerBlue;
+			this.originSelector10.Location = new System.Drawing.Point(170, 297);
+			this.originSelector10.Name = "originSelector10";
+			this.originSelector10.SelectionColor = System.Drawing.Color.Orange;
+			this.originSelector10.Size = new System.Drawing.Size(31, 31);
+			this.originSelector10.TabIndex = 11;
+			// 
+			// originSelector11
+			// 
+			this.originSelector11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+			this.originSelector11.ForeColor = System.Drawing.Color.CornflowerBlue;
+			this.originSelector11.Location = new System.Drawing.Point(103, 297);
+			this.originSelector11.Name = "originSelector11";
+			this.originSelector11.SelectionColor = System.Drawing.Color.Orange;
+			this.originSelector11.Size = new System.Drawing.Size(61, 61);
+			this.originSelector11.TabIndex = 10;
+			// 
+			// originSelector12
+			// 
+			this.originSelector12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+			this.originSelector12.ForeColor = System.Drawing.Color.CornflowerBlue;
+			this.originSelector12.Location = new System.Drawing.Point(6, 297);
+			this.originSelector12.Name = "originSelector12";
+			this.originSelector12.SelectionColor = System.Drawing.Color.Orange;
+			this.originSelector12.Size = new System.Drawing.Size(91, 91);
+			this.originSelector12.TabIndex = 9;
 			// 
 			// DemoForm
 			// 
@@ -587,6 +737,7 @@
 			this.tabPageTimeline.ResumeLayout(false);
 			this.tabPageTimeline.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarTimelineUnitZoom)).EndInit();
+			this.tabPageOriginSelector.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -631,6 +782,19 @@
 		private TimelineControls.TimelineView timelineView1;
 		private System.Windows.Forms.TrackBar trackBarTimelineUnitZoom;
 		private System.Windows.Forms.MenuStrip menuStrip;
+		private System.Windows.Forms.TabPage tabPageOriginSelector;
+		private OriginSelector originSelector1;
+		private OriginSelector originSelector3;
+		private OriginSelector originSelector2;
+		private OriginSelector originSelector7;
+		private OriginSelector originSelector8;
+		private OriginSelector originSelector9;
+		private OriginSelector originSelector4;
+		private OriginSelector originSelector5;
+		private OriginSelector originSelector6;
+		private OriginSelector originSelector10;
+		private OriginSelector originSelector11;
+		private OriginSelector originSelector12;
 	}
 }
 
