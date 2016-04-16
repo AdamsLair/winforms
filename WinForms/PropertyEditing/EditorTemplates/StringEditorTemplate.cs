@@ -341,12 +341,18 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 			}
 			else if (e.KeyCode == Keys.C && e.Control)
 			{
-				Clipboard.SetText(this.SelectedText ?? "");
+				if (string.IsNullOrEmpty(this.SelectedText))
+					Clipboard.Clear();
+				else
+					Clipboard.SetText(this.SelectedText);
 				e.Handled = true;
 			}
 			else if (e.KeyCode == Keys.X && e.Control)
 			{
-				Clipboard.SetText(this.SelectedText ?? "");
+				if (string.IsNullOrEmpty(this.SelectedText))
+					Clipboard.Clear();
+				else
+					Clipboard.SetText(this.SelectedText);
 				this.DeleteSelection();
 				e.Handled = true;
 			}
