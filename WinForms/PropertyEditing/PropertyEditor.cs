@@ -271,7 +271,12 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public bool ReadOnly
 		{
 			get { return this.readOnly || this.setter == null || (!this.mutableValue && this.parentEditor != null && this.parentEditor.ReadOnly); }
-			set { this.readOnly = value; }
+			set
+			{
+				bool lastReadOnly = this.ReadOnly;
+				this.readOnly = value;
+				if (this.ReadOnly != lastReadOnly) this.OnReadOnlyChanged();
+			}
 		}
 		public bool Enabled
 		{
