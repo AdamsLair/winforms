@@ -95,6 +95,11 @@ namespace AdamsLair.WinForms.TestApp
 				get { return this.substruct; }
 				set { this.substruct = value; }
 			}
+			public Test2 ReadOnlySubstruct
+			{
+				get { return this.substruct; }
+				set { this.substruct = value; } // We'll test the override on this property, so it shouldn't actually be readonly.
+			}
 			public object[] ReflectedTypeTestA { get; set; }
 			public Dictionary<string,object> ReflectedTypeTestB { get; set; }
 			public object ReflectedTypeTestC
@@ -214,6 +219,14 @@ namespace AdamsLair.WinForms.TestApp
 			this.objB.stringListField = new List<string>() { "hallo", "welt" };
 
 			this.propertyGrid1.SelectObject(this.objA);
+			foreach (PropertyEditor childEditor in this.propertyGrid1.MainEditor.ChildEditors)
+			{
+				// Test the manual readonly-override on this property.
+				if (childEditor.EditedMember != null && childEditor.EditedMember.Name == "ReadOnlySubstruct")
+				{
+					childEditor.ReadOnly = true;
+				}
+			}
 
 			this.menuModel = new MenuModel();
 			this.menuView = new MenuStripMenuView(this.menuStrip.Items);

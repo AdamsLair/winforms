@@ -112,6 +112,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	bool			valueModified	= false;
 		private	bool			mutableValue	= false;
 		private	bool			memberNonPublic	= false;
+		private	bool			readOnly		= false;
 		private	int				updateLockCount	= 0;
 		private	bool			disposed		= false;
 		private	HintFlags		hints			= HintFlags.Default;
@@ -269,7 +270,8 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public abstract object DisplayedValue { get; }
 		public bool ReadOnly
 		{
-			get { return this.setter == null || (!this.mutableValue && this.parentEditor != null && this.parentEditor.ReadOnly); }
+			get { return this.readOnly || this.setter == null || (!this.mutableValue && this.parentEditor != null && this.parentEditor.ReadOnly); }
+			set { this.readOnly = value; }
 		}
 		public bool Enabled
 		{
