@@ -182,7 +182,9 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 
 			Size dropDownSize = new Size(
 				this.rect.Width, 
-				Math.Min(this.dropdownHeight, this.dropdown.PreferredHeight));
+				Math.Min(
+                    this.dropdownHeight, 
+                    (this.dropdown.ItemHeight * this.dropdown.Items.Count()) + this.dropdown.Margin.Vertical));
 			
 			Point dropDownLoc = new Point(
 				this.rect.X + parentGrid.AutoScrollPosition.X,
