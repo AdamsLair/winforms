@@ -16,6 +16,12 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 	{
 		public delegate void IndexValueSetter(PropertyInfo indexer, IEnumerable<object> targetObjects, IEnumerable<object> values, int index);
 
+		// To avoid memory problems from entering insane size values, we need some kind of limit.
+		// In the context of this specific PropertyEditor, it makes sense to have a rather low
+		// limit, as there is no way to reasonably edit much larger arrays with this. Instead,
+		// specialized editors for these amounts of data should be considered.
+		private static readonly int MaxAllowedListSize = 100000;
+
 		private	bool					buttonIsCreate	= false;
 		private	NumericPropertyEditor	sizeEditor		= null;
 		private	NumericPropertyEditor	offsetEditor	= null;
@@ -224,26 +230,29 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			Type reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, targetArray.Select(a => GetIListElementType(a.GetType())));
 
 			bool writeBack = false;
-			int curValue = 0;
-			if (valuesEnum.MoveNext()) curValue = (int)valuesEnum.Current;
+			int targetSize = 0;
+			if (valuesEnum.MoveNext()) targetSize = (int)valuesEnum.Current;
 			for (int t = 0; t < targetArray.Length; t++)
 			{
 				IList target = targetArray[t];
 				if (target != null)
 				{
+					// Make sure the target size is within reasonable bounds
+					targetSize = Math.Min(Math.Max(targetSize, 0), Math.Max(target.Count, MaxAllowedListSize));
+
 					if (!target.IsFixedSize && !target.IsReadOnly)
 					{
 						// Dynamically adjust IList length
-						while (target.Count < curValue)
+						while (target.Count < targetSize)
 							target.Add(elementType.IsValueType ? reflectedArrayType.CreateInstanceOf() : null);
-						while (target.Count > curValue)
+						while (target.Count > targetSize)
 							target.RemoveAt(target.Count - 1);
 					}
 					else if (target is Array)
 					{
 						// Create new array that replaces the old one
-						Array newTarget = Array.CreateInstance(reflectedArrayType, curValue);
-						for (int i = 0; i < Math.Min(curValue, target.Count); i++) newTarget.SetValue(target[i], i);
+						Array newTarget = Array.CreateInstance(reflectedArrayType, targetSize);
+						for (int i = 0; i < Math.Min(targetSize, target.Count); i++) newTarget.SetValue(target[i], i);
 						targetArray[t] = newTarget;
 						writeBack = true;
 					}
@@ -252,7 +261,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						// Just some read-only container? Well, can't do anything here.
 					}
 				}
-				if (valuesEnum.MoveNext()) curValue = (int)valuesEnum.Current;
+				if (valuesEnum.MoveNext()) targetSize = (int)valuesEnum.Current;
 			}
 			if (writeBack || this.ForceWriteBack) this.SetValues(targetArray);
 			this.PerformGetValue();
