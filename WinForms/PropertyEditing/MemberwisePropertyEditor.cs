@@ -317,9 +317,26 @@ namespace AdamsLair.WinForms.PropertyEditing
 				this.ButtonIcon = AdamsLair.WinForms.Properties.ResourcesCache.ImageDelete;
 				this.buttonIsCreate = false;
 
-				valString = values.Count() == 1 ? 
-					values.First().ToString() :
-					string.Format(AdamsLair.WinForms.Properties.Resources.PropertyGrid_N_Objects, values.Count());
+				object firstValue = values.First();
+				int valueCount = values.Count();
+
+				if (valueCount == 1 && firstValue != null)
+				{
+					Type displayedType = firstValue.GetType();
+					MethodInfo[] methods = displayedType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+					bool customToStringImplementation = methods.Any(m => m.DeclaringType != typeof(object) && m.Name == "ToString");
+
+					if (customToStringImplementation)
+						valString = firstValue.ToString();
+					else
+						valString = displayedType.GetTypeCSCodeName(true);
+				}
+				else
+				{
+					valString = string.Format(
+						Properties.Resources.PropertyGrid_N_Objects, 
+						valueCount);
+				}
 			}
 
 			this.HeaderValueText = valString;
