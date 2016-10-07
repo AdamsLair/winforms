@@ -118,10 +118,23 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				if (!this.CanExpand) this.Expanded = false;
 				this.ButtonIcon = AdamsLair.WinForms.Properties.ResourcesCache.ImageDelete;
 				this.buttonIsCreate = false;
-
-				valString = values.Count() == 1 ? 
-					string.Format("{0}, Count = {1}", this.EditedType.GetTypeCSCodeName(true), values.First().Count) :
-					string.Format(AdamsLair.WinForms.Properties.Resources.PropertyGrid_N_Objects, values.Count());
+				
+				IDictionary firstValue = values.First();
+				int valueCount = values.Count();
+				
+				if (valueCount == 1 && firstValue != null)
+				{
+					valString = string.Format(
+						"{0}, Count = {1}", 
+						this.EditedType.GetTypeCSCodeName(true), 
+						firstValue.Count);
+				}
+				else
+				{
+					valString = string.Format(
+						Properties.Resources.PropertyGrid_N_Objects, 
+						valueCount);
+				}
 			}
 
 			this.HeaderValueText = valString;

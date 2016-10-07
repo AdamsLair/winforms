@@ -390,6 +390,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		{
 			this.mouseSelect = false;
 		}
+		public void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			this.Select();
+		}
 		public override void OnMouseMove(MouseEventArgs e)
 		{
 			bool lastHovered = this.hovered;

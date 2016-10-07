@@ -149,6 +149,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			base.OnMouseUp(e);
 			this.numEditor.OnMouseUp(e);
 		}
+		protected internal override void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			base.OnMouseDoubleClick(e);
+			this.numEditor.OnMouseDoubleClick(e);
+		}
 
 		private void UpdateHeight()
 		{

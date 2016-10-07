@@ -101,6 +101,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			base.OnMouseUp(e);
 			this.stringEditor.OnMouseUp(e);
 		}
+		protected internal override void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			base.OnMouseDoubleClick(e);
+			this.stringEditor.OnMouseDoubleClick(e);
+		}
 
 		protected override void UpdateGeometry()
 		{

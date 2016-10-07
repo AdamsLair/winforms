@@ -302,6 +302,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 				this.EmitEditingFinished(this.value, FinishReason.LeapValue);
 			}
 		}
+		public void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			this.stringEditor.OnMouseDoubleClick(e);
+		}
 		public override void OnMouseMove(MouseEventArgs e)
 		{
 			base.OnMouseMove(e);
