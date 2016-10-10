@@ -114,7 +114,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public const int EditorPriority_Specialized	= 50;
 		public const int EditorPriority_Override	= 100;
 
-
 		[Flags]
 		private enum SplitterState
 		{
@@ -178,11 +177,15 @@ namespace AdamsLair.WinForms.PropertyEditing
 					{
 						e = subProvider.CreateEditor(baseType, context);
 						e.EditedType = baseType;
+
+						if(e is MemberwisePropertyEditor)
+							(e as MemberwisePropertyEditor).SortByName = context.ParentGrid.SortMembersByName;
+
 						return e;
 					}
 
 					// If not, default to reflection-driven MemberwisePropertyEditor
-					e = new MemberwisePropertyEditor();
+					e = new MemberwisePropertyEditor() { SortByName = context.ParentGrid.SortMembersByName };
 				}
 
 				e.EditedType = baseType;
@@ -208,7 +211,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		private	SplitterState		splitterState		= SplitterState.None;
 		private	int					splitterDragValue	= 0;
 		private	Point				splitterDragPos		= Point.Empty;
-		
+		private bool                sortMembersByName   = true;
 
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
 		public event EventHandler<PropertyEditorValueEventArgs>	ValueChanged	= null;
@@ -275,6 +278,25 @@ namespace AdamsLair.WinForms.PropertyEditing
 		{
 			get { return (int)Math.Round(this.SplitterRatio * this.Width); }
 			set { this.SplitterRatio = (float)value / (float)this.Width; }
+		}
+		public bool SortMembersByName
+		{
+			get { return this.sortMembersByName; }
+			set
+			{
+				if (this.sortMembersByName != value)
+				{
+					this.sortMembersByName = value;
+					if (this.mainEditor != null)
+					{
+						ExpandState state = new ExpandState();
+						state.UpdateFrom(this.mainEditor);
+						this.DisposePropertyEditor();
+						this.UpdateFromObjects();
+						state.ApplyTo(this.mainEditor);
+					}
+				}
+			}
 		}
 		protected override CreateParams CreateParams
 		{

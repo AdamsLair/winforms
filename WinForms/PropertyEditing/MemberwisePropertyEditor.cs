@@ -16,6 +16,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		private	static System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
 
+		private bool    sortByName = true;
 		private	bool	buttonIsCreate	= false;
 		private	AutoMemberPredicate				memberPredicate			= null;
 		private	Predicate<MemberInfo>			memberAffectsOthers		= null;
@@ -71,6 +72,11 @@ namespace AdamsLair.WinForms.PropertyEditing
 			}
 		}
 
+		public bool SortByName
+		{
+			get { return this.sortByName; }
+			set { this.sortByName = value; }
+		}
 
 		public MemberwisePropertyEditor()
 		{
@@ -238,21 +244,43 @@ namespace AdamsLair.WinForms.PropertyEditing
 				BindingFlags.Instance | 
 				BindingFlags.Public | 
 				BindingFlags.NonPublic);
-			return (
 
-				from p in propArr
-				where p.CanRead && p.GetIndexParameters().Length == 0 && this.IsAutoCreateMember(p)
-				orderby GetTypeHierarchyLevel(p.DeclaringType) ascending, p.Name
-				select p
+			if (SortByName)
+			{
+				return (
 
-				).Concat((IEnumerable<MemberInfo>)
+					from p in propArr
+					where p.CanRead && p.GetIndexParameters().Length == 0 && this.IsAutoCreateMember(p)
+					orderby GetTypeHierarchyLevel(p.DeclaringType) ascending, p.Name
+					select p
 
-				from f in fieldArr
-				where this.IsAutoCreateMember(f)
-				orderby GetTypeHierarchyLevel(f.DeclaringType) ascending, f.Name
-				select f
+					).Concat((IEnumerable<MemberInfo>)
 
-				);
+					from f in fieldArr
+					where this.IsAutoCreateMember(f)
+					orderby GetTypeHierarchyLevel(f.DeclaringType) ascending, f.Name
+					select f
+
+					);
+			}
+			else
+			{
+				return (
+
+					from p in propArr
+					where p.CanRead && p.GetIndexParameters().Length == 0 && this.IsAutoCreateMember(p)
+					orderby GetTypeHierarchyLevel(p.DeclaringType) ascending
+					select p
+
+					).Concat((IEnumerable<MemberInfo>)
+
+					from f in fieldArr
+					where this.IsAutoCreateMember(f)
+					orderby GetTypeHierarchyLevel(f.DeclaringType) ascending
+					select f
+
+					);
+			}
 		}
 		protected IEnumerable<FieldInfo> QueryEditedFields()
 		{
