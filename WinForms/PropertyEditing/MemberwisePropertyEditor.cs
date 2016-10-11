@@ -16,7 +16,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		private	static System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
 
-		private bool    sortByName = true;
 		private	bool	buttonIsCreate	= false;
 		private	AutoMemberPredicate				memberPredicate			= null;
 		private	Predicate<MemberInfo>			memberAffectsOthers		= null;
@@ -70,12 +69,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (value == null) value = DefaultFieldSetter;
 				this.memberFieldSetter = value;
 			}
-		}
-
-		public bool SortByName
-		{
-			get { return this.sortByName; }
-			set { this.sortByName = value; }
 		}
 
 		public MemberwisePropertyEditor()
@@ -245,7 +238,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				BindingFlags.Public | 
 				BindingFlags.NonPublic);
 
-			if (SortByName)
+			if (ParentGrid.SortMembersByName)
 			{
 				return (
 
