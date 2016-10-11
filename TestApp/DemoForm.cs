@@ -412,6 +412,10 @@ namespace AdamsLair.WinForms.TestApp
 		{
 			this.propertyGrid1.ShowNonPublic = this.checkBoxNonPublic.Checked;
 		}
+		private void checkBoxSortByName_CheckedChanged(object sender, EventArgs e)
+		{
+			this.propertyGrid1.SortEditorsByName = this.checkBoxSortByName.Checked;
+		}
 
 		private void buttonObjMulti_Click(object sender, EventArgs e)
 		{
