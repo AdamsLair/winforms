@@ -14,8 +14,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public delegate void PropertyValueSetter(PropertyInfo property, IEnumerable<object> targetObjects, IEnumerable<object> values);
 		public delegate void FieldValueSetter(FieldInfo field, IEnumerable<object> targetObjects, IEnumerable<object> values);
 
-		private	static System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
-
 		private	bool	buttonIsCreate	= false;
 		private	AutoMemberPredicate				memberPredicate			= null;
 		private	Predicate<MemberInfo>			memberAffectsOthers		= null;
@@ -238,7 +236,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				BindingFlags.Public | 
 				BindingFlags.NonPublic);
 
-			if (ParentGrid.SortMembersByName)
+			if (ParentGrid.SortEditorsByName)
 			{
 				return (
 
