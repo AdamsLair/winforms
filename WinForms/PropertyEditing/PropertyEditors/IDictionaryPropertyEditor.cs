@@ -109,7 +109,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				if (this.ContentInitialized)
 				{
 					if (this.Expanded)
-						this.UpdateElementEditors(values);
+						this.UpdateElementEditors(values, false);
 					else
 						this.ClearContent();
 				}
@@ -160,11 +160,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			IDictionary[] valuesCast = this.GetValue().Cast<IDictionary>().ToArray();
 			if (values.Any() && values.Any(o => o != null))
 			{
-				this.UpdateElementEditors(valuesCast);
+				this.UpdateElementEditors(valuesCast, true);
 			}
 		}
 		
-		protected void UpdateElementEditors(IDictionary[] values)
+		protected void UpdateElementEditors(IDictionary[] values, bool getValueOnNewEditors)
 		{
 			PropertyInfo indexer = typeof(IDictionary).GetProperty("Item");
 			IEnumerable<IDictionary> valuesNotNull = values.Where(v => v != null);
@@ -213,6 +213,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				Type reflectedElementValueType = PropertyEditor.ReflectDynamicType(
 					reflectedDictValueType, 
 					valuesNotNull.Select(v => indexer.GetValue(v, new object[] { elementKey })));
+				bool elementEditorIsNew = false;
 				PropertyEditor elementEditor;
 
 				// Retrieve and Update existing editor
@@ -224,10 +225,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						// If the editor has the wrong type, we'll need to create a new one
 						PropertyEditor oldEditor = elementEditor;
 						elementEditor = this.ParentGrid.CreateEditor(reflectedElementValueType, this);
+						elementEditorIsNew = true;
 						
 						this.AddPropertyEditor(elementEditor, oldEditor);
 						this.RemovePropertyEditor(oldEditor);
-
 						this.ParentGrid.ConfigureEditor(elementEditor);
 					}
 				}
@@ -235,8 +236,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				else
 				{
 					elementEditor = this.ParentGrid.CreateEditor(reflectedElementValueType, this);
+					elementEditorIsNew = true;
+
 					this.AddPropertyEditor(elementEditor);
 					this.ParentGrid.ConfigureEditor(elementEditor);
+
 					if (!elementEditor.Hints.HasFlag(HintFlags.HasButton))
 					{
 						elementEditor.Hints |= HintFlags.HasButton | HintFlags.ButtonEnabled;
@@ -246,7 +250,12 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				elementEditor.Getter = this.CreateElementValueGetter(indexer, elementKey);
 				elementEditor.Setter = this.CreateElementValueSetter(indexer, elementKey);
 				elementEditor.PropertyName = "[" + elementKey.ToString() + "]";
+
+				// Immediately retrieve a valid value for the newly created editor when requested
+				if (elementEditorIsNew && getValueOnNewEditors)
+					elementEditor.PerformGetValue();
 			}
+
 			// Remove overflowing editors
 			for (int i = this.ChildEditors.Count() - (this.internalEditors + 1); i >= visibleElementCount; i--)
 			{
@@ -254,6 +263,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				this.RemovePropertyEditor(child);
 				child.ButtonPressed -= this.elementEditor_ButtonPressed;
 			}
+
 			this.EndUpdate();
 		}
 		

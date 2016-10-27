@@ -102,7 +102,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				if (this.ContentInitialized)
 				{
 					if (this.Expanded)
-						this.UpdateElementEditors(values);
+						this.UpdateElementEditors(values, false);
 					else
 						this.ClearContent();
 				}
@@ -153,11 +153,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			IList[] valuesCast = values.Cast<IList>().ToArray();
 			if (values.Any() && values.Any(o => o != null))
 			{
-				this.UpdateElementEditors(valuesCast);
+				this.UpdateElementEditors(valuesCast, true);
 			}
 		}
 
-		protected void UpdateElementEditors(IList[] values)
+		protected void UpdateElementEditors(IList[] values, bool getValueOnNewEditors)
 		{
 			PropertyInfo indexer = typeof(IList).GetProperty("Item");
 			IEnumerable<IList> valuesNotNull = values.Where(v => v != null);
@@ -184,6 +184,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			this.BeginUpdate();
 
+
 			// Add missing editors
 			Type elementType = GetIListElementType(this.EditedType);
 			Type reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, valuesNotNull.Select(a => GetIListElementType(a.GetType())));
@@ -193,6 +194,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				Type reflectedElementType = PropertyEditor.ReflectDynamicType(
 					reflectedArrayType, 
 					valuesNotNull.Select(v => indexer.GetValue(v, new object[] { elementIndex })));
+				bool elementEditorIsNew = false;
 				PropertyEditor elementEditor;
 
 				// Retrieve and Update existing editor
@@ -204,10 +206,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						// If the editor has the wrong type, we'll need to create a new one
 						PropertyEditor oldEditor = elementEditor;
 						elementEditor = this.ParentGrid.CreateEditor(reflectedElementType, this);
-						
+						elementEditorIsNew = true;
+
 						this.AddPropertyEditor(elementEditor, oldEditor);
 						this.RemovePropertyEditor(oldEditor);
-
 						this.ParentGrid.ConfigureEditor(elementEditor);
 					}
 				}
@@ -215,19 +217,28 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				else
 				{
 					elementEditor = this.ParentGrid.CreateEditor(reflectedElementType, this);
+					elementEditorIsNew = true;
+
 					this.AddPropertyEditor(elementEditor);
 					this.ParentGrid.ConfigureEditor(elementEditor);
 				}
+
 				elementEditor.Getter = this.CreateElementValueGetter(indexer, elementIndex);
 				elementEditor.Setter = this.CreateElementValueSetter(indexer, elementIndex);
 				elementEditor.PropertyName = "[" + elementIndex + "]";
+
+				// Immediately retrieve a valid value for the newly created editor when requested
+				if (elementEditorIsNew && getValueOnNewEditors)
+					elementEditor.PerformGetValue();
 			}
+
 			// Remove overflowing editors
 			for (int i = this.ChildEditors.Count() - (this.internalEditors + 1); i >= visibleElementCount; i--)
 			{
 				PropertyEditor child = this.ChildEditors.Last();
 				this.RemovePropertyEditor(child);
 			}
+
 			this.EndUpdate();
 		}
 

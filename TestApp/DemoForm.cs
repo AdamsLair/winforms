@@ -107,6 +107,7 @@ namespace AdamsLair.WinForms.TestApp
 				get { return this.any; }
 				set { this.any = 17; }
 			}
+			public List<ISomeInterface> ReflectedTypeTestD { get; set; }
 			public bool BoolOne { get; set; }
 			public bool BoolTwo { get; set; }
 			public List<Test2> StructList { get; set; }
@@ -208,6 +209,7 @@ namespace AdamsLair.WinForms.TestApp
 			this.objA.Substruct = new Test2(42);
 			this.objA.ReflectedTypeTestA = new Test3[] { new Test3() };
 			this.objA.ReflectedTypeTestB = new Dictionary<string,object> { { "First", new Test3() } };
+			this.objA.ReflectedTypeTestD = new List<ISomeInterface> { new Test3(), new Test3() };
 			this.objA.stringListField = new List<string>() { "hallo", "welt" };
 
 			this.objB = new Test();
