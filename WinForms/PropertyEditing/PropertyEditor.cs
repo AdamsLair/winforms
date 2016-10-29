@@ -462,11 +462,15 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 			this.setter(objEnum);
 
-			if (this.parentEditor != null)
-				this.parentEditor.VerifyReflectedTypeEditors(this.parentEditor.GetValue());
-
 			this.OnValueChanged();
 			this.parentGrid.PostSetValue();
+
+			// If setting the value changed the reflected type of a member value,
+			// this property editor might no longer be appropriate. Let the parent
+			// editor check to be sure. Might remove and dispose this editor, so
+			// it should happen after the set operation is considered "done".
+			if (this.parentEditor != null)
+				this.parentEditor.VerifyReflectedTypeEditors(this.parentEditor.GetValue());
 		}
 		/// <summary>
 		/// Performs a set operation using the PropertyEditors <see cref="Setter"/>.
