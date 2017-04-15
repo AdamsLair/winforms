@@ -180,8 +180,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 						return e;
 					}
 
-					// If not, default to reflection-driven MemberwisePropertyEditor
-					e = new MemberwisePropertyEditor();
+					// If not, default to reflection-driven MemberwisePropertyEditor.
+					// Except for MemberInfo types, since we can't edit them in any
+					// meaningful anyway, and they clutter up the grid.
+					if (typeof(MemberInfo).IsAssignableFrom(baseType))
+						e = new LabelPropertyEditor();
+					else
+						e = new MemberwisePropertyEditor();
 				}
 
 				e.EditedType = baseType;

@@ -91,6 +91,7 @@
     <Compile Include="OriginSelector.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="PropertyEditing\PropertyEditors\LabelPropertyEditor.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewSelectionEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineViewCursorEventArgs.cs" />
     <Compile Include="TimelineControls\EventArgs\TimelineGraphModelChangedEventArgs.cs" />
@@ -152,9 +153,7 @@
     <Compile Include="PropertyEditing\PropertyEditors\ObjectSelectorPropertyEditor.cs" />
     <Compile Include="PropertyEditing\PropertyEditors\StringPropertyEditor.cs" />
     <Compile Include="PropertyEditing\PropertyEditors\NumericPropertyEditor.cs" />
-    <Compile Include="PropertyEditing\PropertyGrid.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Include="PropertyEditing\PropertyGrid.cs" />
     <Compile Include="Properties\ResourcesCache.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
