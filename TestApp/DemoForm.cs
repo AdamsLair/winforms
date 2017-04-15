@@ -54,6 +54,7 @@ namespace AdamsLair.WinForms.TestApp
 			public List<string> stringListField;
 			public FlaggedEnumTest enumField1;
 			public EnumTest enumField2;
+			public Type typeField = typeof(Test);
 			private System.Diagnostics.Stopwatch w = System.Diagnostics.Stopwatch.StartNew();
 
 			public int IPropWithAVeryLongName
@@ -137,6 +138,16 @@ namespace AdamsLair.WinForms.TestApp
 			}
 			public DerivedList DerivedList { get; set; }
 			public DerivedDict DerivedDict { get; set; }
+			public float ThrowOnGet
+			{
+				get { throw new NotImplementedException(); }
+				set { }
+			}
+			public float ThrowOnSet
+			{
+				get { return 0.0f; }
+				set { throw new NotImplementedException(); }
+			}
 		}
 		private struct Test2
 		{

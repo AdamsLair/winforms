@@ -217,9 +217,24 @@ namespace AdamsLair.WinForms.PropertyEditing
 			{
 				PropertyInfo property = member as PropertyInfo;
 				if (values != null)
-					return PropertyEditor.ReflectDynamicType(property.PropertyType, values.Where(v => v != null).Select(v => property.GetValue(v, null)));
+				{
+					List<object> propertyValues = new List<object>();
+					foreach (object obj in values)
+					{
+						if (obj == null) continue;
+						try
+						{
+							object value = property.GetValue(obj, null);
+							propertyValues.Add(value);
+						}
+						catch (TargetInvocationException) { }
+					}
+					return PropertyEditor.ReflectDynamicType(property.PropertyType, propertyValues);
+				}
 				else
+				{
 					return property.PropertyType;
+				}
 			}
 			else
 				throw new ArgumentException("Only PropertyInfo and FieldInfo members are supported");
@@ -430,7 +445,30 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		protected Func<IEnumerable<object>> CreatePropertyValueGetter(PropertyInfo property)
 		{
-			return () => this.GetValue().Select(o => o != null ? property.GetValue(o, null) : null);
+			return () =>
+			{
+				List<object> propertyValues = new List<object>();
+				foreach (object obj in this.GetValue())
+				{
+					if (obj == null)
+					{
+						propertyValues.Add(null);
+					}
+					else
+					{
+						try
+						{
+							object value = property.GetValue(obj, null);
+							propertyValues.Add(value);
+						}
+						catch (TargetInvocationException)
+						{
+							propertyValues.Add(null);
+						}
+					}
+				}
+				return propertyValues;
+			};
 		}
 		protected Func<IEnumerable<object>> CreateFieldValueGetter(FieldInfo field)
 		{
@@ -514,7 +552,14 @@ namespace AdamsLair.WinForms.PropertyEditing
 			if (valuesEnum.MoveNext()) curValue = valuesEnum.Current;
 			foreach (object target in targetObjects)
 			{
-				if (target != null) property.SetValue(target, curValue, null);
+				if (target != null)
+				{
+					try
+					{
+						property.SetValue(target, curValue, null);
+					}
+					catch (TargetInvocationException) { }
+				}
 				if (valuesEnum.MoveNext()) curValue = valuesEnum.Current;
 			}
 		}
