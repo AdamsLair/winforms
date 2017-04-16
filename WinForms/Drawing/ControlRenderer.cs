@@ -152,12 +152,6 @@ namespace AdamsLair.WinForms.Drawing
 			bool isEllipsisActive = charsFit < text.Length && manualEllipsis;
 			if (textRect.Width >= 1)
 			{
-				// Due to some WinForms / Graphics quirk, text will jump up by one pixel when
-				// ellipsis is triggered. To counter this, move the text one pixel down in
-				// that case. Remove, should it cause any issues.
-				if (isEllipsisActive)
-					textRect.Y += 1;
-
 				g.DrawString(text, font, new SolidBrush(textColor), textRect, nameLabelFormat);
 			}
 
