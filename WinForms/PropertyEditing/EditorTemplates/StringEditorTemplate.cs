@@ -70,7 +70,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		{
 			get
 			{
-				if (this.text == null) return false;
+				if (this.text == null) return true;
 				return this.SelectionLength >= this.text.Length;
 			}
 		}
