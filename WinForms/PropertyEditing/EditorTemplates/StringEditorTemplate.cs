@@ -68,7 +68,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Templates
 		}
 		public bool SelectedAll
 		{
-			get { return this.SelectionLength >= this.text.Length; }
+			get
+			{
+				if (this.text == null) return true;
+				return this.SelectionLength >= this.text.Length;
+			}
 		}
 
 		public StringEditorTemplate(PropertyEditor parent) : base(parent) {}
