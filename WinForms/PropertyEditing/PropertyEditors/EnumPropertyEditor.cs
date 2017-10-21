@@ -55,7 +55,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		{
 			base.OnGetValue();
 			this.BeginUpdate();
-			Enum[] values = Enum.GetValues(EditedType).Cast<Enum>().ToArray();
+			Enum[] values = this.GetValue().Select(o => o is Enum ? (Enum)o : null).ToArray();
 			IEnumerable<Enum> valuesNotNull = values.Where(o => o != null);
 
 			// Apply values to editors
