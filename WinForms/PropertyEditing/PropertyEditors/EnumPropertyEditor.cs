@@ -150,7 +150,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			if (this.IsUpdating) return;
 			if (this.Disposed) return;
 
-			this.val = (Enum)Enum.Parse(this.EditedType, this.stringSelector.SelectedObject.ToString());
+			object selection = this.stringSelector.SelectedObject;
+			if (selection == null) return;
+
+			this.val = (Enum)Enum.Parse(this.EditedType, selection.ToString());
 			this.Invalidate();
 			this.PerformSetValue();
 			this.PerformGetValue();
