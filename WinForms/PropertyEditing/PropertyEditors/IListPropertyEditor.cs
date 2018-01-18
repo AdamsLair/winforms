@@ -12,6 +12,19 @@ using AdamsLair.WinForms.PropertyEditing.Templates;
 
 namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
+	// TODO: add index as part of these event args?
+	public class IListModifiedEventArgs : EventArgs
+	{
+		public IList List { get; }
+		public IList<object> Items { get; }
+
+		public IListModifiedEventArgs(IList list, IList<object> items)
+		{
+			List = list;
+			Items = items;
+		}
+	}
+
 	public class IListPropertyEditor : GroupedPropertyEditor
 	{
 		public delegate void IndexValueSetter(PropertyInfo indexer, IEnumerable<object> targetObjects, IEnumerable<object> values, int index);
@@ -28,7 +41,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private	int						offset			= 0;
 		private	int						internalEditors	= 0;
 		private	IndexValueSetter		listIndexSetter	= null;
-		
+
+		public event EventHandler<IListModifiedEventArgs> ItemsAdded = null;
+		public event EventHandler<IListModifiedEventArgs> ItemsRemoved = null;
+
 		public override object DisplayedValue
 		{
 			get { return this.GetValue(); }
@@ -63,6 +79,25 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			this.offsetEditor.Getter = this.OffsetValueGetter;
 			this.offsetEditor.Setter = this.OffsetValueSetter;
 			this.offsetEditor.ValueMutable = true;
+
+			ItemsAdded += (s, e) =>
+			{
+				Console.WriteLine($"ItemsAdded called with {e.Items.Count} items.");
+				foreach (var obj in e.Items)
+				{
+					if (obj != null)
+					Console.WriteLine($"\t{obj.ToString()}");
+				}
+			};
+			ItemsRemoved += (s, e) =>
+			{
+				Console.WriteLine($"ItemsRemoved called with {e.Items.Count} items.");
+				foreach (var obj in e.Items)
+				{
+					if (obj != null)
+						Console.WriteLine($"\t{obj.ToString()}");
+				}
+			};
 		}
 
 		public override void InitContent()
@@ -267,16 +302,60 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 					if (!target.IsFixedSize && !target.IsReadOnly)
 					{
 						// Dynamically adjust IList length
-						while (target.Count < targetSize)
-							target.Add(elementType.IsValueType ? reflectedArrayType.CreateInstanceOf() : null);
-						while (target.Count > targetSize)
-							target.RemoveAt(target.Count - 1);
+						if (target.Count < targetSize && ItemsAdded != null)
+						{
+							IList<object> modifiedItems = new List<object>(targetSize - target.Count);
+
+							while (target.Count < targetSize)
+							{
+								object added = elementType.IsValueType ? reflectedArrayType.CreateInstanceOf() : null;
+								target.Add(added);
+								modifiedItems.Add(added);
+							}
+
+							ItemsAdded(this, new IListModifiedEventArgs(target, modifiedItems));
+						}
+						if (target.Count > targetSize && ItemsRemoved != null)
+						{
+							IList<object> modifiedItems = new List<object>(target.Count - targetSize);
+
+							while (target.Count > targetSize)
+							{
+								object removed = target[target.Count - 1];
+								target.RemoveAt(target.Count - 1);
+								modifiedItems.Add(removed);
+							}
+
+							ItemsRemoved(this, new IListModifiedEventArgs(target, modifiedItems));
+						}
 					}
 					else if (target is Array)
 					{
 						// Create new array that replaces the old one
 						Array newTarget = Array.CreateInstance(reflectedArrayType, targetSize);
 						for (int i = 0; i < Math.Min(targetSize, target.Count); i++) newTarget.SetValue(target[i], i);
+
+						if (targetSize > target.Count && ItemsAdded != null)
+						{
+							IList<object> modifiedItems = new List<object>(targetSize - target.Count);
+
+							// Copy new items
+							for (int i = target.Count, j = 0; i < targetSize; i++, j++)
+								modifiedItems[j] = newTarget.GetValue(i);
+
+							ItemsAdded(this, new IListModifiedEventArgs(target, modifiedItems));
+						}
+						else if (targetSize < target.Count && ItemsRemoved != null)
+						{
+							IList<object> modifiedItems = new List<object>(target.Count - targetSize);
+
+							// Copy old items
+							for (int i = targetSize, j = 0; i < target.Count; i++, j++)
+								modifiedItems[j] = target[i];
+
+							ItemsRemoved(this, new IListModifiedEventArgs(target, modifiedItems));
+						}
+
 						targetArray[t] = newTarget;
 						writeBack = true;
 					}
