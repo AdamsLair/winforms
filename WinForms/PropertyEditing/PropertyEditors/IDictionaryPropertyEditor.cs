@@ -12,6 +12,20 @@ using AdamsLair.WinForms.PropertyEditing.Templates;
 
 namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
+	public class IDictionaryModifiedEventArgs : EventArgs
+	{
+		public IDictionary Dict { get; }
+		public object Key { get; }
+		public object Value { get; }
+
+		public IDictionaryModifiedEventArgs(IDictionary dict, object key, object value)
+		{
+			Dict = dict;
+			Key = key;
+			Value = value;
+		}
+	}
+
 	public class IDictionaryPropertyEditor : GroupedPropertyEditor
 	{
 		public delegate void KeyValueSetter(PropertyInfo property, IEnumerable<object> targetObjects, IEnumerable<object> values, object key);
@@ -24,7 +38,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private	int						internalEditors		= 0;
 		private	KeyValueSetter			dictKeySetter		= null;
 		private	object[]				displayedKeys		= null;
-		
+
+		public event EventHandler<IDictionaryModifiedEventArgs> ItemAdded = null;
+		public event EventHandler<IDictionaryModifiedEventArgs> ItemRemoved = null;
+
 		public override object DisplayedValue
 		{
 			get { return this.GetValue(); }
@@ -404,7 +421,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 						if (!target.Contains(key))
 						{
 							// Add a new key value pair
-							target.Add(key, valueType.IsValueType ? reflectedValueType.CreateInstanceOf() : null);
+							object addedValue = valueType.IsValueType ? reflectedValueType.CreateInstanceOf() : null;
+							target.Add(key, addedValue);
+
+							if (ItemAdded != null)
+								ItemAdded(this, new IDictionaryModifiedEventArgs(target, key, addedValue));
 						}
 					}
 					else
@@ -428,7 +449,11 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 					{
 						if (target.Contains(key))
 						{
+							object removedValue = target[key];
 							target.Remove(key);
+
+							if (ItemRemoved != null)
+								ItemRemoved(this, new IDictionaryModifiedEventArgs(target, key, removedValue));
 						}
 					}
 					else
