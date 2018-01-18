@@ -160,7 +160,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				// IList
 				else if (typeof(System.Collections.IList).IsAssignableFrom(baseType))
 					e = new IListPropertyEditor();
-				// IList
+				// IDictionary
 				else if (typeof(System.Collections.IDictionary).IsAssignableFrom(baseType))
 					e = new IDictionaryPropertyEditor();
 				// Unknown data type
