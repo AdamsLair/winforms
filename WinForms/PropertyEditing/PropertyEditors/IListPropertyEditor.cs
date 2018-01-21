@@ -12,22 +12,10 @@ using AdamsLair.WinForms.PropertyEditing.Templates;
 
 namespace AdamsLair.WinForms.PropertyEditing.Editors
 {
-	// TODO: add index as part of these event args?
-	public class IListModifiedEventArgs : EventArgs
-	{
-		public IList List { get; }
-		public IList<object> Items { get; }
-
-		public IListModifiedEventArgs(IList list, IList<object> items)
-		{
-			List = list;
-			Items = items;
-		}
-	}
-
 	public class IListPropertyEditor : GroupedPropertyEditor
 	{
 		public delegate void IndexValueSetter(PropertyInfo indexer, IEnumerable<object> targetObjects, IEnumerable<object> values, int index);
+		public delegate bool IListResizer(IList<IList> targetLists, int size, Type elementType);
 
 		// To avoid memory problems from entering insane size values, we need some kind of limit.
 		// In the context of this specific PropertyEditor, it makes sense to have a rather low
@@ -41,9 +29,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private	int						offset			= 0;
 		private	int						internalEditors	= 0;
 		private	IndexValueSetter		listIndexSetter	= null;
-
-		public event EventHandler<IListModifiedEventArgs> ItemsAdded = null;
-		public event EventHandler<IListModifiedEventArgs> ItemsRemoved = null;
+		private IListResizer			listResizer		= null;
 
 		public override object DisplayedValue
 		{
@@ -59,11 +45,22 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			}
 		}
 
+		public IListResizer ListResizer
+		{
+			get { return this.listResizer; }
+			set
+			{
+				if (value == null) value = DefaultListResizer;
+				this.listResizer = value;
+			}
+		}
+
 		public IListPropertyEditor()
 		{
 			this.Hints |= HintFlags.HasButton | HintFlags.ButtonEnabled;
 
 			this.listIndexSetter = DefaultPropertySetter;
+			this.listResizer = DefaultListResizer;
 
 			this.sizeEditor = new NumericPropertyEditor();
 			this.sizeEditor.EditedType = typeof(int);
@@ -79,25 +76,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			this.offsetEditor.Getter = this.OffsetValueGetter;
 			this.offsetEditor.Setter = this.OffsetValueSetter;
 			this.offsetEditor.ValueMutable = true;
-
-			ItemsAdded += (s, e) =>
-			{
-				Console.WriteLine($"ItemsAdded called with {e.Items.Count} items.");
-				foreach (var obj in e.Items)
-				{
-					if (obj != null)
-					Console.WriteLine($"\t{obj.ToString()}");
-				}
-			};
-			ItemsRemoved += (s, e) =>
-			{
-				Console.WriteLine($"ItemsRemoved called with {e.Items.Count} items.");
-				foreach (var obj in e.Items)
-				{
-					if (obj != null)
-						Console.WriteLine($"\t{obj.ToString()}");
-				}
-			};
 		}
 
 		public override void InitContent()
@@ -284,89 +262,21 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected void SizeValueSetter(IEnumerable<object> values)
 		{
 			IEnumerator<object> valuesEnum = values.GetEnumerator();
-			IList[] targetArray = this.GetValue().Cast<IList>().ToArray();
+			IList<IList> targetLists = this.GetValue().Cast<IList>().ToList();
 			Type elementType = GetIListElementType(this.EditedType);
-			Type reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, targetArray.Select(a => GetIListElementType(a.GetType())));
 
-			bool writeBack = false;
-			int targetSize = 0;
-			if (valuesEnum.MoveNext()) targetSize = (int)valuesEnum.Current;
-			for (int t = 0; t < targetArray.Length; t++)
+			int maxSize = 0;
+			while (valuesEnum.MoveNext())
 			{
-				IList target = targetArray[t];
-				if (target != null)
-				{
-					// Make sure the target size is within reasonable bounds
-					targetSize = Math.Min(Math.Max(targetSize, 0), Math.Max(target.Count, MaxAllowedListSize));
-
-					if (!target.IsFixedSize && !target.IsReadOnly)
-					{
-						// Dynamically adjust IList length
-						if (target.Count < targetSize && ItemsAdded != null)
-						{
-							IList<object> modifiedItems = new List<object>(targetSize - target.Count);
-
-							while (target.Count < targetSize)
-							{
-								object added = elementType.IsValueType ? reflectedArrayType.CreateInstanceOf() : null;
-								target.Add(added);
-								modifiedItems.Add(added);
-							}
-
-							ItemsAdded(this, new IListModifiedEventArgs(target, modifiedItems));
-						}
-						if (target.Count > targetSize && ItemsRemoved != null)
-						{
-							IList<object> modifiedItems = new List<object>(target.Count - targetSize);
-
-							while (target.Count > targetSize)
-							{
-								object removed = target[target.Count - 1];
-								target.RemoveAt(target.Count - 1);
-								modifiedItems.Add(removed);
-							}
-
-							ItemsRemoved(this, new IListModifiedEventArgs(target, modifiedItems));
-						}
-					}
-					else if (target is Array)
-					{
-						// Create new array that replaces the old one
-						Array newTarget = Array.CreateInstance(reflectedArrayType, targetSize);
-						for (int i = 0; i < Math.Min(targetSize, target.Count); i++) newTarget.SetValue(target[i], i);
-
-						if (targetSize > target.Count && ItemsAdded != null)
-						{
-							IList<object> modifiedItems = new List<object>(targetSize - target.Count);
-
-							// Copy new items
-							for (int i = target.Count, j = 0; i < targetSize; i++, j++)
-								modifiedItems[j] = newTarget.GetValue(i);
-
-							ItemsAdded(this, new IListModifiedEventArgs(target, modifiedItems));
-						}
-						else if (targetSize < target.Count && ItemsRemoved != null)
-						{
-							IList<object> modifiedItems = new List<object>(target.Count - targetSize);
-
-							// Copy old items
-							for (int i = targetSize, j = 0; i < target.Count; i++, j++)
-								modifiedItems[j] = target[i];
-
-							ItemsRemoved(this, new IListModifiedEventArgs(target, modifiedItems));
-						}
-
-						targetArray[t] = newTarget;
-						writeBack = true;
-					}
-					else
-					{
-						// Just some read-only container? Well, can't do anything here.
-					}
-				}
-				if (valuesEnum.MoveNext()) targetSize = (int)valuesEnum.Current;
+				int cur = (int) valuesEnum.Current;
+				if (cur > maxSize) maxSize = cur;
 			}
-			if (writeBack || this.ForceWriteBack) this.SetValues(targetArray);
+
+			if (maxSize > MaxAllowedListSize) maxSize = MaxAllowedListSize;
+
+			bool writeBack = this.listResizer(targetLists, maxSize, elementType);
+
+			if (writeBack || this.ForceWriteBack) this.SetValues(targetLists);
 			this.PerformGetValue();
 		}
 		protected IEnumerable<object> OffsetValueGetter()
@@ -467,6 +377,42 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				if (target != null) property.SetValue(target, curValue, new object[] { index });
 				if (valuesEnum.MoveNext()) curValue = valuesEnum.Current;
 			}
+		}
+		protected static bool DefaultListResizer(IList<IList> targetLists, int size, Type elementType)
+		{
+			bool writeback = false;
+			Type reflectedArrayType = null;
+
+			for (int i = 0; i < targetLists.Count; i++)
+			{
+				IList target = targetLists[i];
+				if (!target.IsFixedSize && !target.IsReadOnly)
+				{
+					while (target.Count < size)
+					{
+						object added = elementType.IsValueType ? elementType.CreateInstanceOf() : null;
+						target.Add(added);
+					}
+					while (target.Count > size)
+						target.RemoveAt(target.Count - 1);
+				}
+				else if (target is Array)
+				{
+					if (reflectedArrayType == null)
+						reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, targetLists.Select(a => GetIListElementType(a.GetType())));
+
+					Array newTarget = Array.CreateInstance(reflectedArrayType, size);
+					for (int j = 0; j < Math.Min(size, target.Count); j++) newTarget.SetValue(target[j], j);
+					targetLists[i] = newTarget;
+					writeback = true;
+				}
+				else
+				{
+					// a read only container we can't do anything about
+				}
+			}
+
+			return writeback;
 		}
 	}
 }
