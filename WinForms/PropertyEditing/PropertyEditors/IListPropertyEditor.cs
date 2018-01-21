@@ -264,6 +264,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			IEnumerator<object> valuesEnum = values.GetEnumerator();
 			IList<IList> targetLists = this.GetValue().Cast<IList>().ToList();
 			Type elementType = GetIListElementType(this.EditedType);
+			Type reflectedElementType = PropertyEditor.ReflectDynamicType(elementType, targetLists.Select(a => GetIListElementType(a.GetType())));
 
 			int maxSize = 0;
 			while (valuesEnum.MoveNext())
@@ -274,7 +275,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 
 			if (maxSize > MaxAllowedListSize) maxSize = MaxAllowedListSize;
 
-			bool writeBack = this.listResizer(targetLists, maxSize, elementType);
+			bool writeBack = this.listResizer(targetLists, maxSize, reflectedElementType);
 
 			if (writeBack || this.ForceWriteBack) this.SetValues(targetLists);
 			this.PerformGetValue();
@@ -381,7 +382,6 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		protected static bool DefaultListResizer(IList<IList> targetLists, int size, Type elementType)
 		{
 			bool writeback = false;
-			Type reflectedArrayType = null;
 
 			for (int i = 0; i < targetLists.Count; i++)
 			{
@@ -398,10 +398,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				}
 				else if (target is Array)
 				{
-					if (reflectedArrayType == null)
-						reflectedArrayType = PropertyEditor.ReflectDynamicType(elementType, targetLists.Select(a => GetIListElementType(a.GetType())));
-
-					Array newTarget = Array.CreateInstance(reflectedArrayType, size);
+					Array newTarget = Array.CreateInstance(elementType, size);
 					for (int j = 0; j < Math.Min(size, target.Count); j++) newTarget.SetValue(target[j], j);
 					targetLists[i] = newTarget;
 					writeback = true;
