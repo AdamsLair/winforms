@@ -264,7 +264,8 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			IEnumerator<object> valuesEnum = values.GetEnumerator();
 			IList<IList> targetLists = this.GetValue().Cast<IList>().ToList();
 			Type elementType = GetIListElementType(this.EditedType);
-			Type reflectedElementType = PropertyEditor.ReflectDynamicType(elementType, targetLists.Select(a => GetIListElementType(a.GetType())));
+			IEnumerable<Type> targetListElementTypes = targetLists.Where(list => list != null).Select(a => GetIListElementType(a.GetType()));
+			Type reflectedElementType = PropertyEditor.ReflectDynamicType(elementType, targetListElementTypes);
 
 			int maxSize = 0;
 			while (valuesEnum.MoveNext())
@@ -386,6 +387,7 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			for (int i = 0; i < targetLists.Count; i++)
 			{
 				IList target = targetLists[i];
+				if (target == null) continue;
 				if (!target.IsFixedSize && !target.IsReadOnly)
 				{
 					while (target.Count < size)
