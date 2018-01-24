@@ -15,6 +15,8 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 	public class IDictionaryPropertyEditor : GroupedPropertyEditor
 	{
 		public delegate void KeyValueSetter(PropertyInfo property, IEnumerable<object> targetObjects, IEnumerable<object> values, object key);
+		public delegate void KeyAdder(IEnumerable<IDictionary> targetDictionaries, object key, Type valueType);
+		public delegate void KeyRemover(IEnumerable<IDictionary> targetDictionaries, object key);
 
 		private	bool					buttonIsCreate		= false;
 		private	PropertyEditor			addKeyEditor		= null;
@@ -23,8 +25,10 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 		private	int						offset				= 0;
 		private	int						internalEditors		= 0;
 		private	KeyValueSetter			dictKeySetter		= null;
+		private KeyAdder				dictKeyAdder		= null;
+		private KeyRemover				dictKeyRemover		= null;
 		private	object[]				displayedKeys		= null;
-		
+
 		public override object DisplayedValue
 		{
 			get { return this.GetValue(); }
@@ -38,11 +42,31 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 				this.dictKeySetter = value;
 			}
 		}
+		public KeyAdder DictionKeyAdder
+		{
+			get { return this.dictKeyAdder; }
+			set
+			{
+				if (value == null) value = DefaultKeyAdder;
+				this.dictKeyAdder = value;
+			}
+		}
+		public KeyRemover DictionKeyRemover
+		{
+			get { return this.dictKeyRemover; }
+			set
+			{
+				if (value == null) value = DefaultKeyRemover;
+				this.dictKeyRemover = value;
+			}
+		}
 
 		public IDictionaryPropertyEditor()
 		{
 			this.Hints |= HintFlags.HasButton | HintFlags.ButtonEnabled;
 			this.dictKeySetter = DefaultPropertySetter;
+			this.dictKeyAdder = DefaultKeyAdder;
+			this.dictKeyRemover = DefaultKeyRemover;
 
 			this.offsetEditor = new NumericPropertyEditor();
 			this.offsetEditor.EditedType = typeof(int);
@@ -394,49 +418,13 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			Type valueType = GetIDictionaryValueType(this.EditedType);
 			Type reflectedValueType = PropertyEditor.ReflectDynamicType(valueType, targetArray.Select(a => GetIDictionaryValueType(a.GetType())));
 
-			for (int t = 0; t < targetArray.Length; t++)
-			{
-				IDictionary target = targetArray[t];
-				if (target != null)
-				{
-					if (!target.IsFixedSize && !target.IsReadOnly)
-					{
-						if (!target.Contains(key))
-						{
-							// Add a new key value pair
-							target.Add(key, valueType.IsValueType ? reflectedValueType.CreateInstanceOf() : null);
-						}
-					}
-					else
-					{
-						// Just some read-only container? Well, can't do anything here.
-					}
-				}
-			}
+			this.dictKeyAdder(targetArray, key, reflectedValueType);
 		}
 		private void RemoveKeyFromDictionary(object key)
 		{
 			IDictionary[] targetArray = this.GetValue().Cast<IDictionary>().Where(v => v != null).ToArray();
-			Type valueType = GetIDictionaryValueType(this.EditedType);
 
-			for (int t = 0; t < targetArray.Length; t++)
-			{
-				IDictionary target = targetArray[t];
-				if (target != null)
-				{
-					if (!target.IsFixedSize && !target.IsReadOnly)
-					{
-						if (target.Contains(key))
-						{
-							target.Remove(key);
-						}
-					}
-					else
-					{
-						// Just some read-only container? Well, can't do anything here.
-					}
-				}
-			}
+			this.dictKeyRemover(targetArray, key);
 		}
 		
 		protected static Type GetIDictionaryValueType(Type dictType)
@@ -469,6 +457,48 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			{
 				if (target != null) property.SetValue(target, curValue, new object[] {key});
 				if (valuesEnum.MoveNext()) curValue = valuesEnum.Current;
+			}
+		}
+		protected static void DefaultKeyAdder(IEnumerable<IDictionary> targetDictionaries, object key, Type valueType)
+		{
+			foreach (IDictionary target in targetDictionaries)
+			{
+				if (target != null)
+				{
+					if (!target.IsFixedSize && !target.IsReadOnly)
+					{
+						if (!target.Contains(key))
+						{
+							// Add a new key value pair
+							object addedValue = valueType.IsValueType ? valueType.CreateInstanceOf() : null;
+							target.Add(key, addedValue);
+						}
+					}
+					else
+					{
+						// Just some read-only container? Well, can't do anything here.
+					}
+				}
+			}
+		}
+		protected static void DefaultKeyRemover(IEnumerable<IDictionary> targetDictionaries, object key)
+		{
+			foreach (IDictionary target in targetDictionaries)
+			{
+				if (target != null)
+				{
+					if (!target.IsFixedSize && !target.IsReadOnly)
+					{
+						if (target.Contains(key))
+						{
+							target.Remove(key);
+						}
+					}
+					else
+					{
+						// Just some read-only container? Well, can't do anything here.
+					}
+				}
 			}
 		}
 	}
