@@ -228,7 +228,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
 		public event EventHandler<PropertyEditorValueEventArgs>	ValueChanged	= null;
-		public event EventHandler<PropertyEditorEventArgs>		ExpandedChanged = null;
 
 
 		public IEnumerable<object> Selection
@@ -481,15 +480,6 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		public virtual void ConfigureEditor(PropertyEditor editor, object configureData = null)
 		{
-			if (editor is GroupedPropertyEditor)
-			{
-				GroupedPropertyEditor groupedEditor = editor as GroupedPropertyEditor;
-				groupedEditor.ExpandedChanged += (s, e) =>
-				{
-					if (this.ExpandedChanged != null)
-						this.ExpandedChanged(this, new PropertyEditorEventArgs(editor));
-				};
-			}
 			editor.ConfigureEditor(configureData);
 		}
 		public virtual object CreateObjectInstance(Type objectType)
