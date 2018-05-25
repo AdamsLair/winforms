@@ -7,7 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
 using System.Reflection;
-
+using System.Xml.Linq;
 using AdamsLair.WinForms.PropertyEditing.Editors;
 using AdamsLair.WinForms.Drawing;
 using AdamsLair.WinForms.NativeWinAPI;
@@ -87,6 +87,18 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (child.Expanded && dontCollapse) continue;
 				child.Expanded = this.IsEditorExpanded(child);
 			}
+		}
+		public void SaveToXml(XElement node)
+		{
+			string expandedString = string.Concat(this.expandedNodes.Select(s => s + ","));
+			node.SetElementValue("ExpandedNodes", expandedString);
+		}
+		public void LoadFromXml(XElement node)
+		{
+			XElement expandedElement = node.Element("ExpandedNodes");
+			this.expandedNodes = expandedElement != null
+				? new HashSet<string>(expandedElement.Value.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries))
+				: new HashSet<string>();
 		}
 
 		private static string GetEditorId(PropertyEditor editor)
@@ -216,6 +228,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 
 		public event EventHandler<PropertyEditorValueEventArgs>	EditingFinished = null;
 		public event EventHandler<PropertyEditorValueEventArgs>	ValueChanged	= null;
+		public event EventHandler<PropertyEditorEventArgs>		ExpandedChanged = null;
 
 
 		public IEnumerable<object> Selection
@@ -468,6 +481,15 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		public virtual void ConfigureEditor(PropertyEditor editor, object configureData = null)
 		{
+			if (editor is GroupedPropertyEditor)
+			{
+				GroupedPropertyEditor groupedEditor = editor as GroupedPropertyEditor;
+				groupedEditor.ExpandedChanged += (s, e) =>
+				{
+					if (this.ExpandedChanged != null)
+						this.ExpandedChanged(this, new PropertyEditorEventArgs(editor));
+				};
+			}
 			editor.ConfigureEditor(configureData);
 		}
 		public virtual object CreateObjectInstance(Type objectType)

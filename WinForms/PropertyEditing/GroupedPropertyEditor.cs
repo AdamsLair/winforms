@@ -46,6 +46,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 		public event EventHandler<PropertyEditorEventArgs>	EditorAdded;
 		public event EventHandler<PropertyEditorEventArgs>	EditorRemoving;
 		public event EventHandler							ActiveChanged;
+		public event EventHandler							ExpandedChanged;
 		
 
 		public bool Expanded
@@ -56,6 +57,7 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (this.expanded != value)
 				{
 					this.expanded = value;
+					if (this.ExpandedChanged != null) ExpandedChanged(this, EventArgs.Empty);
 					if (this.ParentGrid != null)
 					{
 						this.Invalidate();
