@@ -8,6 +8,7 @@ using System.Drawing.Drawing2D;
 using System.ComponentModel;
 using System.Reflection;
 using System.Xml.Linq;
+
 using AdamsLair.WinForms.PropertyEditing.Editors;
 using AdamsLair.WinForms.Drawing;
 using AdamsLair.WinForms.NativeWinAPI;
