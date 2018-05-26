@@ -91,14 +91,13 @@ namespace AdamsLair.WinForms.PropertyEditing
 		}
 		public void SaveToXml(XElement node)
 		{
-			string expandedString = string.Concat(this.expandedNodes.Select(s => s + ","));
-			node.SetElementValue("ExpandedNodes", expandedString);
+			node.Add(new XElement("ExpandedNodes", this.expandedNodes.Select(n => new XElement("NodeID", n))));
 		}
 		public void LoadFromXml(XElement node)
 		{
 			XElement expandedElement = node.Element("ExpandedNodes");
 			this.expandedNodes = expandedElement != null
-				? new HashSet<string>(expandedElement.Value.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries))
+				? new HashSet<string>(expandedElement.Elements("NodeID").Select(elem => elem.Value))
 				: new HashSet<string>();
 		}
 
