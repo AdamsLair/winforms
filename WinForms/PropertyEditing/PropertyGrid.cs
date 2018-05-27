@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
 using System.Reflection;
+using System.Xml.Linq;
 
 using AdamsLair.WinForms.PropertyEditing.Editors;
 using AdamsLair.WinForms.Drawing;
@@ -87,6 +88,17 @@ namespace AdamsLair.WinForms.PropertyEditing
 				if (child.Expanded && dontCollapse) continue;
 				child.Expanded = this.IsEditorExpanded(child);
 			}
+		}
+		public void SaveToXml(XElement node)
+		{
+			node.Add(new XElement("ExpandedNodes", this.expandedNodes.Select(n => new XElement("NodeID", n))));
+		}
+		public void LoadFromXml(XElement node)
+		{
+			XElement expandedElement = node.Element("ExpandedNodes");
+			this.expandedNodes = expandedElement != null
+				? new HashSet<string>(expandedElement.Elements("NodeID").Select(elem => elem.Value))
+				: new HashSet<string>();
 		}
 
 		private static string GetEditorId(PropertyEditor editor)
