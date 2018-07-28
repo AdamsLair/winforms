@@ -392,6 +392,25 @@ namespace AdamsLair.WinForms.PropertyEditing.Editors
 			this.PerformGetValue();
 		}
 
+		protected internal override void OnKeyDown(KeyEventArgs e)
+		{
+			base.OnKeyDown(e);
+			if ((this.Hints & HintFlags.HasButton) != HintFlags.None &&
+				(this.Hints & HintFlags.ButtonEnabled) != HintFlags.None)
+			{
+				if (!this.buttonIsCreate && e.KeyCode == Keys.Delete)
+				{
+					this.OnButtonPressed();
+					e.Handled = true;
+				}
+				else if (this.buttonIsCreate && e.KeyCode == Keys.Return)
+				{
+					this.OnButtonPressed();
+					e.Handled = true;
+				}
+			}
+		}
+
 		private void elementEditor_ButtonPressed(object sender, EventArgs e)
 		{
 			PropertyEditor elementEditor = sender as PropertyEditor;

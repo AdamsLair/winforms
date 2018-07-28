@@ -859,8 +859,9 @@ namespace AdamsLair.WinForms.PropertyEditing
 						this.ParentEditor is GroupedPropertyEditor && 
 						(this.ParentEditor as GroupedPropertyEditor).UseIndentChildExpand)
 						this.ParentEditor.Invalidate();
+
+					e.Handled = true;
 				}
-				e.Handled = true;
 			}
 		}
 

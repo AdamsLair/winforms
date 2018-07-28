@@ -431,15 +431,19 @@ namespace AdamsLair.WinForms.PropertyEditing
 		protected internal override void OnKeyDown(KeyEventArgs e)
 		{
 			base.OnKeyDown(e);
-			if (!this.buttonIsCreate && e.KeyCode == Keys.Delete)
+			if ((this.Hints & HintFlags.HasButton) != HintFlags.None &&
+				(this.Hints & HintFlags.ButtonEnabled) != HintFlags.None)
 			{
-				this.OnButtonPressed();
-				e.Handled = true;
-			}
-			else if (this.buttonIsCreate && e.KeyCode == Keys.Return)
-			{
-				this.OnButtonPressed();
-				e.Handled = true;
+				if (!this.buttonIsCreate && e.KeyCode == Keys.Delete)
+				{
+					this.OnButtonPressed();
+					e.Handled = true;
+				}
+				else if (this.buttonIsCreate && e.KeyCode == Keys.Return)
+				{
+					this.OnButtonPressed();
+					e.Handled = true;
+				}
 			}
 		}
 
