@@ -1,6 +1,5 @@
-:: search for msbuild and make it available
-set bb.build.msbuild.exe=
-for /D %%D in (%SYSTEMROOT%\Microsoft.NET\Framework\v4*) do set msbuildPath=%%D
+:: search for msbuild make it available
+set msbuildPath=%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\
 set PATH=%PATH%;%msbuildPath%
 
 :: make sure we have a clean release build
@@ -13,7 +12,7 @@ del *.nupkg
 .nuget\nuget pack WinForms\AdamsLair.WinForms.csproj -Properties Configuration=Release;Platform=AnyCPU
 
 :: upload the nuget packages
-.nuget\nuget push *.nupkg -Source "https://nuget.org"
+.nuget\nuget push *.nupkg -Source "https://www.nuget.org"
 
 :: remove nupkg files after uploading them
 del *.nupkg
