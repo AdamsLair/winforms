@@ -3,14 +3,17 @@
   <metadata>
     <id>AdamsLair.WinForms</id>
     <version>$version$</version>
-	<authors>Fedja Adam</authors>
-	<owners>Fedja Adam</owners>
+    <authors>Fedja Adam</authors>
+    <owners>Fedja Adam</owners>
     <title>AdamsLair.WinForms</title>
     <projectUrl>https://github.com/AdamsLair/winforms</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-	<summary>A collection of custom Controls for Windows.Forms</summary>
+    <summary>A collection of custom Controls for Windows.Forms</summary>
     <description>A collection of custom Controls for Windows.Forms</description>
-	<tags>Windows.Forms WinForms Controls Timeline PropertyGrid ColorPicker</tags>
+    <tags>Windows.Forms WinForms Controls Timeline PropertyGrid ColorPicker</tags>
+    <dependencies>
+      <dependency id="AdamsLair.WinForms.PopupControl" version="1.0.1" />
+    </dependencies>
   </metadata>
   <files>
     <file src="bin\Release\AdamsLair.WinForms.dll" target="lib" />
