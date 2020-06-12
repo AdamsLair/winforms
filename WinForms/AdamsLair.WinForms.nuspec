@@ -3,8 +3,8 @@
   <metadata>
     <id>AdamsLair.WinForms</id>
     <version>$version$</version>
-    <authors>Fedja Adam</authors>
-    <owners>Fedja Adam</owners>
+    <authors>Adam</authors>
+    <owners>Adam</owners>
     <title>AdamsLair.WinForms</title>
     <projectUrl>https://github.com/AdamsLair/winforms</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
